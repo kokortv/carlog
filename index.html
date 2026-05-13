@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0f1e">
-<meta name="description" content="CarLog — личный автомобильный журнал">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CarLog">
@@ -14,13 +13,11 @@
 <style>
 :root{
   --bg:#0a0f1e;--sf:#111827;--sf2:#1a2235;--sf3:#222d42;
-  --bd:rgba(255,255,255,0.07);--bd2:rgba(255,255,255,0.13);
+  --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
   --tx:#f0f4ff;--tx2:#8892a4;--tx3:#3d4a5e;
   --ac:#3b82f6;--ac2:#60a5fa;
-  --gn:#10b981;--gn2:#34d399;
-  --am:#f59e0b;--am2:#fbbf24;
-  --rd:#ef4444;--rd2:#f87171;
-  --pu:#8b5cf6;--pu2:#a78bfa;
+  --gn2:#34d399;--am:#f59e0b;--am2:#fbbf24;
+  --rd2:#f87171;--pu:#8b5cf6;
   --r:14px;--rs:8px;--rl:20px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -31,51 +28,45 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 .main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .pp{padding:0 0 28px}
 
-/* OFFLINE */
-.ofbar{background:rgba(245,158,11,.1);border-bottom:1px solid rgba(245,158,11,.2);color:var(--am2);font-size:12px;font-weight:500;text-align:center;padding:6px 16px;display:none}
+.ofbar{background:rgba(245,158,11,.1);border-bottom:1px solid rgba(245,158,11,.2);color:var(--am2);font-size:12px;font-weight:500;text-align:center;padding:6px 16px;display:none;flex-shrink:0}
 .ofbar.on{display:block}
 
-/* HEADER */
-.hdr{position:sticky;top:0;z-index:100;background:rgba(10,15,30,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:13px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.hdr{position:sticky;top:0;z-index:100;background:rgba(10,15,30,.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:13px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:15px}
 .hdr h1{font-size:18px;font-weight:700;letter-spacing:-.3px}
 .ha{margin-left:auto;display:flex;gap:6px}
 .ib{width:32px;height:32px;border-radius:8px;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s}
 .ib:hover{background:var(--sf3);color:var(--tx)}
 
-/* SYNC BAR */
 .sbar{display:flex;align-items:center;gap:7px;padding:6px 16px;font-size:12px;font-weight:500;max-height:0;opacity:0;overflow:hidden;transition:all .3s;flex-shrink:0}
 .sbar.show{max-height:34px;opacity:1}
 .sbar.syncing{background:rgba(59,130,246,.07);color:var(--ac2)}
-.sbar.pending{background:rgba(245,158,11,.07);color:var(--am2)}
 .sbar.ok{background:rgba(16,185,129,.07);color:var(--gn2)}
 .sbar.error{background:rgba(239,68,68,.07);color:var(--rd2)}
+.sbar.pending{background:rgba(245,158,11,.07);color:var(--am2)}
 .sdot{width:6px;height:6px;border-radius:50%;background:currentColor}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .sbar.syncing .sdot{animation:pulse 1s infinite}
 
-/* BOTTOM NAV */
-.bnav{background:rgba(17,24,39,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bd);display:flex;padding:5px 0 max(5px,env(safe-area-inset-bottom));flex-shrink:0}
-.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;cursor:pointer;transition:all .2s;color:var(--tx3);background:none;border:none;font-family:inherit}
+.bnav{background:rgba(17,24,39,.97);backdrop-filter:blur(20px);border-top:1px solid var(--bd);display:flex;padding:5px 0 max(5px,env(safe-area-inset-bottom));flex-shrink:0}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;cursor:pointer;color:var(--tx3);background:none;border:none;font-family:inherit;transition:color .2s}
 .ni.active{color:var(--ac2)}
-.ni-icon{font-size:19px;transition:transform .2s}
-.ni.active .ni-icon{transform:translateY(-2px)}
+.ni-ic{font-size:19px;transition:transform .2s}
+.ni.active .ni-ic{transform:translateY(-2px)}
 .ni span{font-size:10px;font-weight:500;letter-spacing:.3px}
 
-/* SCREENS */
-.scr{display:none;animation:fi .25s ease}
+.scr{display:none;animation:fi .22s ease}
 .scr.active{display:block}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-/* HERO */
 .hero{background:linear-gradient(135deg,#0d1d3e,#190f3c);padding:18px 16px;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(59,130,246,.11),transparent 70%);border-radius:50%}
+.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(59,130,246,.1),transparent 70%);border-radius:50%}
 .csel{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;cursor:pointer;transition:all .2s;position:relative;z-index:1}
 .csel:hover{background:rgba(255,255,255,.08)}
 .cav{width:50px;height:25px;flex-shrink:0;display:flex;align-items:center}
 .ci{flex:1;min-width:0}
 .cn{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cs{font-size:11px;color:var(--tx2);margin-top:2px}
+.cs2{font-size:11px;color:var(--tx2);margin-top:2px}
 .srow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;position:relative;z-index:1}
 .sc{background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:var(--rs);padding:10px}
 .sl{font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
@@ -83,13 +74,11 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 .su{font-size:10px;color:var(--tx2)}
 .sv-b{color:var(--ac2)}.sv-a{color:var(--am2)}.sv-g{color:var(--gn2)}
 
-/* SECTION */
 .sec{padding:16px 16px 0}
 .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
 .st{font-size:10px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.9px}
 .sa{font-size:12px;color:var(--ac2);cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
 
-/* CARDS */
 .card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
 .crow{display:flex;align-items:center;gap:10px;padding:12px 14px;transition:background .15s}
 .crow:hover{background:rgba(255,255,255,.02)}
@@ -98,7 +87,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 .rif{background:rgba(245,158,11,.12)}.ris{background:rgba(59,130,246,.12)}
 .rb{flex:1;min-width:0}
 .rt{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rs{font-size:11px;color:var(--tx2);margin-top:2px}
+.rs2{font-size:11px;color:var(--tx2);margin-top:2px}
 .rr{text-align:right;flex-shrink:0}
 .ra{font-family:'Syne',sans-serif;font-weight:600;font-size:13px}
 .raf{color:var(--am2)}.ras{color:var(--ac2)}
@@ -106,85 +95,76 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 .bf{background:rgba(245,158,11,.12);color:var(--am2)}.bs{background:rgba(59,130,246,.12);color:var(--ac2)}
 .pbadge{display:inline-flex;align-items:center;gap:3px;background:rgba(245,158,11,.12);color:var(--am2);border-radius:5px;padding:1px 5px;font-size:9px;font-weight:600;margin-left:4px}
 
-/* FAB */
 .fab{position:fixed;bottom:80px;right:16px;z-index:99;width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--ac),var(--pu));border:none;color:white;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(59,130,246,.32);transition:all .2s}
 .fab:hover{transform:scale(1.05)}.fab:active{transform:scale(.96)}
 
-/* MODAL */
 .mo{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center}
 .mo.open{display:flex}
-.mdl{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--rl) var(--rl) 0 0;width:100%;max-width:600px;max-height:93vh;overflow-y:auto;animation:su .3s cubic-bezier(.34,1.56,.64,1)}
-@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mdl{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--rl) var(--rl) 0 0;width:100%;max-width:600px;max-height:93vh;overflow-y:auto;animation:su2 .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes su2{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .mh{width:32px;height:3px;border-radius:2px;background:var(--bd2);margin:9px auto 0}
 .mhdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0}
-.mt{font-family:'Syne',sans-serif;font-weight:700;font-size:17px}
-.mc{width:28px;height:28px;border-radius:7px;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.mt2{font-family:'Syne',sans-serif;font-weight:700;font-size:17px}
+.mc2{width:28px;height:28px;border-radius:7px;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
 .mb{padding:14px 16px 24px}
 
-/* FORM */
 .fg{margin-bottom:13px}
 .fl{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block}
-.fi,.fs,.fta{width:100%;padding:10px 12px;background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color .2s;outline:none;-webkit-appearance:none;appearance:none}
-.fi:focus,.fs:focus,.fta:focus{border-color:var(--ac);background:var(--sf3)}
+.fi,.fs{width:100%;padding:10px 12px;background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color .2s;outline:none;-webkit-appearance:none;appearance:none}
+.fi:focus,.fs:focus{border-color:var(--ac);background:var(--sf3)}
 .fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%238892a4' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;cursor:pointer}
 .fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{width:100%;padding:12px;border-radius:var(--rs);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
 .bp{background:linear-gradient(135deg,var(--ac),var(--pu));color:white}
 .bp:hover{opacity:.9;transform:translateY(-1px)}.bp:active{transform:translateY(0)}
-.bd2{background:rgba(239,68,68,.11);color:var(--rd2);border:1px solid rgba(239,68,68,.18);margin-top:7px}
-.bg{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd);margin-top:7px}
+.bd3{background:rgba(239,68,68,.11);color:var(--rd2);border:1px solid rgba(239,68,68,.18);margin-top:7px}
+.bg2{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd);margin-top:7px}
 
-/* TABS */
 .tabs{display:flex;background:var(--sf2);border-radius:var(--rs);padding:3px;margin-bottom:12px}
 .tb{flex:1;padding:6px 4px;border-radius:6px;border:none;background:none;color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s}
 .tb.active{background:var(--sf3);color:var(--tx)}
 
-/* CHART */
 .chbox{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:13px;margin-bottom:10px}
-.chtitle{font-size:11px;color:var(--tx2);margin-bottom:9px;font-weight:500}
+.chtit{font-size:11px;color:var(--tx2);margin-bottom:9px;font-weight:500}
 .chbars{display:flex;gap:5px;align-items:flex-end;height:68px}
 .cbw{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
-.cb{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--am),rgba(245,158,11,.3));transition:height .5s cubic-bezier(.34,1.56,.64,1)}
+.cb{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--am),rgba(245,158,11,.3))}
 .cbl{font-size:9px;color:var(--tx3)}.cbv{font-size:9px;color:var(--tx2);font-weight:500}
 
-/* CONSUMPTION */
 .ccard{background:linear-gradient(135deg,rgba(245,158,11,.07),rgba(239,68,68,.04));border:1px solid rgba(245,158,11,.17);border-radius:var(--r);padding:13px;margin-bottom:10px;display:flex;gap:13px;align-items:stretch}
 .cbig{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--am2);line-height:1}
 .cunit{font-size:12px;color:var(--tx2);margin-top:2px}
 .cstats{flex:1;border-left:1px solid rgba(255,255,255,.07);padding-left:13px;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
 .csr{font-size:11px}.csl{color:var(--tx2)}.csv{font-weight:500}
 
-/* SETTINGS */
 .setc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:13px;margin-bottom:11px}
-.settitle{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:11px;display:flex;align-items:center;justify-content:space-between}
+.settit{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:11px;display:flex;align-items:center;justify-content:space-between}
 .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600}
 .pok{background:rgba(16,185,129,.12);color:var(--gn2)}.pno{background:rgba(239,68,68,.12);color:var(--rd2)}.pwarn{background:rgba(245,158,11,.12);color:var(--am2)}
 .hint{font-size:11px;color:var(--tx2);margin-top:5px;line-height:1.7}
-.hint code{background:var(--sf2);padding:1px 4px;border-radius:3px;font-family:monospace}
+.hint code{background:var(--sf2);padding:1px 4px;border-radius:3px;font-family:monospace;font-size:10px}
 
-/* EMPTY */
 .empty{text-align:center;padding:36px 16px}
 .ei{font-size:36px;margin-bottom:9px;opacity:.3}
-.etitle{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px}
+.etit{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px}
 .esub{font-size:12px;color:var(--tx2);line-height:1.6}
 
-/* TOAST */
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--sf3);border:1px solid var(--bd2);border-radius:11px;padding:9px 16px;font-size:12px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:all .3s;display:flex;align-items:center;gap:6px}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--sf3);border:1px solid var(--bd2);border-radius:11px;padding:9px 16px;font-size:12px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:all .3s}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* CAR COLORS */
 .cpr{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
 .csw{width:26px;height:26px;border-radius:50%;cursor:pointer;transition:transform .2s;border:2px solid transparent;flex-shrink:0}
 .csw:hover{transform:scale(1.18)}.csw.sel{border-color:white;transform:scale(1.1)}
 .cprev{display:flex;justify-content:center;padding:12px;background:var(--sf2);border-radius:var(--rs);border:1px solid var(--bd);margin:10px 0 5px}
 
-/* GUIDE CODE */
-.codebox{background:var(--sf2);border-radius:8px;padding:10px;margin:7px 0;font-family:monospace;font-size:10.5px;color:var(--tx2);white-space:pre-wrap;border:1px solid var(--bd);line-height:1.7;overflow-x:auto}
+.codebox{background:var(--sf2);border-radius:8px;padding:10px;margin:7px 0;font-family:monospace;font-size:10px;color:var(--tx2);white-space:pre;border:1px solid var(--bd);line-height:1.7;overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.script-url-display{background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:9px 12px;font-size:11px;font-family:monospace;color:var(--tx2);word-break:break-all;margin-bottom:8px}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="ofbar" id="ofbar">📡 Офлайн — данные сохраняются локально и синхронизируются при подключении</div>
+  <div class="ofbar" id="ofbar">📡 Офлайн — данные сохраняются и синхронизируются при подключении</div>
 
   <div class="main">
 
@@ -194,15 +174,14 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <div class="logo">🚗</div><h1>CarLog</h1>
         <div class="ha">
           <button class="ib" onclick="openCarModal()" title="Добавить авто">＋</button>
-          <button class="ib" onclick="goScreen('settings')" title="Настройки">⚙</button>
+          <button class="ib" onclick="goScr('settings')" title="Настройки">⚙</button>
         </div>
       </div>
-      <div class="sbar" id="sbar"><div class="sdot"></div><span id="smsg">...</span></div>
+      <div class="sbar" id="sbar"><div class="sdot"></div><span id="smsg"></span></div>
 
       <div id="no-car" style="display:none">
-        <div class="empty" style="padding-top:56px">
-          <div class="ei">🚗</div>
-          <div class="etitle">Нет автомобилей</div>
+        <div class="empty" style="padding-top:60px">
+          <div class="ei">🚗</div><div class="etit">Нет автомобилей</div>
           <div class="esub">Добавьте первый автомобиль</div><br>
           <button class="btn bp" style="max-width:190px;margin:0 auto" onclick="openCarModal()">+ Добавить авто</button>
         </div>
@@ -212,10 +191,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <div class="hero">
           <div class="csel" onclick="openModal('m-carlist')">
             <div class="cav" id="d-av"></div>
-            <div class="ci">
-              <div class="cn" id="d-name">—</div>
-              <div class="cs" id="d-sub">—</div>
-            </div>
+            <div class="ci"><div class="cn" id="d-nm">—</div><div class="cs2" id="d-sub">—</div></div>
             <div style="color:var(--tx3);font-size:17px">⌄</div>
           </div>
           <div class="srow">
@@ -226,7 +202,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         </div>
         <div class="sec">
           <div id="d-chart"></div>
-          <div class="sh"><span class="st">Последние записи</span><button class="sa" onclick="goScreen('history')">Все →</button></div>
+          <div class="sh"><span class="st">Последние записи</span><button class="sa" onclick="goScr('history')">Все →</button></div>
           <div id="d-recent"></div>
         </div>
       </div>
@@ -270,26 +246,39 @@ h1,h2,h3{font-family:'Syne',sans-serif}
     <div class="scr" id="scr-settings">
       <div class="hdr"><div class="logo">⚙</div><h1>Настройки</h1></div>
       <div class="sec pp">
+
         <div class="setc">
-          <div class="settitle">
-            Google Sheets (Apps Script)
-            <span class="pill pno" id="shpill">● Не подключено</span>
+          <div class="settit">
+            Google Sheets <span class="pill pno" id="shpill">● Не подключено</span>
           </div>
-          <div class="fg">
-            <label class="fl">URL веб-приложения</label>
-            <input class="fi" id="surl" placeholder="https://script.google.com/macros/s/.../exec">
-            <div class="hint">Разверните Apps Script как веб-приложение и вставьте URL.<br>
-              <button class="sa" onclick="openModal('m-guide')">Как настроить →</button></div>
+
+          <!-- Если URL уже вшит — показываем статус, не форму -->
+          <div id="url-hardcoded" style="display:none">
+            <div class="hint" style="margin-bottom:8px">URL синхронизации вшит в приложение:</div>
+            <div class="script-url-display" id="url-display"></div>
+            <button class="btn bp" onclick="testConnection()">🔄 Проверить подключение</button>
           </div>
-          <button class="btn bp" onclick="connectScript()">🔗 Подключить и проверить</button>
+
+          <!-- Форма ввода URL (если не вшит) -->
+          <div id="url-form">
+            <div class="fg">
+              <label class="fl">URL веб-приложения Apps Script</label>
+              <input class="fi" id="surl" placeholder="https://script.google.com/macros/s/.../exec">
+              <div class="hint">Разверните скрипт как веб-приложение и вставьте URL.<br>
+                <button class="sa" onclick="openModal('m-guide')">Как настроить →</button>
+              </div>
+            </div>
+            <button class="btn bp" onclick="saveUrl()">💾 Сохранить и подключить</button>
+          </div>
+
           <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">
-            ⏳ Ожидает синхронизации: <b id="pcnt">0</b> записей
+            ⏳ Ожидает отправки: <b id="pcnt">0</b> записей
+            <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">🔄 Отправить сейчас</button>
           </div>
-          <button class="btn bg" id="btn-sync" onclick="syncNow()" style="display:none">🔄 Синхронизировать сейчас</button>
         </div>
 
         <div class="setc">
-          <div class="settitle">Валюта по умолчанию</div>
+          <div class="settit">Валюта по умолчанию</div>
           <div class="tabs">
             <button class="tb active" id="c-GEL" onclick="setCurr('GEL',this)">₾ Лари</button>
             <button class="tb" id="c-USD" onclick="setCurr('USD',this)">$ Доллар</button>
@@ -298,30 +287,31 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         </div>
 
         <div class="setc">
-          <div class="settitle">Данные</div>
-          <button class="btn bg" onclick="exportJ()">📤 Экспорт JSON</button>
-          <button class="btn bd2" onclick="clearAll()">🗑 Очистить всё</button>
+          <div class="settit">Данные</div>
+          <button class="btn bg2" onclick="exportJ()">📤 Экспорт JSON</button>
+          <button class="btn bd3" onclick="clearAll()">🗑 Очистить всё</button>
         </div>
-        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v2.0 · PWA · Офлайн-режим</div>
+
+        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.0 · PWA · Офлайн-режим</div>
       </div>
     </div>
 
   </div><!-- /main -->
 
   <nav class="bnav">
-    <button class="ni active" onclick="goScreen('dashboard')"><span class="ni-icon">🏠</span><span>Главная</span></button>
-    <button class="ni" onclick="goScreen('fuel')"><span class="ni-icon">⛽</span><span>Заправки</span></button>
-    <button class="ni" onclick="goScreen('service')"><span class="ni-icon">🔧</span><span>Сервис</span></button>
-    <button class="ni" onclick="goScreen('history')"><span class="ni-icon">📋</span><span>История</span></button>
-    <button class="ni" onclick="goScreen('settings')"><span class="ni-icon">⚙</span><span>Настройки</span></button>
+    <button class="ni active" onclick="goScr('dashboard')"><span class="ni-ic">🏠</span><span>Главная</span></button>
+    <button class="ni" onclick="goScr('fuel')"><span class="ni-ic">⛽</span><span>Заправки</span></button>
+    <button class="ni" onclick="goScr('service')"><span class="ni-ic">🔧</span><span>Сервис</span></button>
+    <button class="ni" onclick="goScr('history')"><span class="ni-ic">📋</span><span>История</span></button>
+    <button class="ni" onclick="goScr('settings')"><span class="ni-ic">⚙</span><span>Настройки</span></button>
   </nav>
 </div>
 
-<!-- ============ ADD/EDIT CAR ============ -->
+<!-- ============ ADD / EDIT CAR ============ -->
 <div class="mo" id="m-car">
   <div class="mdl">
     <div class="mh"></div>
-    <div class="mhdr"><div class="mt" id="car-mtitle">Добавить авто</div><button class="mc" onclick="closeModal('m-car')">✕</button></div>
+    <div class="mhdr"><div class="mt2" id="car-mt">Добавить авто</div><button class="mc2" onclick="closeModal('m-car')">✕</button></div>
     <div class="mb">
       <input type="hidden" id="car-eid">
       <div class="fr2">
@@ -338,19 +328,21 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <div class="cpr" id="cswatches"></div>
         <input type="hidden" id="c-color" value="#e74c3c">
       </div>
-      <div class="cprev"><svg id="cpreview" viewBox="0 0 120 60" width="150" height="75" xmlns="http://www.w3.org/2000/svg">
-        <rect x="8" y="28" width="104" height="22" rx="5" fill="#e74c3c" id="cp-body"/>
-        <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="#c0392b" id="cp-roof"/>
-        <path d="M68 28 Q78 14 88 28Z" fill="rgba(150,220,255,.5)"/>
-        <path d="M32 28 Q42 14 52 28Z" fill="rgba(150,220,255,.5)"/>
-        <path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(150,220,255,.5)"/>
-        <circle cx="30" cy="50" r="9" fill="#1a1a2e"/><circle cx="30" cy="50" r="5" fill="#444"/>
-        <circle cx="90" cy="50" r="9" fill="#1a1a2e"/><circle cx="90" cy="50" r="5" fill="#444"/>
-        <rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,240,150,.85)"/>
-        <rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,100,80,.85)"/>
-      </svg></div>
+      <div class="cprev">
+        <svg id="cpreview" viewBox="0 0 120 60" width="150" height="75" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="28" width="104" height="22" rx="5" fill="#e74c3c" id="cp-body"/>
+          <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="#c0392b" id="cp-roof"/>
+          <path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/>
+          <path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/>
+          <path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/>
+          <circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/>
+          <circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/>
+          <rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/>
+          <rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/>
+        </svg>
+      </div>
       <button class="btn bp" onclick="saveCar()">✅ Сохранить</button>
-      <button class="btn bd2" id="del-car-btn" style="display:none" onclick="deleteCar()">🗑 Удалить автомобиль</button>
+      <button class="btn bd3" id="del-car-btn" style="display:none" onclick="deleteCar()">🗑 Удалить автомобиль</button>
     </div>
   </div>
 </div>
@@ -359,10 +351,10 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 <div class="mo" id="m-carlist">
   <div class="mdl">
     <div class="mh"></div>
-    <div class="mhdr"><div class="mt">Мои автомобили</div><button class="mc" onclick="closeModal('m-carlist')">✕</button></div>
+    <div class="mhdr"><div class="mt2">Мои автомобили</div><button class="mc2" onclick="closeModal('m-carlist')">✕</button></div>
     <div class="mb">
       <div id="carlist"></div>
-      <button class="btn bg" onclick="closeModal('m-carlist');openCarModal()">＋ Добавить автомобиль</button>
+      <button class="btn bg2" onclick="closeModal('m-carlist');openCarModal()">＋ Добавить автомобиль</button>
     </div>
   </div>
 </div>
@@ -371,16 +363,20 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 <div class="mo" id="m-fuel">
   <div class="mdl">
     <div class="mh"></div>
-    <div class="mhdr"><div class="mt">⛽ Заправка</div><button class="mc" onclick="closeModal('m-fuel')">✕</button></div>
+    <div class="mhdr"><div class="mt2">⛽ Заправка</div><button class="mc2" onclick="closeModal('m-fuel')">✕</button></div>
     <div class="mb">
       <div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div>
       <div class="fr2">
         <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="f-km" type="number" placeholder="52000" min="0"></div>
-        <div class="fg"><label class="fl">Литры</label><input class="fi" id="f-lit" type="number" placeholder="40" min="0" step="0.1" oninput="calcFuel()"></div>
+        <div class="fg"><label class="fl">Литры</label><input class="fi" id="f-lit" type="number" placeholder="40" min="0" step="0.1" oninput="calcF()"></div>
       </div>
       <div class="fr2">
-        <div class="fg"><label class="fl">Цена за литр</label><input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.01" oninput="calcFuel()"></div>
-        <div class="fg"><label class="fl">Валюта</label><select class="fs" id="f-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option></select></div>
+        <div class="fg"><label class="fl">Цена за литр</label><input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.01" oninput="calcF()"></div>
+        <div class="fg"><label class="fl">Валюта</label>
+          <select class="fs" id="f-curr">
+            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option>
+          </select>
+        </div>
       </div>
       <div class="fg"><label class="fl">Итого</label><input class="fi" id="f-total" type="number" placeholder="116.00" step="0.01"></div>
       <div class="fg"><label class="fl">АЗС / Заметка</label><input class="fi" id="f-note" placeholder="Lukoil, полный бак"></div>
@@ -393,7 +389,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 <div class="mo" id="m-svc">
   <div class="mdl">
     <div class="mh"></div>
-    <div class="mhdr"><div class="mt">🔧 Обслуживание</div><button class="mc" onclick="closeModal('m-svc')">✕</button></div>
+    <div class="mhdr"><div class="mt2">🔧 Обслуживание</div><button class="mc2" onclick="closeModal('m-svc')">✕</button></div>
     <div class="mb">
       <div class="fg"><label class="fl">Дата</label><input class="fi" id="s-date" type="date"></div>
       <div class="fg"><label class="fl">Вид работ</label>
@@ -414,7 +410,11 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="s-km" type="number" placeholder="52000" min="0"></div>
       <div class="fr2">
         <div class="fg"><label class="fl">Стоимость</label><input class="fi" id="s-cost" type="number" placeholder="120.00" step="0.01"></div>
-        <div class="fg"><label class="fl">Валюта</label><select class="fs" id="s-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option></select></div>
+        <div class="fg"><label class="fl">Валюта</label>
+          <select class="fs" id="s-curr">
+            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option>
+          </select>
+        </div>
       </div>
       <div class="fg"><label class="fl">СТО / Заметка</label><input class="fi" id="s-note" placeholder="Автосервис Авто+"></div>
       <button class="btn bp" onclick="saveSvc()">✅ Сохранить запись</button>
@@ -426,90 +426,110 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 <div class="mo" id="m-guide">
   <div class="mdl">
     <div class="mh"></div>
-    <div class="mhdr"><div class="mt">📖 Настройка Apps Script</div><button class="mc" onclick="closeModal('m-guide')">✕</button></div>
-    <div class="mb" style="font-size:12px;line-height:1.8;color:var(--tx2)">
-      <b style="color:var(--tx)">1. Создайте Google Таблицу</b><br>
-      Перейдите на <a href="https://sheets.google.com" target="_blank" style="color:var(--ac2)">sheets.google.com</a> и создайте новую таблицу.<br>Скопируйте ID из URL: <code>/spreadsheets/d/<b style="color:var(--ac2)">ВАШ_ID</b>/edit</code><br><br>
+    <div class="mhdr"><div class="mt2">📖 Настройка Apps Script</div><button class="mc2" onclick="closeModal('m-guide')">✕</button></div>
+    <div class="mb" style="font-size:12px;line-height:1.85;color:var(--tx2)">
 
-      <b style="color:var(--tx)">2. Откройте Apps Script</b><br>
-      В таблице: <b style="color:var(--tx)">Расширения → Apps Script</b><br><br>
+      <b style="color:var(--tx)">Шаг 1. Создайте Google Таблицу</b><br>
+      Откройте <a href="https://sheets.google.com" target="_blank" style="color:var(--ac2)">sheets.google.com</a> и создайте новую таблицу. Листы создадутся автоматически.<br><br>
 
-      <b style="color:var(--tx)">3. Вставьте этот код</b><br>
-      Замените <code>ВАШ_ID</code> на ID вашей таблицы:
-      <div class="codebox">const SHEET_ID = "ВАШ_ID_ТАБЛИЦЫ";
+      <b style="color:var(--tx)">Шаг 2. Apps Script</b><br>
+      В таблице: <b style="color:var(--tx)">Расширения → Apps Script</b><br>
+      Удалите всё и вставьте код ниже, заменив <code>ВАШ_ID</code>:
+
+      <div class="codebox">const SPREADSHEET_ID = "ВАШ_ID_ТАБЛИЦЫ";
+// ID находится в URL таблицы:
+// docs.google.com/spreadsheets/d/ВАШ_ID/edit
 
 function doPost(e) {
   try {
     const d = JSON.parse(e.postData.contents);
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-    const sh = ss.getSheetByName(d.sheet)
-                || ss.insertSheet(d.sheet);
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    // Инициализация — создаём листы с заголовками
+    if (d.action === "init") {
+      setupSheets(ss);
+      return respond({ok: true, msg: "Sheets ready"});
+    }
+
+    // Получаем нужный лист
+    const sheet = ss.getSheetByName(d.sheet);
+    if (!sheet) return respond({ok:false, msg:"Sheet not found: "+d.sheet});
 
     if (d.action === "append") {
-      sh.appendRow(d.row);
+      sheet.appendRow(d.row);
 
     } else if (d.action === "update") {
-      const rows = sh.getDataRange().getValues();
-      for (let i = 1; i < rows.length; i++) {
-        if (String(rows[i][0]) === String(d.id)) {
-          d.row.forEach((v, j) =>
-            sh.getRange(i + 1, j + 1).setValue(v));
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][0]) === String(d.id)) {
+          d.row.forEach((val, col) =>
+            sheet.getRange(i + 1, col + 1).setValue(val)
+          );
           break;
         }
       }
     } else if (d.action === "delete") {
-      const rows = sh.getDataRange().getValues();
-      for (let i = 1; i < rows.length; i++) {
-        if (String(rows[i][0]) === String(d.id)) {
-          sh.deleteRow(i + 1); break;
+      const data = sheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][0]) === String(d.id)) {
+          sheet.deleteRow(i + 1);
+          break;
         }
       }
-    } else if (d.action === "init") {
-      initHeaders(ss);
     }
 
-    return ok();
+    return respond({ok: true});
   } catch(err) {
-    return ContentService
-      .createTextOutput(
-        JSON.stringify({ok:false,e:err.message}))
-      .setMimeType(ContentService.MimeType.JSON);
+    return respond({ok: false, msg: err.message});
   }
 }
 
-function initHeaders(ss) {
-  const cfg = {
-    Cars:    ["ID","Brand","Model","Year",
-              "Mileage","VIN","Color","CreatedAt"],
-    Fuel:    ["ID","CarID","Date","Mileage",
-              "Liters","PricePerLiter","Currency",
-              "Total","Note","CreatedAt"],
-    Service: ["ID","CarID","Date","ServiceType",
-              "Mileage","Cost","Currency",
-              "Note","CreatedAt"]
+function setupSheets(ss) {
+  const config = {
+    "Cars": [
+      "ID","Brand","Model","Year",
+      "Mileage","VIN","Color","CreatedAt"
+    ],
+    "Fuel": [
+      "ID","CarID","Date","Mileage","Liters",
+      "PricePerLiter","Currency","Total","Note","CreatedAt"
+    ],
+    "Service": [
+      "ID","CarID","Date","ServiceType",
+      "Mileage","Cost","Currency","Note","CreatedAt"
+    ]
   };
-  for (const [name, hdrs] of Object.entries(cfg)) {
-    let s = ss.getSheetByName(name);
-    if (!s) { s = ss.insertSheet(name); s.appendRow(hdrs); }
-    else if (s.getLastRow() === 0) s.appendRow(hdrs);
+  for (const [name, headers] of Object.entries(config)) {
+    let sheet = ss.getSheetByName(name);
+    if (!sheet) {
+      sheet = ss.insertSheet(name);
+      sheet.appendRow(headers);
+      // Форматирование заголовков
+      sheet.getRange(1, 1, 1, headers.length)
+           .setFontWeight("bold")
+           .setBackground("#1a73e8")
+           .setFontColor("#ffffff");
+    }
   }
 }
 
-function ok() {
+function respond(data) {
   return ContentService
-    .createTextOutput(JSON.stringify({ok:true}))
+    .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }</div>
 
-      <b style="color:var(--tx)">4. Разверните как веб-приложение</b><br>
+      <b style="color:var(--tx)">Шаг 3. Разверните</b><br>
       Нажмите <b style="color:var(--tx)">Развернуть → Новое развёртывание</b><br>
       • Тип: <b style="color:var(--tx)">Веб-приложение</b><br>
       • Выполнять как: <b style="color:var(--tx)">Я</b><br>
       • Доступ: <b style="color:var(--tx)">Все</b><br>
-      Скопируйте URL и вставьте в настройки CarLog.<br><br>
+      Скопируйте URL и вставьте в поле выше.<br><br>
 
-      <b style="color:var(--tx)">⚠ Важно</b><br>
-      При каждом изменении кода нужно создавать <b style="color:var(--tx)">новое</b> развёртывание (не обновлять существующее), иначе URL не обновится.
+      <b style="color:var(--tx)">Шаг 4. Вшейте URL в приложение</b><br>
+      После сохранения URL в настройках он запоминается на этом устройстве. Чтобы он работал на всех устройствах сразу — откройте <code>index.html</code>, найдите строку:<br>
+      <code>const HARDCODED_SCRIPT_URL = "";</code><br>
+      и вставьте свой URL между кавычками. Тогда вводить URL не нужно ни на одном устройстве.
     </div>
   </div>
 </div>
@@ -517,93 +537,154 @@ function ok() {
 <div class="toast" id="toast"></div>
 
 <script>
-// =====================================================
+// ═══════════════════════════════════════════════
+// 🔧 ВСТАВЬТЕ ВАШЕ URL СЮДА — тогда вводить его
+//    не нужно будет ни на одном устройстве
+// ═══════════════════════════════════════════════
+const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxKEoDjNWki2MeIMm7AVJXYVj9PaeaKOA-7tvWZfI0Ae31fGLFi83FH7AyVi_rWkrg0/exec";
+// Пример: const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/ABC.../exec";
+
+// ═══════════════════════════════════════════════
 // STATE
-// =====================================================
-let S = { cars:[], fuels:[], services:[], activeCar:null, currency:'GEL', scriptUrl:'', queue:[] };
-const CUR = {GEL:'₾', USD:'$', RUB:'₽'};
+// ═══════════════════════════════════════════════
+const CUR = {GEL:"₾", USD:"$", RUB:"₽"};
 const COLORS = [
-  '#e74c3c','#c0392b','#e67e22','#f39c12','#f1c40f',
-  '#2ecc71','#27ae60','#1abc9c','#3498db','#2980b9',
-  '#9b59b6','#8e44ad','#e91e63','#607d8b','#ecf0f1'
+  "#e74c3c","#c0392b","#e67e22","#f39c12","#f1c40f",
+  "#2ecc71","#27ae60","#1abc9c","#3498db","#2980b9",
+  "#9b59b6","#8e44ad","#e91e63","#607d8b","#bdc3c7"
 ];
 
-// =====================================================
+let S = {
+  cars: [], fuels: [], services: [],
+  activeCar: null, currency: "GEL",
+  scriptUrl: "", queue: []
+};
+
+// ═══════════════════════════════════════════════
 // INIT
-// =====================================================
+// ═══════════════════════════════════════════════
 function init() {
   loadS();
+  // Если URL вшит — используем его и перекрываем сохранённый
+  if (HARDCODED_SCRIPT_URL) {
+    S.scriptUrl = HARDCODED_SCRIPT_URL;
+    // Не сохраняем в localStorage чтобы всегда брать из кода
+  }
   buildSwatches();
   setDates();
   updateOffline();
   renderDash();
   applySettings();
   updatePendingUI();
-  window.addEventListener('online', () => { updateOffline(); showToast('🌐 Онлайн'); syncNow(); });
-  window.addEventListener('offline', () => { updateOffline(); showToast('📡 Офлайн — сохраняем локально'); });
+  window.addEventListener("online", () => {
+    updateOffline();
+    showToast("🌐 Онлайн — синхронизируем данные");
+    syncNow();
+  });
+  window.addEventListener("offline", () => {
+    updateOffline();
+    showToast("📡 Офлайн — сохраняем локально");
+  });
+  // Синхронизируем очередь при старте если онлайн
+  if (navigator.onLine && S.scriptUrl && S.queue.length > 0) {
+    setTimeout(syncNow, 1500);
+  }
 }
 
 function loadS() {
-  try { const r=localStorage.getItem('cl2'); if(r) S={...S,...JSON.parse(r)}; if(!S.queue)S.queue=[]; } catch(e){}
+  try {
+    const raw = localStorage.getItem("cl3");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      S = { ...S, ...parsed };
+    }
+    if (!Array.isArray(S.queue)) S.queue = [];
+    if (!Array.isArray(S.cars)) S.cars = [];
+    if (!Array.isArray(S.fuels)) S.fuels = [];
+    if (!Array.isArray(S.services)) S.services = [];
+  } catch(e) { console.warn("loadS error:", e); }
 }
-function saveS() { try{localStorage.setItem('cl2',JSON.stringify(S));}catch(e){} }
-function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+
+function saveS() {
+  try {
+    // Если URL вшит — не сохраняем его в localStorage
+    const toSave = { ...S };
+    if (HARDCODED_SCRIPT_URL) delete toSave.scriptUrl;
+    localStorage.setItem("cl3", JSON.stringify(toSave));
+  } catch(e) { console.warn("saveS error:", e); }
+}
+
+const g = id => document.getElementById(id);
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
 function now() { return new Date().toISOString(); }
+
 function setDates() {
-  const t=new Date().toISOString().split('T')[0];
-  ['f-date','s-date'].forEach(id=>{const e=g(id);if(e)e.value=t;});
+  const t = new Date().toISOString().split("T")[0];
+  ["f-date","s-date"].forEach(id => { const e = g(id); if (e) e.value = t; });
 }
-function g(id){return document.getElementById(id)}
-function updateOffline(){g('ofbar').classList.toggle('on',!navigator.onLine)}
 
-// =====================================================
+function updateOffline() {
+  g("ofbar").classList.toggle("on", !navigator.onLine);
+}
+
+// ═══════════════════════════════════════════════
 // NAVIGATION
-// =====================================================
-function goScreen(name) {
-  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
-  g('scr-'+name).classList.add('active');
-  const idx=['dashboard','fuel','service','history','settings'].indexOf(name);
-  if(idx>=0) document.querySelectorAll('.ni')[idx].classList.add('active');
-  if(name==='fuel') renderFuel();
-  if(name==='service') renderSvc();
-  if(name==='history') renderHist('all');
-  if(name==='dashboard') renderDash();
+// ═══════════════════════════════════════════════
+function goScr(name) {
+  document.querySelectorAll(".scr").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll(".ni").forEach(n => n.classList.remove("active"));
+  g("scr-" + name).classList.add("active");
+  const idx = ["dashboard","fuel","service","history","settings"].indexOf(name);
+  if (idx >= 0) document.querySelectorAll(".ni")[idx].classList.add("active");
+  // Всегда перерисовываем экран при переходе
+  if (name === "fuel")     renderFuel();
+  if (name === "service")  renderSvc();
+  if (name === "history")  renderHist("all");
+  if (name === "dashboard") renderDash();
+  if (name === "settings") applySettings();
 }
 
-function openModal(id){g(id).classList.add('open');setDates();if(id==='m-carlist')renderCarList();}
-function closeModal(id){g(id).classList.remove('open');}
-document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+function openModal(id) {
+  g(id).classList.add("open");
+  setDates();
+  if (id === "m-carlist") renderCarList();
+}
+function closeModal(id) { g(id).classList.remove("open"); }
+document.querySelectorAll(".mo").forEach(m =>
+  m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); })
+);
 
-// =====================================================
+// ═══════════════════════════════════════════════
 // COLOR PICKER
-// =====================================================
-function buildSwatches() {
-  g('cswatches').innerHTML = COLORS.map(c=>
-    `<div class="csw${c==='#e74c3c'?' sel':''}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`
-  ).join('');
+// ═══════════════════════════════════════════════
+function buildSwatches(selected="#e74c3c") {
+  g("cswatches").innerHTML = COLORS.map(c =>
+    `<div class="csw${c===selected?" sel":""}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`
+  ).join("");
 }
 
 function pickColor(c, el) {
-  document.querySelectorAll('.csw').forEach(s=>s.classList.remove('sel'));
-  el.classList.add('sel');
-  g('c-color').value=c;
+  document.querySelectorAll(".csw").forEach(s => s.classList.remove("sel"));
+  el.classList.add("sel");
+  g("c-color").value = c;
   previewCar(c);
 }
 
 function previewCar(c) {
-  g('cp-body').setAttribute('fill',c);
-  g('cp-roof').setAttribute('fill',darken(c,20));
+  g("cp-body").setAttribute("fill", c);
+  g("cp-roof").setAttribute("fill", darken(c, 25));
 }
 
-function darken(hex,amt) {
-  let r=parseInt(hex.slice(1,3),16),g2=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
-  r=Math.max(0,r-amt); g2=Math.max(0,g2-amt); b=Math.max(0,b-amt);
-  return '#'+[r,g2,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+function darken(hex, amt) {
+  const n = parseInt(hex.replace("#",""),16);
+  const r = Math.max(0, (n>>16) - amt);
+  const g2 = Math.max(0, ((n>>8)&0xff) - amt);
+  const b = Math.max(0, (n&0xff) - amt);
+  return "#" + [r,g2,b].map(v => v.toString(16).padStart(2,"0")).join("");
 }
 
-function carSVG(color,w=50,h=25) {
-  const roof=darken(color,20);
+function carSVG(color, w=50, h=25) {
+  const roof = darken(color, 25);
   return `<svg viewBox="0 0 120 60" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
     <rect x="8" y="28" width="104" height="22" rx="5" fill="${color}"/>
     <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="${roof}"/>
@@ -617,371 +698,549 @@ function carSVG(color,w=50,h=25) {
   </svg>`;
 }
 
-// =====================================================
-// CARS CRUD
-// =====================================================
+// ═══════════════════════════════════════════════
+// CARS
+// ═══════════════════════════════════════════════
 function openCarModal(carId=null) {
-  const car = carId ? S.cars.find(c=>c.id===carId) : null;
-  g('car-mtitle').textContent = car ? 'Редактировать авто' : 'Добавить авто';
-  g('car-eid').value = car?.id||'';
-  g('c-brand').value = car?.brand||'';
-  g('c-model').value = car?.model||'';
-  g('c-year').value = car?.year||'';
-  g('c-km').value = car?.mileage||'';
-  g('c-vin').value = car?.vin||'';
-  g('del-car-btn').style.display = car ? 'flex':'none';
-
-  const col = car?.color||'#e74c3c';
-  g('c-color').value = col;
-  // rebuild swatches with correct selection
-  g('cswatches').innerHTML = COLORS.map(c=>
-    `<div class="csw${c===col?' sel':''}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`
-  ).join('');
+  const car = carId ? S.cars.find(c => c.id===carId) : null;
+  g("car-mt").textContent = car ? "Редактировать авто" : "Добавить авто";
+  g("car-eid").value = car?.id || "";
+  g("c-brand").value = car?.brand || "";
+  g("c-model").value = car?.model || "";
+  g("c-year").value  = car?.year  || "";
+  g("c-km").value    = car?.mileage || "";
+  g("c-vin").value   = car?.vin   || "";
+  g("del-car-btn").style.display = car ? "flex" : "none";
+  const col = car?.color || "#e74c3c";
+  g("c-color").value = col;
+  buildSwatches(col);
   previewCar(col);
-  openModal('m-car');
+  openModal("m-car");
 }
 
 function saveCar() {
-  const brand=(g('c-brand').value||'').trim();
-  const model=(g('c-model').value||'').trim();
-  const year=(g('c-year').value||'').trim();
-  const mileage=parseInt(g('c-km').value)||0;
-  const vin=(g('c-vin').value||'').trim().toUpperCase();
-  const color=g('c-color').value||'#e74c3c';
-  if(!brand||!model){showToast('⚠ Укажите марку и модель');return;}
+  const brand   = (g("c-brand").value || "").trim();
+  const model   = (g("c-model").value || "").trim();
+  const year    = (g("c-year").value  || "").trim();
+  const mileage = parseInt(g("c-km").value) || 0;
+  const vin     = (g("c-vin").value   || "").trim().toUpperCase();
+  const color   = g("c-color").value || "#e74c3c";
+  if (!brand || !model) { showToast("⚠ Укажите марку и модель"); return; }
 
-  const eid=g('car-eid').value;
-  if(eid) {
-    const car=S.cars.find(c=>c.id===eid);
-    if(car){
-      Object.assign(car,{brand,model,year,mileage,vin,color});
+  const eid = g("car-eid").value;
+  if (eid) {
+    // РЕДАКТИРОВАНИЕ
+    const car = S.cars.find(c => c.id===eid);
+    if (car) {
+      Object.assign(car, {brand, model, year, mileage, vin, color});
       saveS();
-      qSync({action:'update',sheet:'Cars',id:eid,row:[eid,brand,model,year,mileage,vin,color,car.createdAt]});
-      showToast('✅ Авто обновлено');
+      qSync({action:"update", sheet:"Cars", id:eid,
+             row:[eid,brand,model,year,mileage,vin,color,car.createdAt]});
+      showToast("✅ Авто обновлено");
     }
   } else {
-    const car={id:uid(),brand,model,year,mileage,vin,color,createdAt:now()};
+    // ДОБАВЛЕНИЕ
+    const car = {id:uid(), brand, model, year, mileage, vin, color, createdAt:now()};
     S.cars.push(car);
-    if(!S.activeCar)S.activeCar=car.id;
+    if (!S.activeCar) S.activeCar = car.id;
     saveS();
-    qSync({action:'append',sheet:'Cars',row:[car.id,brand,model,year,mileage,vin,color,car.createdAt]});
-    showToast('✅ Автомобиль добавлен');
+    qSync({action:"append", sheet:"Cars",
+           row:[car.id,brand,model,year,mileage,vin,color,car.createdAt]});
+    showToast("✅ Автомобиль добавлен");
   }
-  closeModal('m-car');
-  closeModal('m-carlist');
+  closeModal("m-car");
+  closeModal("m-carlist");
   renderDash();
 }
 
 function deleteCar() {
-  const id=g('car-eid').value;
-  if(!id||!confirm('Удалить авто и все его записи?'))return;
-  S.cars=S.cars.filter(c=>c.id!==id);
-  S.fuels=S.fuels.filter(f=>f.carId!==id);
-  S.services=S.services.filter(s=>s.carId!==id);
-  if(S.activeCar===id)S.activeCar=S.cars[0]?.id||null;
+  const id = g("car-eid").value;
+  if (!id || !confirm("Удалить авто и все его записи?")) return;
+  S.cars     = S.cars.filter(c => c.id !== id);
+  S.fuels    = S.fuels.filter(f => f.carId !== id);
+  S.services = S.services.filter(s => s.carId !== id);
+  if (S.activeCar === id) S.activeCar = S.cars[0]?.id || null;
   saveS();
-  qSync({action:'delete',sheet:'Cars',id});
-  closeModal('m-car');
+  qSync({action:"delete", sheet:"Cars", id});
+  closeModal("m-car");
   renderDash();
-  showToast('🗑 Удалено');
+  showToast("🗑 Удалено");
 }
 
 function renderCarList() {
-  const el=g('carlist');
-  if(!S.cars.length){el.innerHTML='<div class="empty" style="padding:14px 0"><div class="esub">Нет автомобилей</div></div>';return;}
-  el.innerHTML=S.cars.map(car=>`
-    <div style="display:flex;align-items:center;gap:9px;background:var(--sf2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;border:1px solid ${car.id===S.activeCar?'var(--ac)':'var(--bd)'}">
-      <div style="flex-shrink:0">${carSVG(car.color||'#e74c3c',56,28)}</div>
+  const el = g("carlist");
+  if (!S.cars.length) {
+    el.innerHTML = `<div class="empty" style="padding:14px 0"><div class="esub">Нет автомобилей</div></div>`;
+    return;
+  }
+  el.innerHTML = S.cars.map(car => `
+    <div style="display:flex;align-items:center;gap:9px;background:var(--sf2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;border:1px solid ${car.id===S.activeCar?"var(--ac)":"var(--bd)"}">
+      <div style="flex-shrink:0">${carSVG(car.color||"#e74c3c",56,28)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;font-size:13px">${car.brand} ${car.model}</div>
-        <div style="font-size:11px;color:var(--tx2)">${car.year||''}${car.mileage?' · '+car.mileage.toLocaleString()+' км':''}${car.vin?' · '+car.vin:''}</div>
+        <div style="font-size:11px;color:var(--tx2)">${car.year||""}${car.mileage?" · "+car.mileage.toLocaleString()+" км":""}${car.vin?" · "+car.vin:""}</div>
       </div>
       <div style="display:flex;gap:5px;flex-shrink:0">
         <button onclick="selCar('${car.id}')" style="padding:5px 9px;border-radius:6px;background:var(--ac);color:white;border:none;font-size:11px;cursor:pointer">Выбрать</button>
         <button onclick="closeModal('m-carlist');openCarModal('${car.id}')" style="padding:5px 8px;border-radius:6px;background:var(--sf3);color:var(--tx2);border:1px solid var(--bd);font-size:12px;cursor:pointer">✏</button>
       </div>
-    </div>`).join('');
+    </div>`).join("");
 }
 
-function selCar(id){S.activeCar=id;saveS();closeModal('m-carlist');renderDash();showToast('🚗 Выбрано');}
-function getAC(){return S.cars.find(c=>c.id===S.activeCar)||null;}
-function updKm(km){const c=getAC();if(c&&km>c.mileage){c.mileage=km;saveS();}}
+function selCar(id) {
+  S.activeCar = id; saveS();
+  closeModal("m-carlist");
+  renderDash();
+  showToast("🚗 Выбрано");
+}
 
-// =====================================================
+function getAC() { return S.cars.find(c => c.id===S.activeCar) || null; }
+
+function updKm(km) {
+  const car = getAC();
+  if (car && km > (car.mileage||0)) { car.mileage = km; saveS(); }
+}
+
+// ═══════════════════════════════════════════════
 // FUEL
-// =====================================================
-function calcFuel(){
-  const l=parseFloat(g('f-lit').value)||0;
-  const p=parseFloat(g('f-price').value)||0;
-  if(l&&p)g('f-total').value=(l*p).toFixed(2);
+// ═══════════════════════════════════════════════
+function calcF() {
+  const l = parseFloat(g("f-lit").value)   || 0;
+  const p = parseFloat(g("f-price").value) || 0;
+  if (l && p) g("f-total").value = (l * p).toFixed(2);
 }
 
-function saveFuel(){
-  if(!S.activeCar){showToast('⚠ Выберите авто');return;}
-  const date=g('f-date').value;
-  const km=parseInt(g('f-km').value)||0;
-  const lit=parseFloat(g('f-lit').value)||0;
-  const price=parseFloat(g('f-price').value)||0;
-  const curr=g('f-curr').value;
-  const total=parseFloat(g('f-total').value)||(lit*price);
-  const note=g('f-note').value.trim();
-  if(!date||!lit){showToast('⚠ Укажите дату и литры');return;}
+function saveFuel() {
+  if (!S.activeCar) { showToast("⚠ Выберите авто"); return; }
+  const date  = g("f-date").value;
+  const km    = parseInt(g("f-km").value)    || 0;
+  const lit   = parseFloat(g("f-lit").value) || 0;
+  const price = parseFloat(g("f-price").value) || 0;
+  const curr  = g("f-curr").value;
+  const total = parseFloat(g("f-total").value) || +(lit * price).toFixed(2);
+  const note  = (g("f-note").value || "").trim();
 
-  const r={id:uid(),carId:S.activeCar,type:'fuel',date,mileage:km,liters:lit,
-           pricePerLiter:price,currency:curr,total:+total.toFixed(2),note,createdAt:now()};
-  S.fuels.push(r);
+  if (!date || !lit) { showToast("⚠ Укажите дату и литры"); return; }
+
+  const rec = {
+    id: uid(), carId: S.activeCar, type:"fuel",
+    date, mileage:km, liters:lit, pricePerLiter:price,
+    currency:curr, total:+total.toFixed(2), note, createdAt:now()
+  };
+  S.fuels.push(rec);
   updKm(km);
   saveS();
-  qSync({action:'append',sheet:'Fuel',row:[r.id,r.carId,date,km,lit,price,curr,r.total,note,r.createdAt]});
-  closeModal('m-fuel');
-  clearF(['f-km','f-lit','f-price','f-total','f-note']);
-  renderDash(); renderFuel();
-  showToast('✅ Заправка добавлена');
+  qSync({action:"append", sheet:"Fuel",
+         row:[rec.id,rec.carId,date,km,lit,price,curr,rec.total,note,rec.createdAt]});
+  closeModal("m-fuel");
+  clearF2(["f-km","f-lit","f-price","f-total","f-note"]);
+  // Обновляем все экраны где могут быть заправки
+  renderDash();
+  renderFuel();
+  showToast("✅ Заправка добавлена");
 }
 
-function calcCons(carId){
-  const fs=S.fuels.filter(x=>x.carId===carId).sort((a,b)=>a.mileage-b.mileage);
-  if(fs.length<2)return null;
-  const km=fs[fs.length-1].mileage-fs[0].mileage;
-  if(km<=0)return null;
-  const lit=fs.slice(1).reduce((s,x)=>s+x.liters,0);
-  return (lit/km*100).toFixed(1);
+function calcCons(carId) {
+  const fs = S.fuels
+    .filter(x => x.carId === carId && x.mileage > 0 && x.liters > 0)
+    .sort((a,b) => a.mileage - b.mileage);
+  if (fs.length < 2) return null;
+  const km = fs[fs.length-1].mileage - fs[0].mileage;
+  if (km <= 0) return null;
+  const liters = fs.slice(1).reduce((s,x) => s + x.liters, 0);
+  return (liters / km * 100).toFixed(1);
 }
 
-// =====================================================
+// ═══════════════════════════════════════════════
 // SERVICE
-// =====================================================
-function svcChg(){const v=g('s-type').value;g('s-cgrp').style.display=v==='_other'?'block':'none';}
+// ═══════════════════════════════════════════════
+function svcChg() {
+  g("s-cgrp").style.display = g("s-type").value === "_other" ? "block" : "none";
+}
 
-function saveSvc(){
-  if(!S.activeCar){showToast('⚠ Выберите авто');return;}
-  const date=g('s-date').value;
-  const type=g('s-type').value;
-  const custom=g('s-custom').value.trim();
-  const km=parseInt(g('s-km').value)||0;
-  const cost=parseFloat(g('s-cost').value)||0;
-  const curr=g('s-curr').value;
-  const note=g('s-note').value.trim();
-  if(!date||!type){showToast('⚠ Укажите дату и тип работ');return;}
+function saveSvc() {
+  if (!S.activeCar) { showToast("⚠ Выберите авто"); return; }
+  const date   = g("s-date").value;
+  const type   = g("s-type").value;
+  const custom = (g("s-custom").value || "").trim();
+  const km     = parseInt(g("s-km").value)   || 0;
+  const cost   = parseFloat(g("s-cost").value) || 0;
+  const curr   = g("s-curr").value;
+  const note   = (g("s-note").value || "").trim();
+  if (!date || !type) { showToast("⚠ Выберите тип работ"); return; }
 
-  const sn=type==='_other'?custom:type;
-  const r={id:uid(),carId:S.activeCar,type:'service',serviceType:sn,date,mileage:km,cost,currency:curr,note,createdAt:now()};
-  S.services.push(r);
+  const sn = type === "_other" ? custom : type;
+  const rec = {
+    id:uid(), carId:S.activeCar, type:"service",
+    serviceType:sn, date, mileage:km, cost, currency:curr, note, createdAt:now()
+  };
+  S.services.push(rec);
   updKm(km);
   saveS();
-  qSync({action:'append',sheet:'Service',row:[r.id,r.carId,date,sn,km,cost,curr,note,r.createdAt]});
-  closeModal('m-svc');
-  clearF(['s-km','s-cost','s-note','s-custom']);
-  g('s-type').value=''; g('s-cgrp').style.display='none';
-  renderDash(); renderSvc();
-  showToast('✅ Запись добавлена');
+  qSync({action:"append", sheet:"Service",
+         row:[rec.id,rec.carId,date,sn,km,cost,curr,note,rec.createdAt]});
+  closeModal("m-svc");
+  clearF2(["s-km","s-cost","s-note","s-custom"]);
+  g("s-type").value = "";
+  g("s-cgrp").style.display = "none";
+  renderDash();
+  renderSvc();
+  showToast("✅ Запись добавлена");
 }
 
-// =====================================================
+// ═══════════════════════════════════════════════
 // RENDER
-// =====================================================
-function renderDash(){
-  if(!S.cars.length){g('no-car').style.display='block';g('car-dash').style.display='none';return;}
-  g('no-car').style.display='none';g('car-dash').style.display='block';
-  const car=getAC()||S.cars[0];
-  if(!car)return;
-  if(!S.activeCar){S.activeCar=car.id;saveS();}
+// ═══════════════════════════════════════════════
+function renderDash() {
+  if (!S.cars.length) {
+    g("no-car").style.display = "block";
+    g("car-dash").style.display = "none";
+    return;
+  }
+  g("no-car").style.display = "none";
+  g("car-dash").style.display = "block";
 
-  g('d-av').innerHTML=carSVG(car.color||'#e74c3c',50,25);
-  g('d-name').textContent=`${car.brand} ${car.model}`;
-  g('d-sub').textContent=`${car.year||''}${car.vin?' · '+car.vin:''}${car.mileage?' · '+car.mileage.toLocaleString()+' км':''}`;
-  g('d-km').textContent=car.mileage?car.mileage.toLocaleString():'—';
-  g('d-con').textContent=calcCons(car.id)||'—';
+  // Если activeCar не задан или не найден — берём первый
+  if (!S.activeCar || !S.cars.find(c => c.id===S.activeCar)) {
+    S.activeCar = S.cars[0].id;
+    saveS();
+  }
+  const car = getAC();
+  if (!car) return;
 
-  const fs=S.fuels.filter(f=>f.carId===car.id);
-  const ss=S.services.filter(s=>s.carId===car.id);
-  const total=[...fs.map(f=>f.total||0),...ss.map(s=>s.cost||0)].reduce((a,b)=>a+b,0);
-  g('d-cost').textContent=total?total.toFixed(0):'—';
-  g('d-curr').textContent=CUR[S.currency]||'₾';
+  g("d-av").innerHTML = carSVG(car.color||"#e74c3c", 50, 25);
+  g("d-nm").textContent  = `${car.brand} ${car.model}`;
+  g("d-sub").textContent = [car.year, car.vin, car.mileage ? car.mileage.toLocaleString()+" км" : ""].filter(Boolean).join(" · ");
+  g("d-km").textContent  = car.mileage ? car.mileage.toLocaleString() : "—";
+  g("d-con").textContent = calcCons(car.id) || "—";
+  g("d-curr").textContent = CUR[S.currency] || "₾";
 
-  // Chart
-  const lastFs=fs.sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(-6);
-  const chel=g('d-chart');
-  if(lastFs.length>1){
-    const mx=Math.max(...lastFs.map(f=>f.liters));
-    chel.innerHTML=`<div class="chbox"><div class="chtitle">⛽ Последние заправки</div><div class="chbars">${
-      lastFs.map(f=>{const h=Math.round(f.liters/mx*56)+8;const d=new Date(f.date).toLocaleDateString('ru',{day:'numeric',month:'short'});
+  const fs = S.fuels.filter(f => f.carId===car.id);
+  const ss = S.services.filter(s => s.carId===car.id);
+  const total = [...fs.map(f=>f.total||0), ...ss.map(s=>s.cost||0)].reduce((a,b)=>a+b,0);
+  g("d-cost").textContent = total ? total.toFixed(0) : "—";
+
+  // Мини-график
+  const lastFs = [...fs].sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-6);
+  const chel = g("d-chart");
+  if (lastFs.length > 1) {
+    const mx = Math.max(...lastFs.map(f=>f.liters));
+    chel.innerHTML = `<div class="chbox"><div class="chtit">⛽ Последние заправки</div><div class="chbars">${
+      lastFs.map(f => {
+        const h = Math.round(f.liters/mx*56) + 8;
+        const d = new Date(f.date).toLocaleDateString("ru", {day:"numeric",month:"short"});
         return `<div class="cbw"><div class="cbv">${f.liters}л</div><div class="cb" style="height:${h}px"></div><div class="cbl">${d}</div></div>`;
-      }).join('')
+      }).join("")
     }</div></div>`;
-  } else chel.innerHTML='';
+  } else { chel.innerHTML = ""; }
 
-  // Recent
-  const all=[...fs.map(f=>({...f,_t:'fuel'})),...ss.map(s=>({...s,_t:'service'}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
-  g('d-recent').innerHTML=all.length?`<div class="card">${all.map(rRow).join('')}</div>`
-    :`<div class="empty" style="padding:18px 0"><div class="esub">Добавьте первую заправку или обслуживание</div></div>`;
+  // Последние записи
+  const all = [
+    ...fs.map(f => ({...f, _t:"fuel"})),
+    ...ss.map(s => ({...s, _t:"service"}))
+  ].sort((a,b) => new Date(b.date)-new Date(a.date)).slice(0,5);
+
+  g("d-recent").innerHTML = all.length
+    ? `<div class="card">${all.map(rRow).join("")}</div>`
+    : `<div class="empty" style="padding:18px 0"><div class="esub">Добавьте первую заправку или запись об обслуживании</div></div>`;
 }
 
-function rRow(r){
-  const iF=r._t==='fuel'||r.type==='fuel';
-  const cu=CUR[r.currency]||'₾';
-  const am=iF?r.total:r.cost;
-  const ds=r.date?new Date(r.date).toLocaleDateString('ru',{day:'numeric',month:'short'}):'';
-  const pb=r._p?`<span class="pbadge">⏳</span>`:'';
-  return `<div class="crow">
-    <div class="ri ${iF?'rif':'ris'}">${iF?'⛽':'🔧'}</div>
-    <div class="rb"><div class="rt">${iF?(r.note||'Заправка'):r.serviceType}${pb}</div>
-    <div class="rs">${ds}${r.mileage?' · '+r.mileage.toLocaleString()+' км':''}${iF?' · '+r.liters+'л':''}</div></div>
-    <div class="rr"><div class="ra ${iF?'raf':'ras'}">${am?cu+am.toFixed(0):'—'}</div>
-    <span class="badge ${iF?'bf':'bs'}">${iF?'ТОПЛИВО':'СЕРВИС'}</span></div>
-  </div>`;
-}
+function renderFuel() {
+  const car = getAC();
+  if (!car) {
+    g("fuel-list").innerHTML = `<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;
+    g("fuel-cblock").innerHTML = "";
+    return;
+  }
+  const fs = S.fuels.filter(f => f.carId===car.id)
+                     .sort((a,b) => new Date(b.date)-new Date(a.date));
 
-function renderFuel(){
-  const car=getAC();if(!car)return;
-  const fs=S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  const cons=calcCons(car.id);
-  const cel=g('fuel-cblock');
-  if(cons&&fs.length){
-    const tL=fs.reduce((s,f)=>s+f.liters,0);
-    const tC=fs.reduce((s,f)=>s+(f.total||0),0);
-    const cu=CUR[fs[0]?.currency]||'₾';
-    cel.innerHTML=`<div class="ccard">
-      <div><div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div>
-        <div class="cbig">${cons}</div><div class="cunit">л/100км</div></div>
+  // Блок расхода
+  const cons = calcCons(car.id);
+  const cel = g("fuel-cblock");
+  if (cons && fs.length >= 2) {
+    const tL = fs.reduce((s,f) => s+f.liters, 0);
+    const tC = fs.reduce((s,f) => s+(f.total||0), 0);
+    const cu = CUR[fs[0]?.currency] || "₾";
+    cel.innerHTML = `<div class="ccard">
+      <div>
+        <div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div>
+        <div class="cbig">${cons}</div><div class="cunit">л/100км</div>
+      </div>
       <div class="cstats">
         <div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div>
         <div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div>
         <div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div>
-      </div></div>`;
-  } else cel.innerHTML='';
-  g('fuel-list').innerHTML=fs.length?`<div class="card">${fs.map(f=>rRow({...f,_t:'fuel'})).join('')}</div>`
-    :`<div class="empty"><div class="ei">⛽</div><div class="etitle">Нет заправок</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+      </div>
+    </div>`;
+  } else { cel.innerHTML = ""; }
+
+  g("fuel-list").innerHTML = fs.length
+    ? `<div class="card">${fs.map(f => rRow({...f, _t:"fuel"})).join("")}</div>`
+    : `<div class="empty"><div class="ei">⛽</div><div class="etit">Нет заправок</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
 }
 
-function renderSvc(){
-  const car=getAC();if(!car)return;
-  const ss=S.services.filter(s=>s.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  g('svc-list').innerHTML=ss.length?`<div class="card">${ss.map(s=>rRow({...s,_t:'service'})).join('')}</div>`
-    :`<div class="empty"><div class="ei">🔧</div><div class="etitle">Нет записей</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+function renderSvc() {
+  const car = getAC();
+  if (!car) {
+    g("svc-list").innerHTML = `<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;
+    return;
+  }
+  const ss = S.services.filter(s => s.carId===car.id)
+                        .sort((a,b) => new Date(b.date)-new Date(a.date));
+  g("svc-list").innerHTML = ss.length
+    ? `<div class="card">${ss.map(s => rRow({...s, _t:"service"})).join("")}</div>`
+    : `<div class="empty"><div class="ei">🔧</div><div class="etit">Нет записей</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
 }
 
-function renderHist(f){
-  const car=getAC();
-  if(!car){g('hist-list').innerHTML='<div class="empty"><div class="esub">Выберите авто</div></div>';return;}
-  let all=[...S.fuels.filter(x=>x.carId===car.id).map(x=>({...x,_t:'fuel'})),
-           ...S.services.filter(x=>x.carId===car.id).map(x=>({...x,_t:'service'}))];
-  if(f==='fuel')all=all.filter(r=>r._t==='fuel');
-  if(f==='service')all=all.filter(r=>r._t==='service');
-  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  g('hist-list').innerHTML=all.length?`<div class="card">${all.map(rRow).join('')}</div>`
-    :`<div class="empty"><div class="ei">📋</div><div class="etitle">Нет записей</div></div>`;
+function renderHist(filter) {
+  const car = getAC();
+  if (!car) {
+    g("hist-list").innerHTML = `<div class="empty"><div class="esub">Выберите авто</div></div>`;
+    return;
+  }
+  let all = [
+    ...S.fuels.filter(x=>x.carId===car.id).map(x=>({...x,_t:"fuel"})),
+    ...S.services.filter(x=>x.carId===car.id).map(x=>({...x,_t:"service"}))
+  ];
+  if (filter === "fuel")    all = all.filter(r => r._t==="fuel");
+  if (filter === "service") all = all.filter(r => r._t==="service");
+  all.sort((a,b) => new Date(b.date)-new Date(a.date));
+  g("hist-list").innerHTML = all.length
+    ? `<div class="card">${all.map(rRow).join("")}</div>`
+    : `<div class="empty"><div class="ei">📋</div><div class="etit">Нет записей</div></div>`;
 }
 
-function fHist(f,btn){
-  document.querySelectorAll('.tabs .tb').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');renderHist(f);
+function fHist(f, btn) {
+  document.querySelectorAll(".tabs .tb").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderHist(f);
 }
 
-// =====================================================
+function rRow(r) {
+  const iF = r._t==="fuel" || r.type==="fuel";
+  const cu = CUR[r.currency] || "₾";
+  const am = iF ? r.total : r.cost;
+  const ds = r.date ? new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short"}) : "";
+  return `<div class="crow">
+    <div class="ri ${iF?"rif":"ris"}">${iF?"⛽":"🔧"}</div>
+    <div class="rb">
+      <div class="rt">${iF?(r.note||"Заправка"):r.serviceType}</div>
+      <div class="rs2">${ds}${r.mileage?" · "+r.mileage.toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}</div>
+    </div>
+    <div class="rr">
+      <div class="ra ${iF?"raf":"ras"}">${am ? cu+am.toFixed(0) : "—"}</div>
+      <span class="badge ${iF?"bf":"bs"}">${iF?"ТОПЛИВО":"СЕРВИС"}</span>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
 // SETTINGS
-// =====================================================
-function applySettings(){
-  const url=S.scriptUrl;
-  g('surl').value=url||'';
-  const pill=g('shpill');
-  if(url){pill.className='pill pok';pill.textContent='● Подключено';}
-  else{pill.className='pill pno';pill.textContent='● Не подключено';}
-  ['GEL','USD','RUB'].forEach(c=>{const e=g('c-'+c);if(e)e.classList.remove('active');});
-  const ce=g('c-'+S.currency);if(ce)ce.classList.add('active');
-}
+// ═══════════════════════════════════════════════
+function applySettings() {
+  const url = S.scriptUrl;
+  const pill = g("shpill");
 
-function setCurr(c,btn){
-  S.currency=c;saveS();
-  document.querySelectorAll('.tabs .tb').forEach(b=>{if(['c-GEL','c-USD','c-RUB'].includes(b.id))b.classList.remove('active');});
-  btn.classList.add('active');
-  g('f-curr').value=c; g('s-curr').value=c;
-}
-
-async function connectScript(){
-  const url=(g('surl').value||'').trim();
-  if(!url){showToast('⚠ Введите URL');return;}
-  setSbar('syncing','Проверка подключения...');
-  const ok=await postScript(url,{action:'init'});
-  if(ok){
-    S.scriptUrl=url;saveS();applySettings();
-    setSbar('ok','✅ Подключено к Google Sheets');showToast('✅ Подключено!');
-    syncNow();
+  if (HARDCODED_SCRIPT_URL) {
+    // URL вшит — скрываем форму, показываем статус
+    g("url-hardcoded").style.display = "block";
+    g("url-form").style.display = "none";
+    g("url-display").textContent = HARDCODED_SCRIPT_URL;
+    pill.className = "pill pok"; pill.textContent = "● Подключено (вшито)";
+  } else if (url) {
+    g("url-hardcoded").style.display = "block";
+    g("url-form").style.display = "none";
+    g("url-display").textContent = url;
+    pill.className = "pill pok"; pill.textContent = "● Подключено";
   } else {
-    setSbar('error','❌ Ошибка подключения');showToast('❌ Не удалось подключиться');
+    g("url-hardcoded").style.display = "none";
+    g("url-form").style.display = "block";
+    pill.className = "pill pno"; pill.textContent = "● Не подключено";
+  }
+
+  // Кнопка смены URL всегда доступна
+  if (url || HARDCODED_SCRIPT_URL) {
+    // Добавляем кнопку смены если нет hardcoded
+    if (!HARDCODED_SCRIPT_URL) {
+      const ex = g("url-change-btn");
+      if (!ex) {
+        const btn = document.createElement("button");
+        btn.className = "btn bg2"; btn.id = "url-change-btn";
+        btn.textContent = "✏ Изменить URL";
+        btn.onclick = () => {
+          g("url-hardcoded").style.display = "none";
+          g("url-form").style.display = "block";
+          g("surl").value = S.scriptUrl;
+        };
+        g("url-hardcoded").appendChild(btn);
+      }
+    }
+  }
+
+  // Валюта
+  ["GEL","USD","RUB"].forEach(c => {
+    const el = g("c-"+c); if (el) el.classList.remove("active");
+  });
+  const ce = g("c-"+S.currency); if (ce) ce.classList.add("active");
+
+  updatePendingUI();
+}
+
+function saveUrl() {
+  const url = (g("surl").value || "").trim();
+  if (!url) { showToast("⚠ Введите URL"); return; }
+  S.scriptUrl = url; saveS();
+  applySettings();
+  testConnection();
+}
+
+async function testConnection() {
+  const url = S.scriptUrl;
+  if (!url) { showToast("⚠ URL не задан"); return; }
+  setSbar("syncing", "Проверка подключения...");
+  const ok = await post(url, {action:"init"});
+  if (ok) {
+    setSbar("ok", "✅ Google Sheets подключён, листы готовы");
+    showToast("✅ Подключено!");
+    applySettings();
+    // Синхронизируем очередь
+    if (S.queue.length > 0) syncNow();
+  } else {
+    setSbar("error", "❌ Не удалось подключиться — проверьте URL");
+    showToast("❌ Ошибка подключения");
   }
 }
 
-function exportJ(){
-  const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='carlog.json';a.click();
-  showToast('📤 Экспортировано');
-}
-function clearAll(){
-  if(!confirm('Удалить ВСЕ данные?'))return;
-  S={cars:[],fuels:[],services:[],activeCar:null,currency:'GEL',scriptUrl:'',queue:[]};
-  saveS();renderDash();applySettings();updatePendingUI();showToast('🗑 Очищено');
-}
-
-// =====================================================
-// SYNC QUEUE (offline-first)
-// =====================================================
-function qSync(op){
-  S.queue.push({...op,_qid:uid()});
-  saveS();updatePendingUI();
-  if(navigator.onLine&&S.scriptUrl)setTimeout(syncNow,600);
+function setCurr(c, btn) {
+  S.currency = c; saveS();
+  document.querySelectorAll(".tabs .tb").forEach(b => {
+    if (["c-GEL","c-USD","c-RUB"].includes(b.id)) b.classList.remove("active");
+  });
+  btn.classList.add("active");
+  const fe=g("f-curr"); if(fe) fe.value=c;
+  const se=g("s-curr"); if(se) se.value=c;
 }
 
-async function syncNow(){
-  if(!S.scriptUrl||!S.queue.length)return;
-  if(!navigator.onLine){showToast('📡 Нет сети');return;}
-  setSbar('syncing',`Синхронизация ${S.queue.length} записей...`);
-  const failed=[];
-  for(const op of S.queue){
-    const ok=await postScript(S.scriptUrl,op);
-    if(!ok)failed.push(op);
+function exportJ() {
+  const b = new Blob([JSON.stringify(S,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b); a.download = "carlog.json"; a.click();
+  showToast("📤 Экспортировано");
+}
+
+function clearAll() {
+  if (!confirm("Удалить ВСЕ данные? Это необратимо!")) return;
+  S = {cars:[], fuels:[], services:[], activeCar:null, currency:"GEL",
+       scriptUrl: HARDCODED_SCRIPT_URL || "", queue:[]};
+  saveS(); renderDash(); applySettings(); updatePendingUI();
+  showToast("🗑 Очищено");
+}
+
+// ═══════════════════════════════════════════════
+// SYNC — офлайн очередь
+// ═══════════════════════════════════════════════
+function qSync(op) {
+  S.queue.push({...op, _qid:uid()});
+  saveS();
+  updatePendingUI();
+  if (navigator.onLine && S.scriptUrl) {
+    // Небольшая задержка чтобы UI успел обновиться
+    setTimeout(syncNow, 500);
+  } else if (!navigator.onLine) {
+    setSbar("pending", `📡 Офлайн — ${S.queue.length} записей ждут синхронизации`);
   }
-  S.queue=failed;saveS();updatePendingUI();
-  if(failed.length===0)setSbar('ok','☁ Синхронизировано с Google Sheets');
-  else setSbar('error',`⚠ ${failed.length} записей не синхронизировано`);
 }
 
-async function postScript(url,data){
-  try{
-    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(data)});
-    const j=await r.json();return j.ok===true;
-  }catch(e){return false;}
+let syncing = false;
+async function syncNow() {
+  if (syncing) return;
+  if (!S.scriptUrl || !S.queue.length) return;
+  if (!navigator.onLine) { showToast("📡 Нет сети"); return; }
+  syncing = true;
+  setSbar("syncing", `Отправка ${S.queue.length} записей в Google Sheets...`);
+  const failed = [];
+  for (const op of S.queue) {
+    const ok = await post(S.scriptUrl, op);
+    if (!ok) failed.push(op);
+  }
+  S.queue = failed;
+  saveS();
+  updatePendingUI();
+  syncing = false;
+  if (failed.length === 0) {
+    setSbar("ok", "☁ Всё синхронизировано с Google Sheets");
+  } else {
+    setSbar("error", `⚠ ${failed.length} записей не удалось отправить`);
+  }
 }
 
-function updatePendingUI(){
-  const n=S.queue?.length||0;
-  g('pinfo').style.display=n?'block':'none';
-  g('btn-sync').style.display=n?'flex':'none';
-  g('pcnt').textContent=n;
+async function post(url, data) {
+  try {
+    const r = await fetch(url, {
+      method:"POST",
+      headers:{"Content-Type":"text/plain"},
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) return false;
+    const json = await r.json();
+    return json.ok === true;
+  } catch(e) {
+    console.warn("Sync failed:", e);
+    return false;
+  }
 }
 
-// =====================================================
+function updatePendingUI() {
+  const n = S.queue?.length || 0;
+  g("pinfo").style.display = n > 0 ? "block" : "none";
+  const pcnt = g("pcnt"); if (pcnt) pcnt.textContent = n;
+  const bs = g("btn-sync"); if (bs) bs.style.display = n > 0 ? "flex" : "none";
+  if (n > 0 && navigator.onLine) {
+    setSbar("pending", `⏳ ${n} записей ожидают синхронизации`);
+  }
+}
+
+// ═══════════════════════════════════════════════
 // SYNC BAR
-// =====================================================
+// ═══════════════════════════════════════════════
 let sbarT;
-function setSbar(state,msg){
-  const b=g('sbar');b.className='sbar show '+state;g('smsg').textContent=msg;
+function setSbar(state, msg) {
+  const b = g("sbar");
+  b.className = "sbar show " + state;
+  g("smsg").textContent = msg;
   clearTimeout(sbarT);
-  if(state==='ok'||state==='error') sbarT=setTimeout(()=>b.classList.remove('show'),3000);
+  if (state === "ok" || state === "error") {
+    sbarT = setTimeout(() => b.classList.remove("show"), 3500);
+  }
 }
 
-// =====================================================
+// ═══════════════════════════════════════════════
 // HELPERS
-// =====================================================
-function clearF(ids){ids.forEach(id=>{const e=g(id);if(e)e.value='';});}
-let toastT;
-function showToast(msg){
-  const e=g('toast');e.textContent=msg;e.classList.add('show');
-  clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),2500);
+// ═══════════════════════════════════════════════
+function clearF2(ids) {
+  ids.forEach(id => { const e = g(id); if (e) e.value = ""; });
 }
 
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+let toastT;
+function showToast(msg) {
+  const e = g("toast");
+  e.textContent = msg;
+  e.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => e.classList.remove("show"), 2600);
+}
 
+// ═══════════════════════════════════════════════
+// PWA
+// ═══════════════════════════════════════════════
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+// ═══════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════
 init();
 </script>
 </body>
