@@ -2,7 +2,7 @@
   "name": "CarLog — Журнал автовладельца",
   "short_name": "CarLog",
   "description": "Личный журнал автовладельца: заправки, обслуживание, расход топлива",
-  "start_url": "/index.html",
+  "start_url": "/carlog/",
   "display": "standalone",
   "background_color": "#0a0f1e",
   "theme_color": "#0f172a",
