@@ -11,7 +11,7 @@
 <title>CarLog</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* Стили остаются без изменений, как в исходном файле */
+/* Стили без изменений (такие же как в предыдущей версии) */
 :root{
   --bg:#0a0f1e;--sf:#111827;--sf2:#1a2235;--sf3:#222d42;
   --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
@@ -171,7 +171,6 @@ h1,h2,h3{font-family:'Syne',sans-serif}
   <div class="ofbar" id="ofbar">📡 Офлайн — данные сохраняются и синхронизируются при подключении</div>
 
   <div class="main">
-
     <!-- DASHBOARD -->
     <div class="scr active" id="scr-dashboard">
       <div class="hdr">
@@ -182,15 +181,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         </div>
       </div>
       <div class="sbar" id="sbar"><div class="sdot"></div><span id="smsg"></span></div>
-
-      <div id="no-car" style="display:none">
-        <div class="empty" style="padding-top:60px">
-          <div class="ei">🚗</div><div class="etit">Нет автомобилей</div>
-          <div class="esub">Добавьте первый автомобиль</div><br>
-          <button class="btn bp" style="max-width:190px;margin:0 auto" onclick="openCarModal()">+ Добавить авто</button>
-        </div>
-      </div>
-
+      <div id="no-car" style="display:none"><div class="empty" style="padding-top:60px"><div class="ei">🚗</div><div class="etit">Нет автомобилей</div><div class="esub">Добавьте первый автомобиль</div><br><button class="btn bp" style="max-width:190px;margin:0 auto" onclick="openCarModal()">+ Добавить авто</button></div></div>
       <div id="car-dash" style="display:none" class="pp">
         <div class="hero">
           <div class="csel" onclick="openModal('m-carlist')">
@@ -237,11 +228,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
     <div class="scr" id="scr-history">
       <div class="hdr"><div class="logo">📋</div><h1>История</h1></div>
       <div class="sec pp">
-        <div class="tabs">
-          <button class="tb active" onclick="fHist('all',this)">Все</button>
-          <button class="tb" onclick="fHist('fuel',this)">Заправки</button>
-          <button class="tb" onclick="fHist('service',this)">Сервис</button>
-        </div>
+        <div class="tabs"><button class="tb active" onclick="fHist('all',this)">Все</button><button class="tb" onclick="fHist('fuel',this)">Заправки</button><button class="tb" onclick="fHist('service',this)">Сервис</button></div>
         <div id="hist-list"></div>
       </div>
     </div>
@@ -250,60 +237,19 @@ h1,h2,h3{font-family:'Syne',sans-serif}
     <div class="scr" id="scr-settings">
       <div class="hdr"><div class="logo">⚙</div><h1>Настройки</h1></div>
       <div class="sec pp">
-
         <div class="setc">
-          <div class="settit">
-            Google Sheets <span class="pill pno" id="shpill">● Не подключено</span>
-          </div>
-
-          <div id="url-hardcoded" style="display:none">
-            <div class="hint" style="margin-bottom:8px">URL синхронизации вшит в приложение:</div>
-            <div class="script-url-display" id="url-display"></div>
-            <button class="btn bp" onclick="testConnection()">🔄 Проверить подключение</button>
-          </div>
-
-          <div id="url-form">
-            <div class="fg">
-              <label class="fl">URL веб-приложения Apps Script</label>
-              <input class="fi" id="surl" placeholder="https://script.google.com/macros/s/.../exec">
-              <div class="hint">Разверните скрипт как веб-приложение и вставьте URL.<br>
-                <button class="sa" onclick="openModal('m-guide')">Как настроить →</button>
-              </div>
-            </div>
-            <button class="btn bp" onclick="saveUrl()">💾 Сохранить и подключить</button>
-          </div>
-
-          <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">
-            ⏳ Ожидает отправки: <b id="pcnt">0</b> записей
-            <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">🔄 Отправить сейчас</button>
-          </div>
-          <div style="margin-top:12px;">
-            <button class="btn bg2" onclick="syncFromCloud(true)" style="margin-top:4px;">⬇️ Загрузить из таблицы</button>
-            <div class="hint">Сначала отправит несинхронизированные записи, затем загрузит свежие данные с сервера.</div>
-          </div>
+          <div class="settit">Google Sheets <span class="pill pno" id="shpill">● Не подключено</span></div>
+          <div id="url-hardcoded" style="display:none"><div class="hint" style="margin-bottom:8px">URL синхронизации вшит в приложение:</div><div class="script-url-display" id="url-display"></div><button class="btn bp" onclick="testConnection()">🔄 Проверить подключение</button></div>
+          <div id="url-form"><div class="fg"><label class="fl">URL веб-приложения Apps Script</label><input class="fi" id="surl" placeholder="https://script.google.com/macros/s/.../exec"><div class="hint">Разверните скрипт как веб-приложение и вставьте URL.<br><button class="sa" onclick="openModal('m-guide')">Как настроить →</button></div></div><button class="btn bp" onclick="saveUrl()">💾 Сохранить и подключить</button></div>
+          <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">⏳ Ожидает отправки: <b id="pcnt">0</b> записей <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">🔄 Отправить сейчас</button></div>
+          <div style="margin-top:12px;"><button class="btn bg2" onclick="syncFromCloud(true)" style="margin-top:4px;">⬇️ Загрузить из таблицы</button><div class="hint">Сначала отправит несинхронизированные записи, затем загрузит свежие данные с сервера.</div></div>
         </div>
-
-        <div class="setc">
-          <div class="settit">Валюта по умолчанию</div>
-          <div class="tabs">
-            <button class="tb active" id="c-GEL" onclick="setCurr('GEL',this)">₾ Лари</button>
-            <button class="tb" id="c-USD" onclick="setCurr('USD',this)">$ Доллар</button>
-            <button class="tb" id="c-RUB" onclick="setCurr('RUB',this)">₽ Рубль</button>
-          </div>
-        </div>
-
-        <div class="setc">
-          <div class="settit">Данные</div>
-          <button class="btn bg2" onclick="exportJ()">📤 Экспорт JSON</button>
-          <button class="btn bd3" onclick="clearAll()">🗑 Очистить всё (локально)</button>
-          <div class="hint">Внимание: данные в Google Sheets не удаляются. Чтобы очистить облако, удалите записи вручную через таблицу или используйте кнопки удаления рядом с каждой записью.</div>
-        </div>
-
-        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.1 · PWA · Офлайн-режим</div>
+        <div class="setc"><div class="settit">Валюта по умолчанию</div><div class="tabs"><button class="tb active" id="c-GEL" onclick="setCurr('GEL',this)">₾ Лари</button><button class="tb" id="c-USD" onclick="setCurr('USD',this)">$ Доллар</button><button class="tb" id="c-RUB" onclick="setCurr('RUB',this)">₽ Рубль</button></div></div>
+        <div class="setc"><div class="settit">Данные</div><button class="btn bg2" onclick="exportJ()">📤 Экспорт JSON</button><button class="btn bd3" onclick="clearAll()">🗑 Очистить всё (локально)</button><div class="hint">Внимание: данные в Google Sheets не удаляются. Чтобы очистить облако, удалите записи вручную через таблицу или используйте кнопки удаления рядом с каждой записью.</div></div>
+        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.2 · PWA · Офлайн-режим</div>
       </div>
     </div>
-
-  </div><!-- /main -->
+  </div>
 
   <nav class="bnav">
     <button class="ni active" onclick="goScr('dashboard')"><span class="ni-ic">🏠</span><span>Главная</span></button>
@@ -314,148 +260,12 @@ h1,h2,h3{font-family:'Syne',sans-serif}
   </nav>
 </div>
 
-<!-- ============ ADD / EDIT CAR ============ -->
-<div class="mo" id="m-car">
-  <div class="mdl">
-    <div class="mh"></div>
-    <div class="mhdr"><div class="mt2" id="car-mt">Добавить авто</div><button class="mc2" onclick="closeModal('m-car')">✕</button></div>
-    <div class="mb">
-      <input type="hidden" id="car-eid">
-      <div class="fr2">
-        <div class="fg"><label class="fl">Марка</label><input class="fi" id="c-brand" placeholder="Toyota"></div>
-        <div class="fg"><label class="fl">Модель</label><input class="fi" id="c-model" placeholder="Camry"></div>
-      </div>
-      <div class="fr2">
-        <div class="fg"><label class="fl">Год</label><input class="fi" id="c-year" type="number" placeholder="2020" min="1950" max="2030"></div>
-        <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="c-km" type="number" placeholder="50000" min="0"></div>
-      </div>
-      <div class="fg"><label class="fl">VIN</label><input class="fi" id="c-vin" placeholder="1HGBH41JXMN109186" maxlength="17" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px"></div>
-      <div class="fg">
-        <label class="fl">Цвет</label>
-        <div class="cpr" id="cswatches"></div>
-        <input type="hidden" id="c-color" value="#e74c3c">
-      </div>
-      <div class="cprev">
-        <svg id="cpreview" viewBox="0 0 120 60" width="150" height="75" xmlns="http://www.w3.org/2000/svg">
-          <rect x="8" y="28" width="104" height="22" rx="5" fill="#e74c3c" id="cp-body"/>
-          <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="#c0392b" id="cp-roof"/>
-          <path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/>
-          <path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/>
-          <path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/>
-          <circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/>
-          <circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/>
-          <rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/>
-          <rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/>
-        </svg>
-      </div>
-      <button class="btn bp" onclick="saveCar()">✅ Сохранить</button>
-      <button class="btn bd3" id="del-car-btn" style="display:none" onclick="deleteCar()">🗑 Удалить автомобиль</button>
-    </div>
-  </div>
-</div>
-
-<!-- CAR LIST -->
-<div class="mo" id="m-carlist">
-  <div class="mdl">
-    <div class="mh"></div>
-    <div class="mhdr"><div class="mt2">Мои автомобили</div><button class="mc2" onclick="closeModal('m-carlist')">✕</button></div>
-    <div class="mb">
-      <div id="carlist"></div>
-      <button class="btn bg2" onclick="closeModal('m-carlist');openCarModal()">＋ Добавить автомобиль</button>
-    </div>
-  </div>
-</div>
-
-<!-- FUEL MODAL (add/edit) -->
-<div class="mo" id="m-fuel">
-  <div class="mdl">
-    <div class="mh"></div>
-    <div class="mhdr"><div class="mt2" id="fuel-mt">⛽ Заправка</div><button class="mc2" onclick="closeFuelModal()">✕</button></div>
-    <div class="mb">
-      <input type="hidden" id="fuel-eid">
-      <div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div>
-      <div class="fr2">
-        <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="f-km" type="number" placeholder="52000" min="0"></div>
-        <div class="fg"><label class="fl">Литры</label><input class="fi" id="f-lit" type="number" placeholder="40" min="0" step="0.1" oninput="calcF()"></div>
-      </div>
-      <div class="fr2">
-        <div class="fg"><label class="fl">Цена за литр</label><input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.01" oninput="calcF()"></div>
-        <div class="fg"><label class="fl">Валюта</label>
-          <select class="fs" id="f-curr">
-            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg"><label class="fl">Итого</label><input class="fi" id="f-total" type="number" placeholder="116.00" step="0.01"></div>
-      <div class="fg"><label class="fl">АЗС / Заметка</label><input class="fi" id="f-note" placeholder="Lukoil, полный бак"></div>
-      <button class="btn bp" onclick="saveFuel()">✅ Сохранить заправку</button>
-      <button class="btn bd3" id="del-fuel-btn" style="display:none" onclick="deleteFuel()">🗑 Удалить заправку</button>
-    </div>
-  </div>
-</div>
-
-<!-- SERVICE MODAL (add/edit) -->
-<div class="mo" id="m-svc">
-  <div class="mdl">
-    <div class="mh"></div>
-    <div class="mhdr"><div class="mt2" id="svc-mt">🔧 Обслуживание</div><button class="mc2" onclick="closeServiceModal()">✕</button></div>
-    <div class="mb">
-      <input type="hidden" id="svc-eid">
-      <div class="fg"><label class="fl">Дата</label><input class="fi" id="s-date" type="date"></div>
-      <div class="fg"><label class="fl">Вид работ</label>
-        <select class="fs" id="s-type" onchange="svcChg()">
-          <option value="">Выберите тип...</option>
-          <option>🛢 Замена масла</option><option>🔄 Замена масляного фильтра</option>
-          <option>💨 Замена воздушного фильтра</option><option>⛽ Замена топливного фильтра</option>
-          <option>⚡ Замена свечей зажигания</option><option>🛑 Замена тормозных колодок</option>
-          <option>⭕ Замена тормозного диска</option><option>💧 Замена тормозной жидкости</option>
-          <option>🌡 Замена охлаждающей жидкости</option><option>⚙ Замена ремня ГРМ</option>
-          <option>🔋 Замена аккумулятора</option><option>🚗 Замена шин</option>
-          <option>⚖ Балансировка колёс</option><option>📐 Развал-схождение</option>
-          <option>📋 Технический осмотр</option><option>🔍 Диагностика</option>
-          <option value="_other">✏ Другое...</option>
-        </select>
-      </div>
-      <div class="fg" id="s-cgrp" style="display:none"><label class="fl">Описание</label><input class="fi" id="s-custom" placeholder="Опишите работы..."></div>
-      <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="s-km" type="number" placeholder="52000" min="0"></div>
-      <div class="fr2">
-        <div class="fg"><label class="fl">Стоимость</label><input class="fi" id="s-cost" type="number" placeholder="120.00" step="0.01"></div>
-        <div class="fg"><label class="fl">Валюта</label>
-          <select class="fs" id="s-curr">
-            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg"><label class="fl">СТО / Заметка</label><input class="fi" id="s-note" placeholder="Автосервис Авто+"></div>
-      <button class="btn bp" onclick="saveService()">✅ Сохранить запись</button>
-      <button class="btn bd3" id="del-svc-btn" style="display:none" onclick="deleteService()">🗑 Удалить запись</button>
-    </div>
-  </div>
-</div>
-
-<!-- APPS SCRIPT GUIDE -->
-<div class="mo" id="m-guide">
-  <div class="mdl">
-    <div class="mh"></div>
-    <div class="mhdr"><div class="mt2">📖 Настройка Apps Script</div><button class="mc2" onclick="closeModal('m-guide')">✕</button></div>
-    <div class="mb" style="font-size:12px;line-height:1.85;color:var(--tx2)">
-      <b style="color:var(--tx)">Шаг 1. Создайте Google Таблицу</b><br>
-      Откройте <a href="https://sheets.google.com" target="_blank" style="color:var(--ac2)">sheets.google.com</a> и создайте новую таблицу. Листы создадутся автоматически.<br><br>
-      <b style="color:var(--tx)">Шаг 2. Apps Script</b><br>
-      В таблице: <b style="color:var(--tx)">Расширения → Apps Script</b><br>
-      Удалите всё и вставьте код из файла <code>code.gs</code> (прилагается).<br><br>
-      <b style="color:var(--tx)">Шаг 3. Разверните</b><br>
-      Нажмите <b style="color:var(--tx)">Развернуть → Новое развёртывание</b><br>
-      • Тип: <b style="color:var(--tx)">Веб-приложение</b><br>
-      • Выполнять как: <b style="color:var(--tx)">Я</b><br>
-      • Доступ: <b style="color:var(--tx)">Все</b><br>
-      Скопируйте URL и вставьте в поле выше.<br><br>
-      <b style="color:var(--tx)">Шаг 4. Вшейте URL</b><br>
-      Откройте <code>index.html</code>, найдите <code>const HARDCODED_SCRIPT_URL</code> и вставьте ваш URL между кавычками. Загрузите файл на хостинг.
-    </div>
-  </div>
-</div>
-
+<!-- Модальные окна (CAR, FUEL, SERVICE, GUIDE) -->
+<div class="mo" id="m-car"><div class="mdl"><div class="mh"></div><div class="mhdr"><div class="mt2" id="car-mt">Добавить авто</div><button class="mc2" onclick="closeModal('m-car')">✕</button></div><div class="mb"><input type="hidden" id="car-eid"><div class="fr2"><div class="fg"><label class="fl">Марка</label><input class="fi" id="c-brand" placeholder="Toyota"></div><div class="fg"><label class="fl">Модель</label><input class="fi" id="c-model" placeholder="Camry"></div></div><div class="fr2"><div class="fg"><label class="fl">Год</label><input class="fi" id="c-year" type="number" placeholder="2020" min="1950" max="2030"></div><div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="c-km" type="number" placeholder="50000" min="0"></div></div><div class="fg"><label class="fl">VIN</label><input class="fi" id="c-vin" placeholder="1HGBH41JXMN109186" maxlength="17" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px"></div><div class="fg"><label class="fl">Цвет</label><div class="cpr" id="cswatches"></div><input type="hidden" id="c-color" value="#e74c3c"></div><div class="cprev"><svg id="cpreview" viewBox="0 0 120 60" width="150" height="75" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="28" width="104" height="22" rx="5" fill="#e74c3c" id="cp-body"/><path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="#c0392b" id="cp-roof"/><path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/><path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/><path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/><circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/><circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/><rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/><rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/></svg></div><button class="btn bp" onclick="saveCar()">✅ Сохранить</button><button class="btn bd3" id="del-car-btn" style="display:none" onclick="deleteCar()">🗑 Удалить автомобиль</button></div></div></div>
+<div class="mo" id="m-carlist"><div class="mdl"><div class="mh"></div><div class="mhdr"><div class="mt2">Мои автомобили</div><button class="mc2" onclick="closeModal('m-carlist')">✕</button></div><div class="mb"><div id="carlist"></div><button class="btn bg2" onclick="closeModal('m-carlist');openCarModal()">＋ Добавить автомобиль</button></div></div></div>
+<div class="mo" id="m-fuel"><div class="mdl"><div class="mh"></div><div class="mhdr"><div class="mt2" id="fuel-mt">⛽ Заправка</div><button class="mc2" onclick="closeFuelModal()">✕</button></div><div class="mb"><input type="hidden" id="fuel-eid"><div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div><div class="fr2"><div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="f-km" type="number" placeholder="52000" min="0"></div><div class="fg"><label class="fl">Литры</label><input class="fi" id="f-lit" type="number" placeholder="40" min="0" step="0.1" oninput="calcF()"></div></div><div class="fr2"><div class="fg"><label class="fl">Цена за литр</label><input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.01" oninput="calcF()"></div><div class="fg"><label class="fl">Валюта</label><select class="fs" id="f-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option></select></div></div><div class="fg"><label class="fl">Итого</label><input class="fi" id="f-total" type="number" placeholder="116.00" step="0.01"></div><div class="fg"><label class="fl">АЗС / Заметка</label><input class="fi" id="f-note" placeholder="Lukoil, полный бак"></div><button class="btn bp" onclick="saveFuel()">✅ Сохранить заправку</button><button class="btn bd3" id="del-fuel-btn" style="display:none" onclick="deleteFuel()">🗑 Удалить заправку</button></div></div></div>
+<div class="mo" id="m-svc"><div class="mdl"><div class="mh"></div><div class="mhdr"><div class="mt2" id="svc-mt">🔧 Обслуживание</div><button class="mc2" onclick="closeServiceModal()">✕</button></div><div class="mb"><input type="hidden" id="svc-eid"><div class="fg"><label class="fl">Дата</label><input class="fi" id="s-date" type="date"></div><div class="fg"><label class="fl">Вид работ</label><select class="fs" id="s-type" onchange="svcChg()"><option value="">Выберите тип...</option><option>🛢 Замена масла</option><option>🔄 Замена масляного фильтра</option><option>💨 Замена воздушного фильтра</option><option>⛽ Замена топливного фильтра</option><option>⚡ Замена свечей зажигания</option><option>🛑 Замена тормозных колодок</option><option>⭕ Замена тормозного диска</option><option>💧 Замена тормозной жидкости</option><option>🌡 Замена охлаждающей жидкости</option><option>⚙ Замена ремня ГРМ</option><option>🔋 Замена аккумулятора</option><option>🚗 Замена шин</option><option>⚖ Балансировка колёс</option><option>📐 Развал-схождение</option><option>📋 Технический осмотр</option><option>🔍 Диагностика</option><option value="_other">✏ Другое...</option></select></div><div class="fg" id="s-cgrp" style="display:none"><label class="fl">Описание</label><input class="fi" id="s-custom" placeholder="Опишите работы..."></div><div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="s-km" type="number" placeholder="52000" min="0"></div><div class="fr2"><div class="fg"><label class="fl">Стоимость</label><input class="fi" id="s-cost" type="number" placeholder="120.00" step="0.01"></div><div class="fg"><label class="fl">Валюта</label><select class="fs" id="s-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option></select></div></div><div class="fg"><label class="fl">СТО / Заметка</label><input class="fi" id="s-note" placeholder="Автосервис Авто+"></div><button class="btn bp" onclick="saveService()">✅ Сохранить запись</button><button class="btn bd3" id="del-svc-btn" style="display:none" onclick="deleteService()">🗑 Удалить запись</button></div></div></div>
+<div class="mo" id="m-guide"><div class="mdl"><div class="mh"></div><div class="mhdr"><div class="mt2">📖 Настройка Apps Script</div><button class="mc2" onclick="closeModal('m-guide')">✕</button></div><div class="mb" style="font-size:12px;line-height:1.85;color:var(--tx2)"><b style="color:var(--tx)">Шаг 1. Создайте Google Таблицу</b><br>Откройте <a href="https://sheets.google.com" target="_blank" style="color:var(--ac2)">sheets.google.com</a> и создайте новую таблицу. Листы создадутся автоматически.<br><br><b style="color:var(--tx)">Шаг 2. Apps Script</b><br>В таблице: <b style="color:var(--tx)">Расширения → Apps Script</b><br>Удалите всё и вставьте код из файла <code>code.gs</code> (прилагается).<br><br><b style="color:var(--tx)">Шаг 3. Разверните</b><br>Нажмите <b style="color:var(--tx)">Развернуть → Новое развёртывание</b><br>• Тип: <b style="color:var(--tx)">Веб-приложение</b><br>• Выполнять как: <b style="color:var(--tx)">Я</b><br>• Доступ: <b style="color:var(--tx)">Все</b><br>Скопируйте URL и вставьте в поле выше.<br><br><b style="color:var(--tx)">Шаг 4. Вшейте URL</b><br>Откройте <code>index.html</code>, найдите <code>const HARDCODED_SCRIPT_URL</code> и вставьте ваш URL между кавычками. Загрузите файл на хостинг.</div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -469,51 +279,38 @@ const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykPTLjAYw
 // ═══════════════════════════════════════════════
 const CUR = {GEL:"₾", USD:"$", RUB:"₽"};
 const COLORS = ["#e74c3c","#c0392b","#e67e22","#f39c12","#f1c40f","#2ecc71","#27ae60","#1abc9c","#3498db","#2980b9","#9b59b6","#8e44ad","#e91e63","#607d8b","#bdc3c7"];
-
-let S = {
-  cars: [], fuels: [], services: [],
-  activeCar: null, currency: "GEL",
-  scriptUrl: "", queue: []
-};
+let S = { cars: [], fuels: [], services: [], activeCar: null, currency: "GEL", scriptUrl: "", queue: [] };
 
 // ═══════════════════════════════════════════════
-// INIT
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ═══════════════════════════════════════════════
-function init() {
-  loadS();
-  if (HARDCODED_SCRIPT_URL) S.scriptUrl = HARDCODED_SCRIPT_URL;
-  buildSwatches();
-  setDates();
-  updateOffline();
-  renderDash();
-  applySettings();
-  updatePendingUI();
-  window.addEventListener("online", () => {
-    updateOffline();
-    showToast("🌐 Онлайн — синхронизируем данные");
-    syncNow();
-  });
-  window.addEventListener("offline", () => {
-    updateOffline();
-    showToast("📡 Офлайн — сохраняем локально");
-  });
-  if (navigator.onLine && S.scriptUrl) setTimeout(() => syncFromCloud(false), 500);
+function toNumber(val) {
+  if (val === undefined || val === null) return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  const str = String(val).trim().replace(/[^0-9.,]/g, '').replace(',', '.');
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
 }
+const g = id => document.getElementById(id);
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function now() { return new Date().toISOString(); }
+function setDates() { const t = new Date().toISOString().split("T")[0]; ["f-date","s-date"].forEach(id => { const e = g(id); if (e && !e.value) e.value = t; }); }
+function updateOffline() { g("ofbar").classList.toggle("on", !navigator.onLine); }
+function openModal(id) { g(id).classList.add("open"); }
+function closeModal(id) { g(id).classList.remove("open"); }
+document.querySelectorAll(".mo").forEach(m => m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); }));
 
+// Сохранение/загрузка localStorage
 function loadS() {
   try {
     const raw = localStorage.getItem("cl3");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      S = { ...S, ...parsed };
-    }
+    if (raw) { const parsed = JSON.parse(raw); S = { ...S, ...parsed }; }
     if (!Array.isArray(S.queue)) S.queue = [];
     if (!Array.isArray(S.cars)) S.cars = [];
     if (!Array.isArray(S.fuels)) S.fuels = [];
     if (!Array.isArray(S.services)) S.services = [];
   } catch(e) { console.warn("loadS error:", e); }
 }
-
 function saveS() {
   try {
     const toSave = { ...S };
@@ -522,19 +319,7 @@ function saveS() {
   } catch(e) { console.warn("saveS error:", e); }
 }
 
-const g = id => document.getElementById(id);
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
-function now() { return new Date().toISOString(); }
-
-function setDates() {
-  const t = new Date().toISOString().split("T")[0];
-  ["f-date","s-date"].forEach(id => { const e = g(id); if (e && !e.value) e.value = t; });
-}
-
-function updateOffline() {
-  g("ofbar").classList.toggle("on", !navigator.onLine);
-}
-
+// Навигация
 function goScr(name) {
   document.querySelectorAll(".scr").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".ni").forEach(n => n.classList.remove("active"));
@@ -548,24 +333,7 @@ function goScr(name) {
   if (name === "settings") applySettings();
 }
 
-function openModal(id) { g(id).classList.add("open"); }
-function closeModal(id) { g(id).classList.remove("open"); }
-document.querySelectorAll(".mo").forEach(m => m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); }));
-
 // Цвета
-function buildSwatches(selected="#e74c3c") {
-  g("cswatches").innerHTML = COLORS.map(c => `<div class="csw${c===selected?" sel":""}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`).join("");
-}
-function pickColor(c, el) {
-  document.querySelectorAll(".csw").forEach(s => s.classList.remove("sel"));
-  el.classList.add("sel");
-  g("c-color").value = c;
-  previewCar(c);
-}
-function previewCar(c) {
-  g("cp-body").setAttribute("fill", c);
-  g("cp-roof").setAttribute("fill", darken(c, 25));
-}
 function darken(hex, amt) {
   const n = parseInt(hex.replace("#",""),16);
   const r = Math.max(0, (n>>16) - amt);
@@ -575,29 +343,22 @@ function darken(hex, amt) {
 }
 function carSVG(color, w=50, h=25) {
   const roof = darken(color, 25);
-  return `<svg viewBox="0 0 120 60" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-    <rect x="8" y="28" width="104" height="22" rx="5" fill="${color}"/>
-    <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="${roof}"/>
-    <path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/>
-    <path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/>
-    <path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/>
-    <circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/>
-    <circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/>
-    <rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/>
-    <rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/>
-  </svg>`;
+  return `<svg viewBox="0 0 120 60" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="28" width="104" height="22" rx="5" fill="${color}"/><path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="${roof}"/><path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/><path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/><path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/><circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/><circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/><rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/><rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/></svg>`;
 }
+function buildSwatches(selected="#e74c3c") { g("cswatches").innerHTML = COLORS.map(c => `<div class="csw${c===selected?" sel":""}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`).join(""); }
+function pickColor(c, el) { document.querySelectorAll(".csw").forEach(s=>s.classList.remove("sel")); el.classList.add("sel"); g("c-color").value=c; previewCar(c); }
+function previewCar(c) { g("cp-body").setAttribute("fill", c); g("cp-roof").setAttribute("fill", darken(c, 25)); }
 
-// МАШИНЫ
+// Машины
 function openCarModal(carId=null) {
-  const car = carId ? S.cars.find(c => c.id===carId) : null;
+  const car = carId ? S.cars.find(c=>c.id===carId) : null;
   g("car-mt").textContent = car ? "Редактировать авто" : "Добавить авто";
   g("car-eid").value = car?.id || "";
   g("c-brand").value = car?.brand || "";
   g("c-model").value = car?.model || "";
-  g("c-year").value  = car?.year  || "";
-  g("c-km").value    = car?.mileage || "";
-  g("c-vin").value   = car?.vin   || "";
+  g("c-year").value = car?.year || "";
+  g("c-km").value = car?.mileage || "";
+  g("c-vin").value = car?.vin || "";
   g("del-car-btn").style.display = car ? "flex" : "none";
   const col = car?.color || "#e74c3c";
   g("c-color").value = col;
@@ -609,13 +370,13 @@ function saveCar() {
   const brand = (g("c-brand").value || "").trim();
   const model = (g("c-model").value || "").trim();
   const year = (g("c-year").value || "").trim();
-  const mileage = parseInt(g("c-km").value) || 0;
+  const mileage = toNumber(g("c-km").value);
   const vin = (g("c-vin").value || "").trim().toUpperCase();
   const color = g("c-color").value || "#e74c3c";
   if (!brand || !model) { showToast("⚠ Укажите марку и модель"); return; }
   const eid = g("car-eid").value;
   if (eid) {
-    const car = S.cars.find(c => c.id===eid);
+    const car = S.cars.find(c=>c.id===eid);
     if (car) {
       Object.assign(car, {brand, model, year, mileage, vin, color});
       saveS();
@@ -636,9 +397,9 @@ function saveCar() {
 function deleteCar() {
   const id = g("car-eid").value;
   if (!id || !confirm("Удалить авто и все его записи?")) return;
-  S.cars = S.cars.filter(c => c.id !== id);
-  S.fuels = S.fuels.filter(f => f.carId !== id);
-  S.services = S.services.filter(s => s.carId !== id);
+  S.cars = S.cars.filter(c=>c.id!==id);
+  S.fuels = S.fuels.filter(f=>f.carId!==id);
+  S.services = S.services.filter(s=>s.carId!==id);
   if (S.activeCar === id) S.activeCar = S.cars[0]?.id || null;
   saveS();
   qSync({action:"delete", sheet:"Cars", id});
@@ -649,26 +410,15 @@ function deleteCar() {
 function renderCarList() {
   const el = g("carlist");
   if (!S.cars.length) { el.innerHTML = `<div class="empty" style="padding:14px 0"><div class="esub">Нет автомобилей</div></div>`; return; }
-  el.innerHTML = S.cars.map(car => `
-    <div style="display:flex;align-items:center;gap:9px;background:var(--sf2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;border:1px solid ${car.id===S.activeCar?"var(--ac)":"var(--bd)"}">
-      <div style="flex-shrink:0">${carSVG(car.color||"#e74c3c",56,28)}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-weight:600;font-size:13px">${car.brand} ${car.model}</div>
-        <div style="font-size:11px;color:var(--tx2)">${car.year||""}${car.mileage?" · "+car.mileage.toLocaleString()+" км":""}${car.vin?" · "+car.vin:""}</div>
-      </div>
-      <div style="display:flex;gap:5px;flex-shrink:0">
-        <button onclick="selCar('${car.id}')" style="padding:5px 9px;border-radius:6px;background:var(--ac);color:white;border:none;font-size:11px;cursor:pointer">Выбрать</button>
-        <button onclick="closeModal('m-carlist');openCarModal('${car.id}')" style="padding:5px 8px;border-radius:6px;background:var(--sf3);color:var(--tx2);border:1px solid var(--bd);font-size:12px;cursor:pointer">✏</button>
-      </div>
-    </div>`).join("");
+  el.innerHTML = S.cars.map(car => `<div style="display:flex;align-items:center;gap:9px;background:var(--sf2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;border:1px solid ${car.id===S.activeCar?"var(--ac)":"var(--bd)"}"><div style="flex-shrink:0">${carSVG(car.color||"#e74c3c",56,28)}</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">${car.brand} ${car.model}</div><div style="font-size:11px;color:var(--tx2)">${car.year||""}${car.mileage?" · "+car.mileage.toLocaleString()+" км":""}${car.vin?" · "+car.vin:""}</div></div><div style="display:flex;gap:5px;flex-shrink:0"><button onclick="selCar('${car.id}')" style="padding:5px 9px;border-radius:6px;background:var(--ac);color:white;border:none;font-size:11px;cursor:pointer">Выбрать</button><button onclick="closeModal('m-carlist');openCarModal('${car.id}')" style="padding:5px 8px;border-radius:6px;background:var(--sf3);color:var(--tx2);border:1px solid var(--bd);font-size:12px;cursor:pointer">✏</button></div></div>`).join("");
 }
 function selCar(id) { S.activeCar = id; saveS(); closeModal("m-carlist"); renderDash(); showToast("🚗 Выбрано"); }
-function getAC() { return S.cars.find(c => c.id===S.activeCar) || null; }
+function getAC() { return S.cars.find(c=>c.id===S.activeCar) || null; }
 function updKm(km) { const car = getAC(); if (car && km > (car.mileage||0)) { car.mileage = km; saveS(); } }
 
-// ЗАПРАВКИ
+// Заправки
 function openFuelModal(id=null) {
-  const fuel = id ? S.fuels.find(f => f.id===id) : null;
+  const fuel = id ? S.fuels.find(f=>f.id===id) : null;
   g("fuel-mt").textContent = fuel ? "✏ Редактировать заправку" : "⛽ Новая заправка";
   g("fuel-eid").value = fuel?.id || "";
   g("f-date").value = fuel?.date || new Date().toISOString().split("T")[0];
@@ -682,27 +432,22 @@ function openFuelModal(id=null) {
   openModal("m-fuel");
 }
 function closeFuelModal() { closeModal("m-fuel"); clearFuelForm(); }
-function clearFuelForm() { ["f-km","f-lit","f-price","f-total","f-note"].forEach(id => { const e=g(id); if(e) e.value=""; }); g("fuel-eid").value=""; }
-function calcF() {
-  const l = parseFloat(g("f-lit").value) || 0;
-  const p = parseFloat(g("f-price").value) || 0;
-  if (l && p) g("f-total").value = (l * p).toFixed(2);
-}
+function clearFuelForm() { ["f-km","f-lit","f-price","f-total","f-note"].forEach(id=>{const e=g(id);if(e)e.value="";}); g("fuel-eid").value=""; }
+function calcF() { const l=toNumber(g("f-lit").value), p=toNumber(g("f-price").value); if(l&&p) g("f-total").value=(l*p).toFixed(2); }
 function saveFuel() {
   if (!S.activeCar) { showToast("⚠ Выберите авто"); return; }
   const id = g("fuel-eid").value;
   const date = g("f-date").value;
-  const km = parseInt(g("f-km").value) || 0;
-  const lit = parseFloat(g("f-lit").value) || 0;
-  const price = parseFloat(g("f-price").value) || 0;
+  const km = toNumber(g("f-km").value);
+  const lit = toNumber(g("f-lit").value);
+  const price = toNumber(g("f-price").value);
   const curr = g("f-curr").value;
-  const total = parseFloat(g("f-total").value) || +(lit * price).toFixed(2);
+  const total = toNumber(g("f-total").value) || +(lit * price).toFixed(2);
   const note = (g("f-note").value || "").trim();
   if (!date || !lit) { showToast("⚠ Укажите дату и литры"); return; }
   if (id) {
-    // update
-    const idx = S.fuels.findIndex(f => f.id === id);
-    if (idx !== -1) {
+    const idx = S.fuels.findIndex(f=>f.id===id);
+    if (idx!==-1) {
       const rec = {...S.fuels[idx], date, mileage:km, liters:lit, pricePerLiter:price, currency:curr, total, note};
       S.fuels[idx] = rec;
       updKm(km);
@@ -726,7 +471,7 @@ function saveFuel() {
 function deleteFuel() {
   const id = g("fuel-eid").value;
   if (!id || !confirm("Удалить заправку?")) return;
-  S.fuels = S.fuels.filter(f => f.id !== id);
+  S.fuels = S.fuels.filter(f=>f.id!==id);
   saveS();
   qSync({action:"delete", sheet:"Fuel", id});
   closeFuelModal();
@@ -736,9 +481,9 @@ function deleteFuel() {
   showToast("🗑 Заправка удалена");
 }
 
-// СЕРВИС
+// Сервис
 function openServiceModal(id=null) {
-  const svc = id ? S.services.find(s => s.id===id) : null;
+  const svc = id ? S.services.find(s=>s.id===id) : null;
   g("svc-mt").textContent = svc ? "✏ Редактировать обслуживание" : "🔧 Новое обслуживание";
   g("svc-eid").value = svc?.id || "";
   g("s-date").value = svc?.date || new Date().toISOString().split("T")[0];
@@ -754,7 +499,7 @@ function openServiceModal(id=null) {
   openModal("m-svc");
 }
 function closeServiceModal() { closeModal("m-svc"); clearServiceForm(); }
-function clearServiceForm() { ["s-km","s-cost","s-note","s-custom"].forEach(id => { const e=g(id); if(e) e.value=""; }); g("s-type").value=""; g("svc-eid").value=""; }
+function clearServiceForm() { ["s-km","s-cost","s-note","s-custom"].forEach(id=>{const e=g(id);if(e)e.value="";}); g("s-type").value=""; g("svc-eid").value=""; }
 function svcChg() { g("s-cgrp").style.display = g("s-type").value === "_other" ? "block" : "none"; }
 function saveService() {
   if (!S.activeCar) { showToast("⚠ Выберите авто"); return; }
@@ -762,15 +507,15 @@ function saveService() {
   const date = g("s-date").value;
   let type = g("s-type").value;
   const custom = (g("s-custom").value || "").trim();
-  const km = parseInt(g("s-km").value) || 0;
-  const cost = parseFloat(g("s-cost").value) || 0;
+  const km = toNumber(g("s-km").value);
+  const cost = toNumber(g("s-cost").value);
   const curr = g("s-curr").value;
   const note = (g("s-note").value || "").trim();
   if (!date || !type) { showToast("⚠ Выберите тип работ"); return; }
   const serviceType = type === "_other" ? custom : type;
   if (id) {
-    const idx = S.services.findIndex(s => s.id === id);
-    if (idx !== -1) {
+    const idx = S.services.findIndex(s=>s.id===id);
+    if (idx!==-1) {
       const rec = {...S.services[idx], date, serviceType, mileage:km, cost, currency:curr, note};
       S.services[idx] = rec;
       updKm(km);
@@ -794,7 +539,7 @@ function saveService() {
 function deleteService() {
   const id = g("svc-eid").value;
   if (!id || !confirm("Удалить запись об обслуживании?")) return;
-  S.services = S.services.filter(s => s.id !== id);
+  S.services = S.services.filter(s=>s.id!==id);
   saveS();
   qSync({action:"delete", sheet:"Service", id});
   closeServiceModal();
@@ -804,17 +549,17 @@ function deleteService() {
   showToast("🗑 Запись удалена");
 }
 
-// РАСЧЕТ РАСХОДА
+// Расход
 function calcCons(carId) {
-  const fs = S.fuels.filter(x => x.carId === carId && x.mileage > 0 && x.liters > 0).sort((a,b) => a.mileage - b.mileage);
+  const fs = S.fuels.filter(x => x.carId === carId && x.mileage > 0 && x.liters > 0).sort((a,b)=>a.mileage-b.mileage);
   if (fs.length < 2) return null;
   const km = fs[fs.length-1].mileage - fs[0].mileage;
   if (km <= 0) return null;
-  const liters = fs.slice(1).reduce((s,x) => s + x.liters, 0);
+  const liters = fs.slice(1).reduce((s,x)=>s+x.liters,0);
   return (liters / km * 100).toFixed(1);
 }
 
-// ОТРИСОВКА
+// Отрисовка
 function renderDash() {
   if (!S.cars.length) { g("no-car").style.display = "block"; g("car-dash").style.display = "none"; return; }
   g("no-car").style.display = "none"; g("car-dash").style.display = "block";
@@ -823,21 +568,17 @@ function renderDash() {
   g("d-av").innerHTML = carSVG(car.color||"#e74c3c", 50, 25);
   g("d-nm").textContent = `${car.brand} ${car.model}`;
   g("d-sub").textContent = [car.year, car.vin, car.mileage ? car.mileage.toLocaleString()+" км" : ""].filter(Boolean).join(" · ");
-  g("d-km").textContent = car.mileage ? car.mileage.toLocaleString() : "—";
+  g("d-km").textContent = (car.mileage && car.mileage > 0) ? car.mileage.toLocaleString() : "—";
   g("d-con").textContent = calcCons(car.id) || "—";
   g("d-curr").textContent = CUR[S.currency] || "₾";
-  const fs = S.fuels.filter(f => f.carId===car.id);
-  const ss = S.services.filter(s => s.carId===car.id);
+  const fs = S.fuels.filter(f=>f.carId===car.id);
+  const ss = S.services.filter(s=>s.carId===car.id);
   const total = [...fs.map(f=>f.total||0), ...ss.map(s=>s.cost||0)].reduce((a,b)=>a+b,0);
   g("d-cost").textContent = total ? total.toFixed(0) : "—";
-  const lastFs = [...fs].sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-6);
+  const lastFs = [...fs].sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(-6);
   if (lastFs.length > 1) {
     const mx = Math.max(...lastFs.map(f=>f.liters));
-    g("d-chart").innerHTML = `<div class="chbox"><div class="chtit">⛽ Последние заправки</div><div class="chbars">${lastFs.map(f => {
-      const h = Math.round(f.liters/mx*56) + 8;
-      const d = new Date(f.date).toLocaleDateString("ru", {day:"numeric",month:"short"});
-      return `<div class="cbw"><div class="cbv">${f.liters}л</div><div class="cb" style="height:${h}px"></div><div class="cbl">${d}</div></div>`;
-    }).join("")}</div></div>`;
+    g("d-chart").innerHTML = `<div class="chbox"><div class="chtit">⛽ Последние заправки</div><div class="chbars">${lastFs.map(f=>{const h=Math.round(f.liters/mx*56)+8; const d=new Date(f.date).toLocaleDateString("ru",{day:"numeric",month:"short"}); return `<div class="cbw"><div class="cbv">${f.liters}л</div><div class="cb" style="height:${h}px"></div><div class="cbl">${d}</div></div>`;}).join("")}</div></div>`;
   } else { g("d-chart").innerHTML = ""; }
   const all = [...fs.map(f=>({...f,_t:"fuel"})), ...ss.map(s=>({...s,_t:"service"}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
   g("d-recent").innerHTML = all.length ? `<div class="card">${all.map(rRow).join("")}</div>` : `<div class="empty" style="padding:18px 0"><div class="esub">Добавьте первую заправку или запись об обслуживании</div></div>`;
@@ -870,11 +611,7 @@ function renderHist(filter) {
   all.sort((a,b)=>new Date(b.date)-new Date(a.date));
   g("hist-list").innerHTML = all.length ? `<div class="card">${all.map(rRow).join("")}</div>` : `<div class="empty"><div class="ei">📋</div><div class="etit">Нет записей</div></div>`;
 }
-function fHist(f, btn) {
-  document.querySelectorAll(".tabs .tb").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  renderHist(f);
-}
+function fHist(f, btn) { document.querySelectorAll(".tabs .tb").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); renderHist(f); }
 function rRow(r) {
   const iF = r._t==="fuel" || r.type==="fuel";
   const cu = CUR[r.currency] || "₾";
@@ -882,26 +619,12 @@ function rRow(r) {
   const ds = r.date ? new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short"}) : "";
   const editAction = iF ? `openFuelModal('${r.id}')` : `openServiceModal('${r.id}')`;
   const delAction = iF ? `deleteFuelById('${r.id}')` : `deleteServiceById('${r.id}')`;
-  return `<div class="crow">
-    <div class="ri ${iF?"rif":"ris"}">${iF?"⛽":"🔧"}</div>
-    <div class="rb">
-      <div class="rt">${iF?(r.note||"Заправка"):r.serviceType}</div>
-      <div class="rs2">${ds}${r.mileage?" · "+r.mileage.toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}</div>
-    </div>
-    <div class="rr">
-      <div class="ra ${iF?"raf":"ras"}">${am ? cu+am.toFixed(0) : "—"}</div>
-      <span class="badge ${iF?"bf":"bs"}">${iF?"ТОПЛИВО":"СЕРВИС"}</span>
-    </div>
-    <div class="row-actions">
-      <button onclick="${editAction}" title="Редактировать">✏️</button>
-      <button onclick="${delAction}" class="del-btn" title="Удалить">🗑</button>
-    </div>
-  </div>`;
+  return `<div class="crow"><div class="ri ${iF?"rif":"ris"}">${iF?"⛽":"🔧"}</div><div class="rb"><div class="rt">${iF?(r.note||"Заправка"):r.serviceType}</div><div class="rs2">${ds}${r.mileage?" · "+r.mileage.toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}</div></div><div class="rr"><div class="ra ${iF?"raf":"ras"}">${am ? cu+am.toFixed(0) : "—"}</div><span class="badge ${iF?"bf":"bs"}">${iF?"ТОПЛИВО":"СЕРВИС"}</span></div><div class="row-actions"><button onclick="${editAction}" title="Редактировать">✏️</button><button onclick="${delAction}" class="del-btn" title="Удалить">🗑</button></div></div>`;
 }
 function deleteFuelById(id) { if(confirm("Удалить заправку?")) { S.fuels = S.fuels.filter(f=>f.id!==id); saveS(); qSync({action:"delete", sheet:"Fuel", id}); renderDash(); if(g("scr-fuel").classList.contains("active")) renderFuel(); if(g("scr-history").classList.contains("active")) renderHist("all"); showToast("🗑 Удалено"); } }
 function deleteServiceById(id) { if(confirm("Удалить запись?")) { S.services = S.services.filter(s=>s.id!==id); saveS(); qSync({action:"delete", sheet:"Service", id}); renderDash(); if(g("scr-service").classList.contains("active")) renderSvc(); if(g("scr-history").classList.contains("active")) renderHist("all"); showToast("🗑 Удалено"); } }
 
-// СИНХРОНИЗАЦИЯ
+// Синхронизация
 async function fetchAllData() {
   if (!S.scriptUrl) return null;
   try {
@@ -919,15 +642,17 @@ async function syncFromCloud(showToastMsg=true) {
   if (S.queue.length) await syncNow();
   const data = await fetchAllData();
   if (!data) { setSbar("error", "❌ Не удалось загрузить данные"); if(showToastMsg) showToast("Ошибка загрузки из таблицы"); return false; }
-  // Приведение числовых полей
-  (data.cars || []).forEach(c => { c.mileage = Number(c.mileage) || 0; });
-  (data.fuels || []).forEach(f => { f.mileage = Number(f.mileage) || 0; f.liters = Number(f.liters) || 0; f.pricePerLiter = Number(f.pricePerLiter) || 0; f.total = Number(f.total) || 0; });
-  (data.services || []).forEach(s => { s.mileage = Number(s.mileage) || 0; s.cost = Number(s.cost) || 0; });
+  // Преобразование чисел (усиленное)
+  (data.cars || []).forEach(c => { c.mileage = toNumber(c.mileage); });
+  (data.fuels || []).forEach(f => { f.mileage = toNumber(f.mileage); f.liters = toNumber(f.liters); f.pricePerLiter = toNumber(f.pricePerLiter); f.total = toNumber(f.total); });
+  (data.services || []).forEach(s => { s.mileage = toNumber(s.mileage); s.cost = toNumber(s.cost); });
   S.cars = data.cars || [];
   S.fuels = data.fuels || [];
   S.services = data.services || [];
   if (S.cars.length && (!S.activeCar || !S.cars.find(c=>c.id===S.activeCar))) S.activeCar = S.cars[0].id;
   saveS();
+  // Логирование для отладки
+  console.log("Loaded cars:", S.cars.map(c=>`${c.brand} ${c.model} mileage=${c.mileage}`));
   renderDash();
   if (g("scr-fuel").classList.contains("active")) renderFuel();
   if (g("scr-service").classList.contains("active")) renderSvc();
@@ -946,10 +671,7 @@ async function syncNow() {
   syncing=true;
   setSbar("syncing", `Отправка ${S.queue.length} записей в Google Sheets...`);
   const failed=[];
-  for (const op of S.queue) {
-    const ok = await post(S.scriptUrl, op);
-    if (!ok) failed.push(op);
-  }
+  for (const op of S.queue) { const ok = await post(S.scriptUrl, op); if (!ok) failed.push(op); }
   S.queue=failed; saveS(); updatePendingUI(); syncing=false;
   if (failed.length===0) setSbar("ok", "☁ Всё синхронизировано с Google Sheets");
   else setSbar("error", `⚠ ${failed.length} записей не удалось отправить`);
@@ -966,7 +688,7 @@ function updatePendingUI() { const n=S.queue?.length||0; g("pinfo").style.displa
 let sbarT;
 function setSbar(state, msg) { const b=g("sbar"); b.className="sbar show "+state; g("smsg").textContent=msg; clearTimeout(sbarT); if(state==="ok"||state==="error") sbarT=setTimeout(()=>b.classList.remove("show"),3500); }
 
-// НАСТРОЙКИ
+// Настройки
 function applySettings() {
   const url = S.scriptUrl;
   const pill = g("shpill");
@@ -974,6 +696,7 @@ function applySettings() {
     g("url-hardcoded").style.display = "block"; g("url-form").style.display = "none";
     g("url-display").textContent = HARDCODED_SCRIPT_URL;
     pill.className = "pill pok"; pill.textContent = "● Подключено (вшито)";
+    if (!g("url-change-btn") && HARDCODED_SCRIPT_URL) {}
   } else if (url) {
     g("url-hardcoded").style.display = "block"; g("url-form").style.display = "none";
     g("url-display").textContent = url;
@@ -987,7 +710,7 @@ function applySettings() {
     g("url-hardcoded").style.display = "none"; g("url-form").style.display = "block";
     pill.className = "pill pno"; pill.textContent = "● Не подключено";
   }
-  ["GEL","USD","RUB"].forEach(c => { const el = g("c-"+c); if(el) el.classList.remove("active"); });
+  ["GEL","USD","RUB"].forEach(c=>{const el=g("c-"+c); if(el) el.classList.remove("active");});
   const ce = g("c-"+S.currency); if(ce) ce.classList.add("active");
   updatePendingUI();
 }
@@ -996,10 +719,24 @@ async function testConnection() { const url=S.scriptUrl; if(!url) { showToast("�
 function setCurr(c,btn) { S.currency=c; saveS(); document.querySelectorAll(".tabs .tb").forEach(b=>{if(["c-GEL","c-USD","c-RUB"].includes(b.id)) b.classList.remove("active");}); btn.classList.add("active"); if(g("f-curr")) g("f-curr").value=c; if(g("s-curr")) g("s-curr").value=c; }
 function exportJ() { const b = new Blob([JSON.stringify(S,null,2)], {type:"application/json"}); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "carlog.json"; a.click(); showToast("📤 Экспортировано"); }
 function clearAll() { if(!confirm("Удалить ВСЕ локальные данные? Данные в Google Sheets останутся без изменений.")) return; S = {cars:[], fuels:[], services:[], activeCar:null, currency:"GEL", scriptUrl: HARDCODED_SCRIPT_URL || "", queue:[]}; saveS(); renderDash(); applySettings(); updatePendingUI(); showToast("🗑 Локальные данные очищены"); }
-
 function showToast(msg) { const e=g("toast"); e.textContent=msg; e.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove("show"),2600); }
 let toastT;
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+// Инициализация
+function init() {
+  loadS();
+  if (HARDCODED_SCRIPT_URL) S.scriptUrl = HARDCODED_SCRIPT_URL;
+  buildSwatches();
+  setDates();
+  updateOffline();
+  renderDash();
+  applySettings();
+  updatePendingUI();
+  window.addEventListener("online", () => { updateOffline(); showToast("🌐 Онлайн — синхронизируем данные"); syncNow(); });
+  window.addEventListener("offline", () => { updateOffline(); showToast("📡 Офлайн — сохраняем локально"); });
+  if (navigator.onLine && S.scriptUrl) setTimeout(() => syncFromCloud(false), 500);
+}
 init();
 </script>
 </body>
