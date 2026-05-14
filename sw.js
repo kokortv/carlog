@@ -1,5 +1,5 @@
 // CarLog Service Worker v2
-const CACHE = "carlog-v5";
+const CACHE = "carlog-v6";
 const SHELL = ["./", "./index.html", "./manifest.json"];
 
 // Установка: кешируем оболочку приложения
