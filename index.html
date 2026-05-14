@@ -855,7 +855,16 @@ function renderCarList() {
 
 function selCar(id) { S.activeCar=id; saveS(); closeModal("m-carlist"); renderDash(); showToast("🚗 Выбрано"); }
 function getAC()    { return S.cars.find(c=>c.id===S.activeCar)||null; }
-function updKm(km)  { const c=getAC(); if(c&&km>c.mileage){c.mileage=km;saveS();} }
+function updKm(km, carId=null) {
+  const c = carId ? S.cars.find(x=>x.id===carId) : getAC();
+  if (c && km > (Number(c.mileage)||0)) {
+    c.mileage = km;
+    saveS();
+    // Синхронизируем обновлённый пробег в таблицу Cars
+    qSync({action:"update", sheet:"Cars", id:c.id,
+           row:[c.id,c.brand,c.model,c.year,km,c.vin,c.color,c.createdAt]});
+  }
+}
 
 // ══════════════════════════════════════════════════════
 // FUEL CRUD
@@ -897,6 +906,7 @@ function saveFuel() {
     const rec = S.fuels.find(f=>f.id===eid);
     if (rec) {
       Object.assign(rec, {date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+total.toFixed(2),note});
+      updKm(km, rec.carId);  // обновляем пробег машины если вырос
       saveS();
       qSync({action:"update",sheet:"Fuel",id:eid,
              row:[eid,rec.carId,date,km,lit,price,curr,rec.total,note,rec.createdAt]});
@@ -992,6 +1002,7 @@ function saveSvc() {
     const rec = S.services.find(s=>s.id===eid);
     if (rec) {
       Object.assign(rec, {serviceType:sn,date,mileage:km,cost,currency:curr,note});
+      updKm(km, rec.carId);  // обновляем пробег машины если вырос
       saveS();
       qSync({action:"update",sheet:"Service",id:eid,
              row:[eid,rec.carId,date,sn,km,cost,curr,note,rec.createdAt]});
@@ -1048,11 +1059,8 @@ function renderDash() {
   // Название и подзаголовок
   g("d-nm").textContent = `${car.brand} ${car.model}`;
 
-  // ← ФИКС пробега: берём максимум из поля машины и всех записей
-  const maxFuelKm = S.fuels.filter(f=>f.carId===car.id).reduce((mx,f)=>Math.max(mx,f.mileage||0),0);
-  const maxSvcKm  = S.services.filter(s=>s.carId===car.id).reduce((mx,s)=>Math.max(mx,s.mileage||0),0);
-  const realKm = Math.max(Number(car.mileage)||0, maxFuelKm, maxSvcKm);
-
+  // Пробег уже актуален — он обновляется в updKm и при загрузке из Sheets
+  const realKm = Number(car.mileage)||0;
   g("d-sub").textContent = [car.year, car.vin, realKm ? realKm.toLocaleString()+" км":""].filter(Boolean).join(" · ");
   g("d-km").textContent  = realKm ? realKm.toLocaleString() : "—";
   g("d-con").textContent = calcCons(car.id) || "—";
@@ -1257,6 +1265,19 @@ async function loadFromSheets() {
     S.cars     = S.cars.filter(c=>c.id);
     S.fuels    = S.fuels.filter(f=>f.id&&f.carId);
     S.services = S.services.filter(s=>s.id&&s.carId);
+
+    // Пересчитываем пробег каждой машины — берём максимум из:
+    // поля машины + всех заправок + всех сервисных записей
+    S.cars.forEach(car => {
+      const fuelMax = S.fuels
+        .filter(f=>f.carId===car.id)
+        .reduce((mx,f)=>Math.max(mx, Number(f.mileage)||0), 0);
+      const svcMax  = S.services
+        .filter(s=>s.carId===car.id)
+        .reduce((mx,s)=>Math.max(mx, Number(s.mileage)||0), 0);
+      const realKm  = Math.max(Number(car.mileage)||0, fuelMax, svcMax);
+      car.mileage   = realKm;  // всегда актуальный пробег
+    });
 
     S.activeCar = S.cars.find(c=>c.id===prevActive) ? prevActive : (S.cars[0]?.id||null);
     S.currency  = prevCurr;
