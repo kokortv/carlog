@@ -440,9 +440,23 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 // ID находится в URL таблицы:
 // docs.google.com/spreadsheets/d/ВАШ_ID/edit
 
+// ← Обязательно! Обрабатываем GET-запросы (проверка деплоя)
+function doGet(e) {
+  return respond({ok: true, msg: "CarLog Script is running"});
+}
+
 function doPost(e) {
+  // Защита от пустого тела (GET-запросы и пинги)
+  if (!e || !e.postData || !e.postData.contents) {
+    return respond({ok: false, msg: "No data received"});
+  }
+
   try {
     const d = JSON.parse(e.postData.contents);
+    if (!d || !d.action) {
+      return respond({ok: false, msg: "Invalid request"});
+    }
+
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
     // Инициализация — создаём листы с заголовками
@@ -451,14 +465,19 @@ function doPost(e) {
       return respond({ok: true, msg: "Sheets ready"});
     }
 
-    // Получаем нужный лист
+    // Для остальных действий нужен лист
+    if (!d.sheet) return respond({ok: false, msg: "No sheet specified"});
     const sheet = ss.getSheetByName(d.sheet);
-    if (!sheet) return respond({ok:false, msg:"Sheet not found: "+d.sheet});
+    if (!sheet) return respond({ok: false, msg: "Sheet not found: " + d.sheet});
 
     if (d.action === "append") {
+      if (!d.row || !Array.isArray(d.row)) {
+        return respond({ok: false, msg: "No row data"});
+      }
       sheet.appendRow(d.row);
 
     } else if (d.action === "update") {
+      if (!d.id || !d.row) return respond({ok: false, msg: "Missing id or row"});
       const data = sheet.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
         if (String(data[i][0]) === String(d.id)) {
@@ -469,6 +488,7 @@ function doPost(e) {
         }
       }
     } else if (d.action === "delete") {
+      if (!d.id) return respond({ok: false, msg: "Missing id"});
       const data = sheet.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
         if (String(data[i][0]) === String(d.id)) {
@@ -486,29 +506,23 @@ function doPost(e) {
 
 function setupSheets(ss) {
   const config = {
-    "Cars": [
-      "ID","Brand","Model","Year",
-      "Mileage","VIN","Color","CreatedAt"
-    ],
-    "Fuel": [
-      "ID","CarID","Date","Mileage","Liters",
-      "PricePerLiter","Currency","Total","Note","CreatedAt"
-    ],
-    "Service": [
-      "ID","CarID","Date","ServiceType",
-      "Mileage","Cost","Currency","Note","CreatedAt"
-    ]
+    "Cars":    ["ID","Brand","Model","Year","Mileage","VIN","Color","CreatedAt"],
+    "Fuel":    ["ID","CarID","Date","Mileage","Liters","PricePerLiter","Currency","Total","Note","CreatedAt"],
+    "Service": ["ID","CarID","Date","ServiceType","Mileage","Cost","Currency","Note","CreatedAt"]
   };
   for (const [name, headers] of Object.entries(config)) {
     let sheet = ss.getSheetByName(name);
     if (!sheet) {
       sheet = ss.insertSheet(name);
+    }
+    // Добавляем заголовки только если лист пустой
+    if (sheet.getLastRow() === 0) {
       sheet.appendRow(headers);
-      // Форматирование заголовков
       sheet.getRange(1, 1, 1, headers.length)
            .setFontWeight("bold")
            .setBackground("#1a73e8")
            .setFontColor("#ffffff");
+      sheet.setFrozenRows(1);
     }
   }
 }
@@ -525,11 +539,15 @@ function respond(data) {
       • Выполнять как: <b style="color:var(--tx)">Я</b><br>
       • Доступ: <b style="color:var(--tx)">Все</b><br>
       Скопируйте URL и вставьте в поле выше.<br><br>
+      <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:9px 11px;margin:6px 0;font-size:11px;color:var(--am2)">⚠ Если в таблице появился пустой лист без названия — просто удалите его. Это происходило из-за старой версии скрипта. Новый код это исправляет.</div>
 
-      <b style="color:var(--tx)">Шаг 4. Вшейте URL в приложение</b><br>
-      После сохранения URL в настройках он запоминается на этом устройстве. Чтобы он работал на всех устройствах сразу — откройте <code>index.html</code>, найдите строку:<br>
-      <code>const HARDCODED_SCRIPT_URL = "";</code><br>
-      и вставьте свой URL между кавычками. Тогда вводить URL не нужно ни на одном устройстве.
+      <b style="color:var(--tx)">Шаг 4. Вшейте URL — один раз для всех устройств</b><br>
+      URL хранится в памяти браузера — значит на телефоне его придётся вводить заново. Чтобы этого избежать:<br>
+      Откройте <code>index.html</code> в текстовом редакторе, найдите строку:<br>
+      <code style="color:var(--am2)">const HARDCODED_SCRIPT_URL = "";</code><br>
+      Вставьте ваш URL между кавычками:<br>
+      <code style="color:var(--gn2)">const HARDCODED_SCRIPT_URL = "https://script.google.com/...";</code><br>
+      Сохраните файл и загрузите на хостинг. Теперь URL работает на любом устройстве — вводить ничего не нужно.
     </div>
   </div>
 </div>
@@ -834,9 +852,8 @@ function saveFuel() {
          row:[rec.id,rec.carId,date,km,lit,price,curr,rec.total,note,rec.createdAt]});
   closeModal("m-fuel");
   clearF2(["f-km","f-lit","f-price","f-total","f-note"]);
-  // Обновляем все экраны где могут быть заправки
   renderDash();
-  renderFuel();
+  if (g("scr-fuel").classList.contains("active")) renderFuel();
   showToast("✅ Заправка добавлена");
 }
 
@@ -884,7 +901,7 @@ function saveSvc() {
   g("s-type").value = "";
   g("s-cgrp").style.display = "none";
   renderDash();
-  renderSvc();
+  if (g("scr-service").classList.contains("active")) renderSvc();
   showToast("✅ Запись добавлена");
 }
 
