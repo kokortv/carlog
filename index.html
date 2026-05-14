@@ -275,6 +275,10 @@ h1,h2,h3{font-family:'Syne',sans-serif}
             ⏳ Ожидает отправки: <b id="pcnt">0</b> записей
             <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">🔄 Отправить сейчас</button>
           </div>
+          <div style="margin-top:12px;">
+            <button class="btn bg2" onclick="syncFromCloud(true)" style="margin-top:4px;">⬇️ Загрузить из таблицы</button>
+            <div class="hint">Сначала отправит несинхронизированные записи, затем загрузит свежие данные с сервера.</div>
+          </div>
         </div>
 
         <div class="setc">
@@ -428,14 +432,11 @@ h1,h2,h3{font-family:'Syne',sans-serif}
     <div class="mh"></div>
     <div class="mhdr"><div class="mt2">📖 Настройка Apps Script</div><button class="mc2" onclick="closeModal('m-guide')">✕</button></div>
     <div class="mb" style="font-size:12px;line-height:1.85;color:var(--tx2)">
-
       <b style="color:var(--tx)">Шаг 1. Создайте Google Таблицу</b><br>
       Откройте <a href="https://sheets.google.com" target="_blank" style="color:var(--ac2)">sheets.google.com</a> и создайте новую таблицу. Листы создадутся автоматически.<br><br>
-
       <b style="color:var(--tx)">Шаг 2. Apps Script</b><br>
       В таблице: <b style="color:var(--tx)">Расширения → Apps Script</b><br>
       Удалите всё и вставьте код ниже, заменив <code>ВАШ_ID</code>:
-
       <div class="codebox">const SPREADSHEET_ID = "ВАШ_ID_ТАБЛИЦЫ";
 // ID находится в URL таблицы:
 // docs.google.com/spreadsheets/d/ВАШ_ID/edit
@@ -532,7 +533,6 @@ function respond(data) {
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
 }</div>
-
       <b style="color:var(--tx)">Шаг 3. Разверните</b><br>
       Нажмите <b style="color:var(--tx)">Развернуть → Новое развёртывание</b><br>
       • Тип: <b style="color:var(--tx)">Веб-приложение</b><br>
@@ -540,7 +540,6 @@ function respond(data) {
       • Доступ: <b style="color:var(--tx)">Все</b><br>
       Скопируйте URL и вставьте в поле выше.<br><br>
       <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:9px 11px;margin:6px 0;font-size:11px;color:var(--am2)">⚠ Если в таблице появился пустой лист без названия — просто удалите его. Это происходило из-за старой версии скрипта. Новый код это исправляет.</div>
-
       <b style="color:var(--tx)">Шаг 4. Вшейте URL — один раз для всех устройств</b><br>
       URL хранится в памяти браузера — значит на телефоне его придётся вводить заново. Чтобы этого избежать:<br>
       Откройте <code>index.html</code> в текстовом редакторе, найдите строку:<br>
@@ -603,9 +602,9 @@ function init() {
     updateOffline();
     showToast("📡 Офлайн — сохраняем локально");
   });
-  // Синхронизируем очередь при старте если онлайн
-  if (navigator.onLine && S.scriptUrl && S.queue.length > 0) {
-    setTimeout(syncNow, 1500);
+  // При старте, если есть URL и онлайн — загружаем данные из таблицы
+  if (navigator.onLine && S.scriptUrl) {
+    setTimeout(() => syncFromCloud(false), 500);
   }
 }
 
@@ -1053,6 +1052,77 @@ function rRow(r) {
 }
 
 // ═══════════════════════════════════════════════
+// SYNC WITH GOOGLE SHEETS (PULL)
+// ═══════════════════════════════════════════════
+async function fetchAllData() {
+  if (!S.scriptUrl) {
+    console.warn("No script URL");
+    return null;
+  }
+  try {
+    const res = await fetch(S.scriptUrl, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({ action: "getData" })
+    });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    if (!json.ok || !json.data) throw new Error("Invalid response");
+    return json.data; // { cars, fuels, services }
+  } catch (e) {
+    console.warn("fetchAllData failed:", e);
+    return null;
+  }
+}
+
+async function syncFromCloud(showToastMsg = true) {
+  if (!S.scriptUrl) {
+    if (showToastMsg) showToast("⚠ URL не задан");
+    return false;
+  }
+  if (!navigator.onLine) {
+    if (showToastMsg) showToast("📡 Нет интернета");
+    return false;
+  }
+
+  setSbar("syncing", "Загрузка данных из Google Sheets...");
+  // Сначала отправляем очередь, если есть
+  if (S.queue.length > 0) {
+    await syncNow();
+  }
+  const data = await fetchAllData();
+  if (!data) {
+    setSbar("error", "❌ Не удалось загрузить данные");
+    if (showToastMsg) showToast("Ошибка загрузки из таблицы");
+    return false;
+  }
+
+  // Обновляем состояние
+  S.cars = data.cars || [];
+  S.fuels = data.fuels || [];
+  S.services = data.services || [];
+
+  // Проверяем активный автомобиль
+  if (S.cars.length && (!S.activeCar || !S.cars.find(c => c.id === S.activeCar))) {
+    S.activeCar = S.cars[0].id;
+  }
+
+  // Сохраняем в localStorage
+  saveS();
+
+  // Перерисовываем интерфейс
+  renderDash();
+  if (g("scr-fuel").classList.contains("active")) renderFuel();
+  if (g("scr-service").classList.contains("active")) renderSvc();
+  if (g("scr-history").classList.contains("active")) renderHist("all");
+  applySettings();
+
+  setSbar("ok", "✅ Данные загружены из Google Sheets");
+  if (showToastMsg) showToast("Данные синхронизированы с облаком");
+  return true;
+}
+
+// ═══════════════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════════════
 function applySettings() {
@@ -1076,22 +1146,19 @@ function applySettings() {
     pill.className = "pill pno"; pill.textContent = "● Не подключено";
   }
 
-  // Кнопка смены URL всегда доступна
-  if (url || HARDCODED_SCRIPT_URL) {
-    // Добавляем кнопку смены если нет hardcoded
-    if (!HARDCODED_SCRIPT_URL) {
-      const ex = g("url-change-btn");
-      if (!ex) {
-        const btn = document.createElement("button");
-        btn.className = "btn bg2"; btn.id = "url-change-btn";
-        btn.textContent = "✏ Изменить URL";
-        btn.onclick = () => {
-          g("url-hardcoded").style.display = "none";
-          g("url-form").style.display = "block";
-          g("surl").value = S.scriptUrl;
-        };
-        g("url-hardcoded").appendChild(btn);
-      }
+  // Кнопка смены URL если нет hardcoded
+  if (!HARDCODED_SCRIPT_URL) {
+    const ex = g("url-change-btn");
+    if (!ex && url) {
+      const btn = document.createElement("button");
+      btn.className = "btn bg2"; btn.id = "url-change-btn";
+      btn.textContent = "✏ Изменить URL";
+      btn.onclick = () => {
+        g("url-hardcoded").style.display = "none";
+        g("url-form").style.display = "block";
+        g("surl").value = S.scriptUrl;
+      };
+      g("url-hardcoded").appendChild(btn);
     }
   }
 
@@ -1121,8 +1188,8 @@ async function testConnection() {
     setSbar("ok", "✅ Google Sheets подключён, листы готовы");
     showToast("✅ Подключено!");
     applySettings();
-    // Синхронизируем очередь
-    if (S.queue.length > 0) syncNow();
+    // После успешного подключения загружаем данные
+    await syncFromCloud(false);
   } else {
     setSbar("error", "❌ Не удалось подключиться — проверьте URL");
     showToast("❌ Ошибка подключения");
