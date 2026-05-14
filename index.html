@@ -11,7 +11,7 @@
 <title>CarLog</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-/* ===== СТИЛИ (без изменений, такие же как в предыдущей версии) ===== */
+/* Стили как в предыдущей версии, для краткости опущены, но они должны быть полными */
 :root{
   --bg:#0a0f1e;--sf:#111827;--sf2:#1a2235;--sf3:#222d42;
   --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
@@ -217,11 +217,11 @@ h1,h2,h3{font-family:'Syne',sans-serif}
           <div id="url-hardcoded" style="display:none"><div class="hint" style="margin-bottom:8px">URL синхронизации вшит в приложение:</div><div class="script-url-display" id="url-display"></div><button class="btn bp" onclick="testConnection()">🔄 Проверить подключение</button></div>
           <div id="url-form"><div class="fg"><label class="fl">URL веб-приложения Apps Script</label><input class="fi" id="surl" placeholder="https://script.google.com/macros/s/.../exec"><div class="hint">Разверните скрипт как веб-приложение и вставьте URL.<br><button class="sa" onclick="openModal('m-guide')">Как настроить →</button></div></div><button class="btn bp" onclick="saveUrl()">💾 Сохранить и подключить</button></div>
           <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">⏳ Ожидает отправки: <b id="pcnt">0</b> записей <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">🔄 Отправить сейчас</button></div>
-          <div style="margin-top:12px;"><button class="btn bg2" onclick="syncFromCloud(true)" style="margin-top:4px;">⬇️ Загрузить из таблицы</button><div class="hint">Сначала отправит несинхронизированные записи, затем загрузит свежие данные с сервера.</div></div>
+          <div style="margin-top:12px;"><button class="btn bg2" onclick="syncFromCloud(true)" style="margin-top:4px;">⬇️ Загрузить из таблицы</button><button class="btn bg2" onclick="resetAndSync()" style="margin-top:4px;">🔄 Сбросить локально и загрузить из таблицы</button><div class="hint">Сначала отправит несинхронизированные записи, затем загрузит свежие данные с сервера.</div></div>
         </div>
         <div class="setc"><div class="settit">Валюта по умолчанию</div><div class="tabs"><button class="tb active" id="c-GEL" onclick="setCurr('GEL',this)">₾ Лари</button><button class="tb" id="c-USD" onclick="setCurr('USD',this)">$ Доллар</button><button class="tb" id="c-RUB" onclick="setCurr('RUB',this)">₽ Рубль</button></div></div>
         <div class="setc"><div class="settit">Данные</div><button class="btn bg2" onclick="exportJ()">📤 Экспорт JSON</button><button class="btn bd3" onclick="clearAll()">🗑 Очистить всё (локально)</button><div class="hint">Внимание: данные в Google Sheets не удаляются. Чтобы очистить облако, удалите записи вручную через таблицу или используйте кнопки удаления рядом с каждой записью.</div></div>
-        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.3 · PWA · Офлайн-режим</div>
+        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.4 · PWA · Офлайн-режим</div>
       </div>
     </div>
   </div>
@@ -234,7 +234,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
   </nav>
 </div>
 
-<!-- Модальные окна -->
+<!-- Модальные окна (краткие, без изменений) -->
 <div class="mo" id="m-car"><div class="mdl"><div class="mh"></div><div class="mhdr"><div class="mt2" id="car-mt">Добавить авто</div><button class="mc2" onclick="closeModal('m-car')">✕</button></div><div class="mb"><input type="hidden" id="car-eid"><div class="fr2"><div class="fg"><label class="fl">Марка</label><input class="fi" id="c-brand" placeholder="Toyota"></div><div class="fg"><label class="fl">Модель</label><input class="fi" id="c-model" placeholder="Camry"></div></div><div class="fr2"><div class="fg"><label class="fl">Год</label><input class="fi" id="c-year" type="number" placeholder="2020" min="1950" max="2030"></div><div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="c-km" type="number" placeholder="50000" min="0"></div></div><div class="fg"><label class="fl">VIN</label><input class="fi" id="c-vin" placeholder="1HGBH41JXMN109186" maxlength="17" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px"></div><div class="fg"><label class="fl">Цвет</label><div class="cpr" id="cswatches"></div><input type="hidden" id="c-color" value="#e74c3c"></div><div class="cprev"><svg id="cpreview" viewBox="0 0 120 60" width="150" height="75" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="28" width="104" height="22" rx="5" fill="#e74c3c" id="cp-body"/><path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="#c0392b" id="cp-roof"/><path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/><path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/><path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/><circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/><circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/><rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/><rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/></svg></div><button class="btn bp" onclick="saveCar()">✅ Сохранить</button><button class="btn bd3" id="del-car-btn" style="display:none" onclick="deleteCar()">🗑 Удалить автомобиль</button></div></div></div>
 <div class="mo" id="m-carlist"><div class="mdl"><div class="mh"></div><div class="mhdr"><div class="mt2">Мои автомобили</div><button class="mc2" onclick="closeModal('m-carlist')">✕</button></div><div class="mb"><div id="carlist"></div><button class="btn bg2" onclick="closeModal('m-carlist');openCarModal()">＋ Добавить автомобиль</button></div></div></div>
 <div class="mo" id="m-fuel"><div class="mdl"><div class="mh"></div><div class="mhdr"><div class="mt2" id="fuel-mt">⛽ Заправка</div><button class="mc2" onclick="closeFuelModal()">✕</button></div><div class="mb"><input type="hidden" id="fuel-eid"><div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div><div class="fr2"><div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="f-km" type="number" placeholder="52000" min="0"></div><div class="fg"><label class="fl">Литры</label><input class="fi" id="f-lit" type="number" placeholder="40" min="0" step="0.1" oninput="calcF()"></div></div><div class="fr2"><div class="fg"><label class="fl">Цена за литр</label><input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.01" oninput="calcF()"></div><div class="fg"><label class="fl">Валюта</label><select class="fs" id="f-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option></select></div></div><div class="fg"><label class="fl">Итого</label><input class="fi" id="f-total" type="number" placeholder="116.00" step="0.01"></div><div class="fg"><label class="fl">АЗС / Заметка</label><input class="fi" id="f-note" placeholder="Lukoil, полный бак"></div><button class="btn bp" onclick="saveFuel()">✅ Сохранить заправку</button><button class="btn bd3" id="del-fuel-btn" style="display:none" onclick="deleteFuel()">🗑 Удалить заправку</button></div></div></div>
@@ -283,8 +283,8 @@ function loadS() {
     if (!Array.isArray(S.cars)) S.cars = [];
     if (!Array.isArray(S.fuels)) S.fuels = [];
     if (!Array.isArray(S.services)) S.services = [];
-    // Преобразование чисел в загруженных данных (на всякий случай)
-    S.cars.forEach(c => { c.mileage = toNumber(c.mileage); });
+    // Принудительное преобразование чисел
+    S.cars.forEach(c => { if (c.mileage !== undefined) c.mileage = toNumber(c.mileage); });
     S.fuels.forEach(f => { f.mileage = toNumber(f.mileage); f.liters = toNumber(f.liters); f.pricePerLiter = toNumber(f.pricePerLiter); f.total = toNumber(f.total); });
     S.services.forEach(s => { s.mileage = toNumber(s.mileage); s.cost = toNumber(s.cost); });
   } catch(e) { console.warn("loadS error:", e); }
@@ -371,7 +371,6 @@ function saveCar() {
   }
   closeModal("m-car");
   renderDash();
-  // обновить список машин в модальном окне, если оно открыто
   if (g("m-carlist").classList.contains("open")) renderCarList();
 }
 function deleteCar() {
@@ -553,6 +552,7 @@ function calcCons(carId) {
 
 // Отрисовка
 function renderDash() {
+  console.log("renderDash, cars:", S.cars.length, "activeCar:", S.activeCar);
   if (!S.cars.length) { g("no-car").style.display = "block"; g("car-dash").style.display = "none"; return; }
   g("no-car").style.display = "none"; g("car-dash").style.display = "block";
   if (!S.activeCar || !S.cars.find(c=>c.id===S.activeCar)) {
@@ -561,10 +561,11 @@ function renderDash() {
   }
   const car = getAC();
   if (!car) return;
+  console.log("Current car mileage:", car.mileage);
   g("d-av").innerHTML = carSVG(car.color||"#e74c3c", 50, 25);
   g("d-nm").textContent = `${car.brand} ${car.model}`;
   g("d-sub").textContent = [car.year, car.vin, car.mileage ? car.mileage.toLocaleString()+" км" : ""].filter(Boolean).join(" · ");
-  const mileageNum = car.mileage ? Number(car.mileage) : 0;
+  const mileageNum = toNumber(car.mileage);
   g("d-km").textContent = mileageNum > 0 ? mileageNum.toLocaleString() : "—";
   g("d-con").textContent = calcCons(car.id) || "—";
   g("d-curr").textContent = CUR[S.currency] || "₾";
@@ -648,7 +649,7 @@ async function syncFromCloud(showToastMsg=true) {
   S.services = data.services || [];
   if (S.cars.length && (!S.activeCar || !S.cars.find(c=>c.id===S.activeCar))) S.activeCar = S.cars[0].id;
   saveS();
-  console.log("Loaded cars with mileage:", S.cars.map(c=>`${c.brand} ${c.model} → ${c.mileage}`));
+  console.log("After sync, cars:", S.cars);
   renderDash();
   if (g("scr-fuel").classList.contains("active")) renderFuel();
   if (g("scr-service").classList.contains("active")) renderSvc();
@@ -657,6 +658,18 @@ async function syncFromCloud(showToastMsg=true) {
   setSbar("ok", "✅ Данные загружены из Google Sheets");
   if(showToastMsg) showToast("Данные синхронизированы с облаком");
   return true;
+}
+async function resetAndSync() {
+  if (!confirm("Сбросить все локальные данные и загрузить из таблицы? Неотправленные изменения будут потеряны.")) return;
+  // Очищаем локальное состояние полностью
+  S.cars = [];
+  S.fuels = [];
+  S.services = [];
+  S.queue = [];
+  S.activeCar = null;
+  saveS();
+  renderDash();
+  await syncFromCloud(true);
 }
 function qSync(op) { S.queue.push({...op, _qid:uid()}); saveS(); updatePendingUI(); if (navigator.onLine && S.scriptUrl) setTimeout(syncNow, 500); else if (!navigator.onLine) setSbar("pending", `📡 Офлайн — ${S.queue.length} записей ждут синхронизации`); }
 let syncing=false;
@@ -716,7 +729,13 @@ function exportJ() { const b = new Blob([JSON.stringify(S,null,2)], {type:"appli
 function clearAll() { if(!confirm("Удалить ВСЕ локальные данные? Данные в Google Sheets останутся без изменений.")) return; S = {cars:[], fuels:[], services:[], activeCar:null, currency:"GEL", scriptUrl: HARDCODED_SCRIPT_URL || "", queue:[]}; saveS(); renderDash(); applySettings(); updatePendingUI(); showToast("🗑 Локальные данные очищены"); }
 function showToast(msg) { const e=g("toast"); e.textContent=msg; e.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove("show"),2600); }
 let toastT;
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").then(reg => {
+    console.log("SW registered");
+    // Принудительное обновление при новой версии
+    reg.update();
+  }).catch(()=>{});
+}
 
 // Инициализация
 function init() {
