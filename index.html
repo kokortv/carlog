@@ -216,7 +216,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <div class="sh"><span class="st">История заправок</span></div>
         <div id="fuel-list"></div>
       </div>
-      <button class="fab" onclick="openModal('m-fuel')">＋</button>
+      <button class="fab" onclick="openFuelModal()">＋</button>
     </div>
 
     <!-- SERVICE -->
@@ -226,7 +226,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <div class="sh"><span class="st">История обслуживания</span></div>
         <div id="svc-list"></div>
       </div>
-      <button class="fab" onclick="openModal('m-svc')">＋</button>
+      <button class="fab" onclick="openSvcModal()">＋</button>
     </div>
 
     <!-- HISTORY -->
@@ -256,7 +256,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
           <div id="url-hardcoded" style="display:none">
             <div class="hint" style="margin-bottom:8px">URL синхронизации вшит в приложение:</div>
             <div class="script-url-display" id="url-display"></div>
-            <button class="btn bp" onclick="testConnection()">🔄 Проверить подключение</button>
+            <button class="btn bp" onclick="testConnection()">✅ Проверить подключение</button>
           </div>
 
           <!-- Форма ввода URL (если не вшит) -->
@@ -271,9 +271,10 @@ h1,h2,h3{font-family:'Syne',sans-serif}
             <button class="btn bp" onclick="saveUrl()">💾 Сохранить и подключить</button>
           </div>
 
+          <button class="btn bp" onclick="loadFromSheets()" style="margin-top:8px">🔄 Загрузить данные из таблицы</button>
           <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">
             ⏳ Ожидает отправки: <b id="pcnt">0</b> записей
-            <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">🔄 Отправить сейчас</button>
+            <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">📤 Отправить ожидающие</button>
           </div>
         </div>
 
@@ -324,11 +325,26 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       </div>
       <div class="fg"><label class="fl">VIN</label><input class="fi" id="c-vin" placeholder="1HGBH41JXMN109186" maxlength="17" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px"></div>
       <div class="fg">
-        <label class="fl">Цвет</label>
+        <label class="fl">Фото автомобиля</label>
+        <div id="car-photo-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div id="car-photo-preview" style="width:80px;height:52px;border-radius:8px;background:var(--sf2);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex-shrink:0">🚗</div>
+          <div style="flex:1">
+            <label style="display:inline-flex;align-items:center;gap:6px;background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:8px 12px;cursor:pointer;font-size:12px;color:var(--tx2)">
+              📷 Загрузить фото
+              <input type="file" id="c-photo-input" accept="image/*" style="display:none" onchange="handleCarPhoto(this)">
+            </label>
+            <div style="font-size:10px;color:var(--tx3);margin-top:4px">JPG, PNG до 2МБ</div>
+          </div>
+          <button onclick="clearCarPhoto()" id="c-photo-clear" style="display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:var(--rd2);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">✕</button>
+        </div>
+        <input type="hidden" id="c-photo" value="">
+      </div>
+      <div class="fg">
+        <label class="fl">Цвет (если нет фото)</label>
         <div class="cpr" id="cswatches"></div>
         <input type="hidden" id="c-color" value="#e74c3c">
       </div>
-      <div class="cprev">
+      <div class="cprev" id="car-svg-prev">
         <svg id="cpreview" viewBox="0 0 120 60" width="150" height="75" xmlns="http://www.w3.org/2000/svg">
           <rect x="8" y="28" width="104" height="22" rx="5" fill="#e74c3c" id="cp-body"/>
           <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="#c0392b" id="cp-roof"/>
@@ -363,8 +379,9 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 <div class="mo" id="m-fuel">
   <div class="mdl">
     <div class="mh"></div>
-    <div class="mhdr"><div class="mt2">⛽ Заправка</div><button class="mc2" onclick="closeModal('m-fuel')">✕</button></div>
+    <div class="mhdr"><div class="mt2" id="fuel-modal-title">⛽ Заправка</div><button class="mc2" onclick="closeModal('m-fuel')">✕</button></div>
     <div class="mb">
+      <input type="hidden" id="f-eid" value="">
       <div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div>
       <div class="fr2">
         <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="f-km" type="number" placeholder="52000" min="0"></div>
@@ -381,6 +398,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       <div class="fg"><label class="fl">Итого</label><input class="fi" id="f-total" type="number" placeholder="116.00" step="0.01"></div>
       <div class="fg"><label class="fl">АЗС / Заметка</label><input class="fi" id="f-note" placeholder="Lukoil, полный бак"></div>
       <button class="btn bp" onclick="saveFuel()">✅ Сохранить заправку</button>
+      <button class="btn bd3" id="f-del-btn" style="display:none" onclick="deleteFuel()">🗑 Удалить заправку</button>
     </div>
   </div>
 </div>
@@ -389,8 +407,9 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 <div class="mo" id="m-svc">
   <div class="mdl">
     <div class="mh"></div>
-    <div class="mhdr"><div class="mt2">🔧 Обслуживание</div><button class="mc2" onclick="closeModal('m-svc')">✕</button></div>
+    <div class="mhdr"><div class="mt2" id="svc-modal-title">🔧 Обслуживание</div><button class="mc2" onclick="closeModal('m-svc')">✕</button></div>
     <div class="mb">
+      <input type="hidden" id="s-eid" value="">
       <div class="fg"><label class="fl">Дата</label><input class="fi" id="s-date" type="date"></div>
       <div class="fg"><label class="fl">Вид работ</label>
         <select class="fs" id="s-type" onchange="svcChg()">
@@ -418,6 +437,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       </div>
       <div class="fg"><label class="fl">СТО / Заметка</label><input class="fi" id="s-note" placeholder="Автосервис Авто+"></div>
       <button class="btn bp" onclick="saveSvc()">✅ Сохранить запись</button>
+      <button class="btn bd3" id="s-del-btn" style="display:none" onclick="deleteSvc()">🗑 Удалить запись</button>
     </div>
   </div>
 </div>
@@ -554,130 +574,117 @@ function respond(data) {
 
 <div class="toast" id="toast"></div>
 
-<script>
-// ═══════════════════════════════════════════════
-// 🔧 ВСТАВЬТЕ ВАШЕ URL СЮДА — тогда вводить его
-//    не нужно будет ни на одном устройстве
-// ═══════════════════════════════════════════════
-const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykPTLjAYwcj3FbehEGOY4azzH1dgD9aR6TjM9A48fwNNuYE73N6o8b_4PgqMF9EhlE/exec";
-// Пример: const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/ABC.../exec";
 
-// ═══════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════
+
+<script>
+// ══════════════════════════════════════════════════════
+// 🔧 ВСТАВЬТЕ URL СЮДА — будет работать на всех устройствах
+// ══════════════════════════════════════════════════════
+const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykPTLjAYwcj3FbehEGOY4azzH1dgD9aR6TjM9A48fwNNuYE73N6o8b_4PgqMF9EhlE/exec";
+// Пример: const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/.../exec";
+
+// ══════════════════════════════════════════════════════
+// КОНСТАНТЫ
+// ══════════════════════════════════════════════════════
 const CUR = {GEL:"₾", USD:"$", RUB:"₽"};
 const COLORS = [
   "#e74c3c","#c0392b","#e67e22","#f39c12","#f1c40f",
   "#2ecc71","#27ae60","#1abc9c","#3498db","#2980b9",
   "#9b59b6","#8e44ad","#e91e63","#607d8b","#bdc3c7"
 ];
+const SVC_TYPES = [
+  "🛢 Замена масла","🔄 Замена масляного фильтра","💨 Замена воздушного фильтра",
+  "⛽ Замена топливного фильтра","⚡ Замена свечей зажигания","🛑 Замена тормозных колодок",
+  "⭕ Замена тормозного диска","💧 Замена тормозной жидкости","🌡 Замена охлаждающей жидкости",
+  "⚙ Замена ремня ГРМ","🔋 Замена аккумулятора","🚗 Замена шин",
+  "⚖ Балансировка колёс","📐 Развал-схождение","📋 Технический осмотр","🔍 Диагностика"
+];
 
-let S = {
-  cars: [], fuels: [], services: [],
-  activeCar: null, currency: "GEL",
-  scriptUrl: "", queue: []
-};
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let S = { cars:[], fuels:[], services:[], activeCar:null, currency:"GEL", scriptUrl:"", queue:[] };
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function init() {
   loadS();
-  // Если URL вшит — используем его и перекрываем сохранённый
-  if (HARDCODED_SCRIPT_URL) {
-    S.scriptUrl = HARDCODED_SCRIPT_URL;
-    // Не сохраняем в localStorage чтобы всегда брать из кода
-  }
+  if (HARDCODED_SCRIPT_URL) S.scriptUrl = HARDCODED_SCRIPT_URL;
   buildSwatches();
   setDates();
   updateOffline();
-  renderDash();
+  renderAll();
   applySettings();
   updatePendingUI();
-  window.addEventListener("online", () => {
-    updateOffline();
-    showToast("🌐 Онлайн — синхронизируем данные");
-    syncNow();
-  });
-  window.addEventListener("offline", () => {
-    updateOffline();
-    showToast("📡 Офлайн — сохраняем локально");
-  });
-  // Синхронизируем очередь при старте если онлайн
-  if (navigator.onLine && S.scriptUrl && S.queue.length > 0) {
-    setTimeout(syncNow, 1500);
-  }
+  window.addEventListener("online",  () => { updateOffline(); syncThenLoad(); });
+  window.addEventListener("offline", () => { updateOffline(); showToast("📡 Офлайн — данные сохраняются локально"); });
+  if (navigator.onLine && S.scriptUrl) syncThenLoad();
 }
+
+function renderAll() { renderDash(); }
 
 function loadS() {
   try {
-    const raw = localStorage.getItem("cl3");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      S = { ...S, ...parsed };
-    }
-    if (!Array.isArray(S.queue)) S.queue = [];
-    if (!Array.isArray(S.cars)) S.cars = [];
-    if (!Array.isArray(S.fuels)) S.fuels = [];
+    const raw = localStorage.getItem("cl4");
+    if (raw) S = { ...S, ...JSON.parse(raw) };
+    if (!Array.isArray(S.queue))    S.queue    = [];
+    if (!Array.isArray(S.cars))     S.cars     = [];
+    if (!Array.isArray(S.fuels))    S.fuels    = [];
     if (!Array.isArray(S.services)) S.services = [];
-  } catch(e) { console.warn("loadS error:", e); }
+  } catch(e) {}
 }
 
 function saveS() {
   try {
-    // Если URL вшит — не сохраняем его в localStorage
-    const toSave = { ...S };
-    if (HARDCODED_SCRIPT_URL) delete toSave.scriptUrl;
-    localStorage.setItem("cl3", JSON.stringify(toSave));
-  } catch(e) { console.warn("saveS error:", e); }
+    const t = {...S};
+    if (HARDCODED_SCRIPT_URL) delete t.scriptUrl;
+    localStorage.setItem("cl4", JSON.stringify(t));
+  } catch(e) {}
 }
 
 const g = id => document.getElementById(id);
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
-function now() { return new Date().toISOString(); }
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const now = () => new Date().toISOString();
 
 function setDates() {
   const t = new Date().toISOString().split("T")[0];
-  ["f-date","s-date"].forEach(id => { const e = g(id); if (e) e.value = t; });
+  ["f-date","s-date"].forEach(id => { const e = g(id); if(e && !e.value) e.value = t; });
 }
+function setDate(id) { const e=g(id); if(e) e.value = new Date().toISOString().split("T")[0]; }
+function updateOffline() { g("ofbar").classList.toggle("on", !navigator.onLine); }
 
-function updateOffline() {
-  g("ofbar").classList.toggle("on", !navigator.onLine);
-}
-
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function goScr(name) {
   document.querySelectorAll(".scr").forEach(s => s.classList.remove("active"));
-  document.querySelectorAll(".ni").forEach(n => n.classList.remove("active"));
-  g("scr-" + name).classList.add("active");
+  document.querySelectorAll(".ni").forEach(n  => n.classList.remove("active"));
+  g("scr-"+name).classList.add("active");
   const idx = ["dashboard","fuel","service","history","settings"].indexOf(name);
   if (idx >= 0) document.querySelectorAll(".ni")[idx].classList.add("active");
-  // Всегда перерисовываем экран при переходе
-  if (name === "fuel")     renderFuel();
-  if (name === "service")  renderSvc();
-  if (name === "history")  renderHist("all");
-  if (name === "dashboard") renderDash();
-  if (name === "settings") applySettings();
+  if (name==="dashboard") renderDash();
+  if (name==="fuel")      renderFuel();
+  if (name==="service")   renderSvc();
+  if (name==="history")   renderHist("all");
+  if (name==="settings")  applySettings();
 }
 
 function openModal(id) {
   g(id).classList.add("open");
-  setDates();
-  if (id === "m-carlist") renderCarList();
+  if (id==="m-carlist") renderCarList();
 }
 function closeModal(id) { g(id).classList.remove("open"); }
 document.querySelectorAll(".mo").forEach(m =>
-  m.addEventListener("click", e => { if (e.target === m) m.classList.remove("open"); })
+  m.addEventListener("click", e => { if(e.target===m) m.classList.remove("open"); })
 );
 
-// ═══════════════════════════════════════════════
-// COLOR PICKER
-// ═══════════════════════════════════════════════
-function buildSwatches(selected="#e74c3c") {
+// ══════════════════════════════════════════════════════
+// COLORS & CAR SVG
+// ══════════════════════════════════════════════════════
+function buildSwatches(sel="#e74c3c") {
   g("cswatches").innerHTML = COLORS.map(c =>
-    `<div class="csw${c===selected?" sel":""}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`
+    `<div class="csw${c===sel?" sel":""}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`
   ).join("");
 }
 
@@ -689,22 +696,22 @@ function pickColor(c, el) {
 }
 
 function previewCar(c) {
+  const photo = g("c-photo").value;
+  if (photo) return; // если есть фото — SVG не показываем
   g("cp-body").setAttribute("fill", c);
   g("cp-roof").setAttribute("fill", darken(c, 25));
 }
 
 function darken(hex, amt) {
-  const n = parseInt(hex.replace("#",""),16);
-  const r = Math.max(0, (n>>16) - amt);
-  const g2 = Math.max(0, ((n>>8)&0xff) - amt);
-  const b = Math.max(0, (n&0xff) - amt);
-  return "#" + [r,g2,b].map(v => v.toString(16).padStart(2,"0")).join("");
+  const n = parseInt(hex.replace("#",""), 16);
+  const r = Math.max(0,(n>>16)-amt), gv = Math.max(0,((n>>8)&0xff)-amt), b = Math.max(0,(n&0xff)-amt);
+  return "#"+[r,gv,b].map(v=>v.toString(16).padStart(2,"0")).join("");
 }
 
 function carSVG(color, w=50, h=25) {
-  const roof = darken(color, 25);
+  const roof = darken(color||"#e74c3c", 25);
   return `<svg viewBox="0 0 120 60" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-    <rect x="8" y="28" width="104" height="22" rx="5" fill="${color}"/>
+    <rect x="8" y="28" width="104" height="22" rx="5" fill="${color||"#e74c3c"}"/>
     <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="${roof}"/>
     <path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/>
     <path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/>
@@ -716,49 +723,96 @@ function carSVG(color, w=50, h=25) {
   </svg>`;
 }
 
-// ═══════════════════════════════════════════════
-// CARS
-// ═══════════════════════════════════════════════
+function carAvatar(car, w=50, h=25) {
+  if (car.photo) {
+    return `<img src="${car.photo}" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:6px;">`;
+  }
+  return carSVG(car.color||"#e74c3c", w, h);
+}
+
+// ══════════════════════════════════════════════════════
+// PHOTO UPLOAD
+// ══════════════════════════════════════════════════════
+function handleCarPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2*1024*1024) { showToast("⚠ Фото слишком большое (макс 2МБ)"); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    g("c-photo").value = dataUrl;
+    g("car-photo-preview").innerHTML = `<img src="${dataUrl}" style="width:80px;height:52px;object-fit:cover;border-radius:7px;">`;
+    g("c-photo-clear").style.display = "block";
+    g("car-svg-prev").style.display = "none"; // скрываем SVG превью
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearCarPhoto() {
+  g("c-photo").value = "";
+  g("car-photo-preview").innerHTML = "🚗";
+  g("c-photo-clear").style.display = "none";
+  g("car-svg-prev").style.display = "flex";
+  const ci = g("c-photo-input");
+  if (ci) ci.value = "";
+}
+
+// ══════════════════════════════════════════════════════
+// CARS CRUD
+// ══════════════════════════════════════════════════════
 function openCarModal(carId=null) {
-  const car = carId ? S.cars.find(c => c.id===carId) : null;
+  const car = carId ? S.cars.find(c=>c.id===carId) : null;
   g("car-mt").textContent = car ? "Редактировать авто" : "Добавить авто";
-  g("car-eid").value = car?.id || "";
-  g("c-brand").value = car?.brand || "";
-  g("c-model").value = car?.model || "";
-  g("c-year").value  = car?.year  || "";
-  g("c-km").value    = car?.mileage || "";
-  g("c-vin").value   = car?.vin   || "";
+  g("car-eid").value  = car?.id    || "";
+  g("c-brand").value  = car?.brand || "";
+  g("c-model").value  = car?.model || "";
+  g("c-year").value   = car?.year  || "";
+  g("c-km").value     = car?.mileage || "";
+  g("c-vin").value    = car?.vin   || "";
   g("del-car-btn").style.display = car ? "flex" : "none";
+
   const col = car?.color || "#e74c3c";
   g("c-color").value = col;
   buildSwatches(col);
-  previewCar(col);
+
+  // Фото
+  g("c-photo").value = car?.photo || "";
+  if (car?.photo) {
+    g("car-photo-preview").innerHTML = `<img src="${car.photo}" style="width:80px;height:52px;object-fit:cover;border-radius:7px;">`;
+    g("c-photo-clear").style.display = "block";
+    g("car-svg-prev").style.display = "none";
+  } else {
+    g("car-photo-preview").innerHTML = "🚗";
+    g("c-photo-clear").style.display = "none";
+    g("car-svg-prev").style.display = "flex";
+    previewCar(col);
+  }
   openModal("m-car");
 }
 
 function saveCar() {
-  const brand   = (g("c-brand").value || "").trim();
-  const model   = (g("c-model").value || "").trim();
-  const year    = (g("c-year").value  || "").trim();
-  const mileage = parseInt(g("c-km").value) || 0;
-  const vin     = (g("c-vin").value   || "").trim().toUpperCase();
+  const brand   = (g("c-brand").value||"").trim();
+  const model   = (g("c-model").value||"").trim();
+  const year    = (g("c-year").value ||"").trim();
+  const mileage = parseInt(g("c-km").value)||0;
+  const vin     = (g("c-vin").value  ||"").trim().toUpperCase();
   const color   = g("c-color").value || "#e74c3c";
-  if (!brand || !model) { showToast("⚠ Укажите марку и модель"); return; }
+  const photo   = g("c-photo").value || "";
+  if (!brand||!model) { showToast("⚠ Укажите марку и модель"); return; }
 
   const eid = g("car-eid").value;
   if (eid) {
-    // РЕДАКТИРОВАНИЕ
-    const car = S.cars.find(c => c.id===eid);
+    const car = S.cars.find(c=>c.id===eid);
     if (car) {
-      Object.assign(car, {brand, model, year, mileage, vin, color});
+      Object.assign(car, {brand,model,year,mileage,vin,color,photo});
       saveS();
+      // Фото не шлём в Sheets (слишком большое) — только метаданные
       qSync({action:"update", sheet:"Cars", id:eid,
              row:[eid,brand,model,year,mileage,vin,color,car.createdAt]});
       showToast("✅ Авто обновлено");
     }
   } else {
-    // ДОБАВЛЕНИЕ
-    const car = {id:uid(), brand, model, year, mileage, vin, color, createdAt:now()};
+    const car = {id:uid(),brand,model,year,mileage,vin,color,photo,createdAt:now()};
     S.cars.push(car);
     if (!S.activeCar) S.activeCar = car.id;
     saveS();
@@ -766,37 +820,31 @@ function saveCar() {
            row:[car.id,brand,model,year,mileage,vin,color,car.createdAt]});
     showToast("✅ Автомобиль добавлен");
   }
-  closeModal("m-car");
-  closeModal("m-carlist");
+  closeModal("m-car"); closeModal("m-carlist");
   renderDash();
 }
 
 function deleteCar() {
   const id = g("car-eid").value;
-  if (!id || !confirm("Удалить авто и все его записи?")) return;
-  S.cars     = S.cars.filter(c => c.id !== id);
-  S.fuels    = S.fuels.filter(f => f.carId !== id);
-  S.services = S.services.filter(s => s.carId !== id);
-  if (S.activeCar === id) S.activeCar = S.cars[0]?.id || null;
+  if (!id||!confirm("Удалить авто и все его записи?")) return;
+  S.cars     = S.cars.filter(c=>c.id!==id);
+  S.fuels    = S.fuels.filter(f=>f.carId!==id);
+  S.services = S.services.filter(s=>s.carId!==id);
+  if (S.activeCar===id) S.activeCar = S.cars[0]?.id||null;
   saveS();
   qSync({action:"delete", sheet:"Cars", id});
-  closeModal("m-car");
-  renderDash();
-  showToast("🗑 Удалено");
+  closeModal("m-car"); renderDash(); showToast("🗑 Удалено");
 }
 
 function renderCarList() {
   const el = g("carlist");
-  if (!S.cars.length) {
-    el.innerHTML = `<div class="empty" style="padding:14px 0"><div class="esub">Нет автомобилей</div></div>`;
-    return;
-  }
-  el.innerHTML = S.cars.map(car => `
+  if (!S.cars.length) { el.innerHTML=`<div class="empty" style="padding:14px 0"><div class="esub">Нет автомобилей</div></div>`; return; }
+  el.innerHTML = S.cars.map(car=>`
     <div style="display:flex;align-items:center;gap:9px;background:var(--sf2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;border:1px solid ${car.id===S.activeCar?"var(--ac)":"var(--bd)"}">
-      <div style="flex-shrink:0">${carSVG(car.color||"#e74c3c",56,28)}</div>
+      <div style="width:56px;height:28px;flex-shrink:0;overflow:hidden;border-radius:6px">${carAvatar(car,56,28)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600;font-size:13px">${car.brand} ${car.model}</div>
-        <div style="font-size:11px;color:var(--tx2)">${car.year||""}${car.mileage?" · "+car.mileage.toLocaleString()+" км":""}${car.vin?" · "+car.vin:""}</div>
+        <div style="font-size:11px;color:var(--tx2)">${[car.year, car.mileage?car.mileage.toLocaleString()+" км":"", car.vin].filter(Boolean).join(" · ")}</div>
       </div>
       <div style="display:flex;gap:5px;flex-shrink:0">
         <button onclick="selCar('${car.id}')" style="padding:5px 9px;border-radius:6px;background:var(--ac);color:white;border:none;font-size:11px;cursor:pointer">Выбрать</button>
@@ -805,459 +853,474 @@ function renderCarList() {
     </div>`).join("");
 }
 
-function selCar(id) {
-  S.activeCar = id; saveS();
-  closeModal("m-carlist");
-  renderDash();
-  showToast("🚗 Выбрано");
+function selCar(id) { S.activeCar=id; saveS(); closeModal("m-carlist"); renderDash(); showToast("🚗 Выбрано"); }
+function getAC()    { return S.cars.find(c=>c.id===S.activeCar)||null; }
+function updKm(km)  { const c=getAC(); if(c&&km>c.mileage){c.mileage=km;saveS();} }
+
+// ══════════════════════════════════════════════════════
+// FUEL CRUD
+// ══════════════════════════════════════════════════════
+function openFuelModal(recId=null) {
+  const rec = recId ? S.fuels.find(f=>f.id===recId) : null;
+  g("fuel-modal-title").textContent = rec ? "✏ Редактировать заправку" : "⛽ Заправка";
+  g("f-eid").value   = rec?.id   || "";
+  g("f-date").value  = rec?.date || new Date().toISOString().split("T")[0];
+  g("f-km").value    = rec?.mileage       || "";
+  g("f-lit").value   = rec?.liters        || "";
+  g("f-price").value = rec?.pricePerLiter || "";
+  g("f-curr").value  = rec?.currency      || S.currency;
+  g("f-total").value = rec?.total         || "";
+  g("f-note").value  = rec?.note          || "";
+  g("f-del-btn").style.display = rec ? "flex" : "none";
+  openModal("m-fuel");
 }
 
-function getAC() { return S.cars.find(c => c.id===S.activeCar) || null; }
-
-function updKm(km) {
-  const car = getAC();
-  if (car && km > (car.mileage||0)) { car.mileage = km; saveS(); }
-}
-
-// ═══════════════════════════════════════════════
-// FUEL
-// ═══════════════════════════════════════════════
 function calcF() {
-  const l = parseFloat(g("f-lit").value)   || 0;
-  const p = parseFloat(g("f-price").value) || 0;
-  if (l && p) g("f-total").value = (l * p).toFixed(2);
+  const l=parseFloat(g("f-lit").value)||0, p=parseFloat(g("f-price").value)||0;
+  if(l&&p) g("f-total").value=(l*p).toFixed(2);
 }
 
 function saveFuel() {
   if (!S.activeCar) { showToast("⚠ Выберите авто"); return; }
   const date  = g("f-date").value;
-  const km    = parseInt(g("f-km").value)    || 0;
-  const lit   = parseFloat(g("f-lit").value) || 0;
-  const price = parseFloat(g("f-price").value) || 0;
+  const km    = parseInt(g("f-km").value)||0;
+  const lit   = parseFloat(g("f-lit").value)||0;
+  const price = parseFloat(g("f-price").value)||0;
   const curr  = g("f-curr").value;
-  const total = parseFloat(g("f-total").value) || +(lit * price).toFixed(2);
-  const note  = (g("f-note").value || "").trim();
+  const total = parseFloat(g("f-total").value)||(lit*price);
+  const note  = (g("f-note").value||"").trim();
+  if (!date||!lit) { showToast("⚠ Укажите дату и литры"); return; }
 
-  if (!date || !lit) { showToast("⚠ Укажите дату и литры"); return; }
-
-  const rec = {
-    id: uid(), carId: S.activeCar, type:"fuel",
-    date, mileage:km, liters:lit, pricePerLiter:price,
-    currency:curr, total:+total.toFixed(2), note, createdAt:now()
-  };
-  S.fuels.push(rec);
-  updKm(km);
-  saveS();
-  qSync({action:"append", sheet:"Fuel",
-         row:[rec.id,rec.carId,date,km,lit,price,curr,rec.total,note,rec.createdAt]});
+  const eid = g("f-eid").value;
+  if (eid) {
+    // РЕДАКТИРОВАНИЕ
+    const rec = S.fuels.find(f=>f.id===eid);
+    if (rec) {
+      Object.assign(rec, {date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+total.toFixed(2),note});
+      saveS();
+      qSync({action:"update",sheet:"Fuel",id:eid,
+             row:[eid,rec.carId,date,km,lit,price,curr,rec.total,note,rec.createdAt]});
+      showToast("✅ Заправка обновлена");
+    }
+  } else {
+    // ДОБАВЛЕНИЕ
+    const rec = {id:uid(),carId:S.activeCar,type:"fuel",date,mileage:km,liters:lit,
+                 pricePerLiter:price,currency:curr,total:+total.toFixed(2),note,createdAt:now()};
+    S.fuels.push(rec);
+    updKm(km);
+    saveS();
+    qSync({action:"append",sheet:"Fuel",
+           row:[rec.id,rec.carId,date,km,lit,price,curr,rec.total,note,rec.createdAt]});
+    showToast("✅ Заправка добавлена");
+  }
   closeModal("m-fuel");
   clearF2(["f-km","f-lit","f-price","f-total","f-note"]);
+  g("f-eid").value = "";
   renderDash();
-  if (g("scr-fuel").classList.contains("active")) renderFuel();
-  showToast("✅ Заправка добавлена");
+  if (g("scr-fuel").classList.contains("active"))    renderFuel();
+  if (g("scr-history").classList.contains("active")) renderHist("all");
+}
+
+function deleteFuel() {
+  const id = g("f-eid").value;
+  if (!id||!confirm("Удалить запись о заправке?")) return;
+  S.fuels = S.fuels.filter(f=>f.id!==id);
+  saveS();
+  qSync({action:"delete",sheet:"Fuel",id});
+  closeModal("m-fuel");
+  g("f-eid").value = "";
+  renderDash(); renderFuel();
+  if (g("scr-history").classList.contains("active")) renderHist("all");
+  showToast("🗑 Заправка удалена");
 }
 
 function calcCons(carId) {
-  const fs = S.fuels
-    .filter(x => x.carId === carId && x.mileage > 0 && x.liters > 0)
-    .sort((a,b) => a.mileage - b.mileage);
-  if (fs.length < 2) return null;
+  const fs = S.fuels.filter(x=>x.carId===carId&&x.mileage>0&&x.liters>0)
+                     .sort((a,b)=>a.mileage-b.mileage);
+  if (fs.length<2) return null;
   const km = fs[fs.length-1].mileage - fs[0].mileage;
-  if (km <= 0) return null;
-  const liters = fs.slice(1).reduce((s,x) => s + x.liters, 0);
-  return (liters / km * 100).toFixed(1);
+  if (km<=0) return null;
+  const lit = fs.slice(1).reduce((s,x)=>s+x.liters,0);
+  return (lit/km*100).toFixed(1);
 }
 
-// ═══════════════════════════════════════════════
-// SERVICE
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// SERVICE CRUD
+// ══════════════════════════════════════════════════════
+function openSvcModal(recId=null) {
+  const rec = recId ? S.services.find(s=>s.id===recId) : null;
+  g("svc-modal-title").textContent = rec ? "✏ Редактировать запись" : "🔧 Обслуживание";
+  g("s-eid").value  = rec?.id   || "";
+  g("s-date").value = rec?.date || new Date().toISOString().split("T")[0];
+  g("s-km").value   = rec?.mileage  || "";
+  g("s-cost").value = rec?.cost     || "";
+  g("s-curr").value = rec?.currency || S.currency;
+  g("s-note").value = rec?.note     || "";
+  g("s-del-btn").style.display = rec ? "flex" : "none";
+
+  // Восстанавливаем тип работ
+  const st = g("s-type");
+  if (rec) {
+    const opt = Array.from(st.options).find(o=>o.value===rec.serviceType||o.text===rec.serviceType);
+    if (opt) { st.value = opt.value; g("s-cgrp").style.display="none"; }
+    else { st.value="_other"; g("s-custom").value=rec.serviceType; g("s-cgrp").style.display="block"; }
+  } else {
+    st.value=""; g("s-cgrp").style.display="none"; g("s-custom").value="";
+  }
+  openModal("m-svc");
+}
+
 function svcChg() {
-  g("s-cgrp").style.display = g("s-type").value === "_other" ? "block" : "none";
+  g("s-cgrp").style.display = g("s-type").value==="_other" ? "block":"none";
 }
 
 function saveSvc() {
   if (!S.activeCar) { showToast("⚠ Выберите авто"); return; }
   const date   = g("s-date").value;
   const type   = g("s-type").value;
-  const custom = (g("s-custom").value || "").trim();
-  const km     = parseInt(g("s-km").value)   || 0;
-  const cost   = parseFloat(g("s-cost").value) || 0;
+  const custom = (g("s-custom").value||"").trim();
+  const km     = parseInt(g("s-km").value)||0;
+  const cost   = parseFloat(g("s-cost").value)||0;
   const curr   = g("s-curr").value;
-  const note   = (g("s-note").value || "").trim();
-  if (!date || !type) { showToast("⚠ Выберите тип работ"); return; }
+  const note   = (g("s-note").value||"").trim();
+  if (!date||!type) { showToast("⚠ Укажите дату и тип работ"); return; }
+  const sn = type==="_other" ? custom : type;
 
-  const sn = type === "_other" ? custom : type;
-  const rec = {
-    id:uid(), carId:S.activeCar, type:"service",
-    serviceType:sn, date, mileage:km, cost, currency:curr, note, createdAt:now()
-  };
-  S.services.push(rec);
-  updKm(km);
-  saveS();
-  qSync({action:"append", sheet:"Service",
-         row:[rec.id,rec.carId,date,sn,km,cost,curr,note,rec.createdAt]});
+  const eid = g("s-eid").value;
+  if (eid) {
+    // РЕДАКТИРОВАНИЕ
+    const rec = S.services.find(s=>s.id===eid);
+    if (rec) {
+      Object.assign(rec, {serviceType:sn,date,mileage:km,cost,currency:curr,note});
+      saveS();
+      qSync({action:"update",sheet:"Service",id:eid,
+             row:[eid,rec.carId,date,sn,km,cost,curr,note,rec.createdAt]});
+      showToast("✅ Запись обновлена");
+    }
+  } else {
+    const rec = {id:uid(),carId:S.activeCar,type:"service",serviceType:sn,date,mileage:km,cost,currency:curr,note,createdAt:now()};
+    S.services.push(rec);
+    updKm(km);
+    saveS();
+    qSync({action:"append",sheet:"Service",
+           row:[rec.id,rec.carId,date,sn,km,cost,curr,note,rec.createdAt]});
+    showToast("✅ Запись добавлена");
+  }
   closeModal("m-svc");
   clearF2(["s-km","s-cost","s-note","s-custom"]);
-  g("s-type").value = "";
-  g("s-cgrp").style.display = "none";
+  g("s-type").value=""; g("s-eid").value=""; g("s-cgrp").style.display="none";
   renderDash();
-  if (g("scr-service").classList.contains("active")) renderSvc();
-  showToast("✅ Запись добавлена");
+  if (g("scr-service").classList.contains("active"))  renderSvc();
+  if (g("scr-history").classList.contains("active"))  renderHist("all");
 }
 
-// ═══════════════════════════════════════════════
+function deleteSvc() {
+  const id = g("s-eid").value;
+  if (!id||!confirm("Удалить запись об обслуживании?")) return;
+  S.services = S.services.filter(s=>s.id!==id);
+  saveS();
+  qSync({action:"delete",sheet:"Service",id});
+  closeModal("m-svc");
+  g("s-eid").value="";
+  renderDash(); renderSvc();
+  if (g("scr-history").classList.contains("active")) renderHist("all");
+  showToast("🗑 Запись удалена");
+}
+
+// ══════════════════════════════════════════════════════
 // RENDER
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function renderDash() {
   if (!S.cars.length) {
-    g("no-car").style.display = "block";
-    g("car-dash").style.display = "none";
-    return;
+    g("no-car").style.display="block"; g("car-dash").style.display="none"; return;
   }
-  g("no-car").style.display = "none";
-  g("car-dash").style.display = "block";
+  g("no-car").style.display="none"; g("car-dash").style.display="block";
 
-  // Если activeCar не задан или не найден — берём первый
-  if (!S.activeCar || !S.cars.find(c => c.id===S.activeCar)) {
-    S.activeCar = S.cars[0].id;
-    saveS();
+  // Если activeCar не задан или удалён — берём первый
+  if (!S.activeCar||!S.cars.find(c=>c.id===S.activeCar)) {
+    S.activeCar=S.cars[0].id; saveS();
   }
-  const car = getAC();
-  if (!car) return;
+  const car = getAC(); if (!car) return;
 
-  g("d-av").innerHTML = carSVG(car.color||"#e74c3c", 50, 25);
-  g("d-nm").textContent  = `${car.brand} ${car.model}`;
-  g("d-sub").textContent = [car.year, car.vin, car.mileage ? car.mileage.toLocaleString()+" км" : ""].filter(Boolean).join(" · ");
-  g("d-km").textContent  = car.mileage ? car.mileage.toLocaleString() : "—";
+  // Аватар
+  g("d-av").innerHTML = carAvatar(car, 50, 25);
+
+  // Название и подзаголовок
+  g("d-nm").textContent = `${car.brand} ${car.model}`;
+
+  // ← ФИКС пробега: берём максимум из поля машины и всех записей
+  const maxFuelKm = S.fuels.filter(f=>f.carId===car.id).reduce((mx,f)=>Math.max(mx,f.mileage||0),0);
+  const maxSvcKm  = S.services.filter(s=>s.carId===car.id).reduce((mx,s)=>Math.max(mx,s.mileage||0),0);
+  const realKm = Math.max(Number(car.mileage)||0, maxFuelKm, maxSvcKm);
+
+  g("d-sub").textContent = [car.year, car.vin, realKm ? realKm.toLocaleString()+" км":""].filter(Boolean).join(" · ");
+  g("d-km").textContent  = realKm ? realKm.toLocaleString() : "—";
   g("d-con").textContent = calcCons(car.id) || "—";
-  g("d-curr").textContent = CUR[S.currency] || "₾";
+  g("d-curr").textContent = CUR[S.currency]||"₾";
 
-  const fs = S.fuels.filter(f => f.carId===car.id);
-  const ss = S.services.filter(s => s.carId===car.id);
-  const total = [...fs.map(f=>f.total||0), ...ss.map(s=>s.cost||0)].reduce((a,b)=>a+b,0);
+  const fs = S.fuels.filter(f=>f.carId===car.id);
+  const ss = S.services.filter(s=>s.carId===car.id);
+  const total = [...fs.map(f=>f.total||0),...ss.map(s=>s.cost||0)].reduce((a,b)=>a+b,0);
   g("d-cost").textContent = total ? total.toFixed(0) : "—";
 
-  // Мини-график
-  const lastFs = [...fs].sort((a,b) => new Date(a.date)-new Date(b.date)).slice(-6);
+  // График
+  const lastFs = [...fs].sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(-6);
   const chel = g("d-chart");
-  if (lastFs.length > 1) {
+  if (lastFs.length>1) {
     const mx = Math.max(...lastFs.map(f=>f.liters));
-    chel.innerHTML = `<div class="chbox"><div class="chtit">⛽ Последние заправки</div><div class="chbars">${
-      lastFs.map(f => {
-        const h = Math.round(f.liters/mx*56) + 8;
-        const d = new Date(f.date).toLocaleDateString("ru", {day:"numeric",month:"short"});
+    chel.innerHTML=`<div class="chbox"><div class="chtit">⛽ Последние заправки</div><div class="chbars">${
+      lastFs.map(f=>{
+        const h=Math.round(f.liters/mx*56)+8;
+        const d=new Date(f.date).toLocaleDateString("ru",{day:"numeric",month:"short"});
         return `<div class="cbw"><div class="cbv">${f.liters}л</div><div class="cb" style="height:${h}px"></div><div class="cbl">${d}</div></div>`;
       }).join("")
     }</div></div>`;
-  } else { chel.innerHTML = ""; }
+  } else chel.innerHTML="";
 
-  // Последние записи
-  const all = [
-    ...fs.map(f => ({...f, _t:"fuel"})),
-    ...ss.map(s => ({...s, _t:"service"}))
-  ].sort((a,b) => new Date(b.date)-new Date(a.date)).slice(0,5);
-
+  const all = [...fs.map(f=>({...f,_t:"fuel"})),...ss.map(s=>({...s,_t:"service"}))]
+    .sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
   g("d-recent").innerHTML = all.length
     ? `<div class="card">${all.map(rRow).join("")}</div>`
-    : `<div class="empty" style="padding:18px 0"><div class="esub">Добавьте первую заправку или запись об обслуживании</div></div>`;
+    : `<div class="empty" style="padding:16px 0"><div class="esub">Добавьте первую заправку или запись об обслуживании</div></div>`;
 }
 
 function renderFuel() {
-  const car = getAC();
-  if (!car) {
-    g("fuel-list").innerHTML = `<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;
-    g("fuel-cblock").innerHTML = "";
-    return;
-  }
-  const fs = S.fuels.filter(f => f.carId===car.id)
-                     .sort((a,b) => new Date(b.date)-new Date(a.date));
+  const car=getAC();
+  if (!car) { g("fuel-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; g("fuel-cblock").innerHTML=""; return; }
+  const fs=S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
 
-  // Блок расхода
-  const cons = calcCons(car.id);
-  const cel = g("fuel-cblock");
-  if (cons && fs.length >= 2) {
-    const tL = fs.reduce((s,f) => s+f.liters, 0);
-    const tC = fs.reduce((s,f) => s+(f.total||0), 0);
-    const cu = CUR[fs[0]?.currency] || "₾";
-    cel.innerHTML = `<div class="ccard">
-      <div>
-        <div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div>
-        <div class="cbig">${cons}</div><div class="cunit">л/100км</div>
-      </div>
-      <div class="cstats">
-        <div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div>
-        <div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div>
-        <div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div>
-      </div>
-    </div>`;
-  } else { cel.innerHTML = ""; }
+  const cons=calcCons(car.id), cel=g("fuel-cblock");
+  if (cons&&fs.length>=2) {
+    const tL=fs.reduce((s,f)=>s+f.liters,0), tC=fs.reduce((s,f)=>s+(f.total||0),0), cu=CUR[fs[0]?.currency]||"₾";
+    cel.innerHTML=`<div class="ccard"><div><div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div><div class="cbig">${cons}</div><div class="cunit">л/100км</div></div><div class="cstats"><div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div><div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div><div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div></div></div>`;
+  } else cel.innerHTML="";
 
   g("fuel-list").innerHTML = fs.length
-    ? `<div class="card">${fs.map(f => rRow({...f, _t:"fuel"})).join("")}</div>`
+    ? `<div class="card">${fs.map(f=>rRow({...f,_t:"fuel"})).join("")}</div>`
     : `<div class="empty"><div class="ei">⛽</div><div class="etit">Нет заправок</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
 }
 
 function renderSvc() {
-  const car = getAC();
-  if (!car) {
-    g("svc-list").innerHTML = `<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;
-    return;
-  }
-  const ss = S.services.filter(s => s.carId===car.id)
-                        .sort((a,b) => new Date(b.date)-new Date(a.date));
+  const car=getAC();
+  if (!car) { g("svc-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; return; }
+  const ss=S.services.filter(s=>s.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
   g("svc-list").innerHTML = ss.length
-    ? `<div class="card">${ss.map(s => rRow({...s, _t:"service"})).join("")}</div>`
+    ? `<div class="card">${ss.map(s=>rRow({...s,_t:"service"})).join("")}</div>`
     : `<div class="empty"><div class="ei">🔧</div><div class="etit">Нет записей</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
 }
 
 function renderHist(filter) {
-  const car = getAC();
-  if (!car) {
-    g("hist-list").innerHTML = `<div class="empty"><div class="esub">Выберите авто</div></div>`;
-    return;
-  }
-  let all = [
-    ...S.fuels.filter(x=>x.carId===car.id).map(x=>({...x,_t:"fuel"})),
-    ...S.services.filter(x=>x.carId===car.id).map(x=>({...x,_t:"service"}))
-  ];
-  if (filter === "fuel")    all = all.filter(r => r._t==="fuel");
-  if (filter === "service") all = all.filter(r => r._t==="service");
-  all.sort((a,b) => new Date(b.date)-new Date(a.date));
+  const car=getAC();
+  if (!car) { g("hist-list").innerHTML=`<div class="empty"><div class="esub">Выберите авто</div></div>`; return; }
+  let all=[...S.fuels.filter(x=>x.carId===car.id).map(x=>({...x,_t:"fuel"})),
+           ...S.services.filter(x=>x.carId===car.id).map(x=>({...x,_t:"service"}))];
+  if (filter==="fuel")    all=all.filter(r=>r._t==="fuel");
+  if (filter==="service") all=all.filter(r=>r._t==="service");
+  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
   g("hist-list").innerHTML = all.length
     ? `<div class="card">${all.map(rRow).join("")}</div>`
     : `<div class="empty"><div class="ei">📋</div><div class="etit">Нет записей</div></div>`;
 }
 
-function fHist(f, btn) {
-  document.querySelectorAll(".tabs .tb").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  renderHist(f);
-}
+function fHist(f,btn) { document.querySelectorAll(".tabs .tb").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); renderHist(f); }
 
+// Строка записи — с кнопкой редактирования
 function rRow(r) {
-  const iF = r._t==="fuel" || r.type==="fuel";
-  const cu = CUR[r.currency] || "₾";
-  const am = iF ? r.total : r.cost;
-  const ds = r.date ? new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short"}) : "";
+  const iF=r._t==="fuel"||r.type==="fuel";
+  const cu=CUR[r.currency]||"₾";
+  const am=iF?r.total:r.cost;
+  const ds=r.date?new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short"}):"";
+  const editFn=iF?`openFuelModal('${r.id}')`:`openSvcModal('${r.id}')`;
   return `<div class="crow">
     <div class="ri ${iF?"rif":"ris"}">${iF?"⛽":"🔧"}</div>
-    <div class="rb">
+    <div class="rb" onclick="${editFn}" style="cursor:pointer">
       <div class="rt">${iF?(r.note||"Заправка"):r.serviceType}</div>
       <div class="rs2">${ds}${r.mileage?" · "+r.mileage.toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}</div>
     </div>
-    <div class="rr">
-      <div class="ra ${iF?"raf":"ras"}">${am ? cu+am.toFixed(0) : "—"}</div>
-      <span class="badge ${iF?"bf":"bs"}">${iF?"ТОПЛИВО":"СЕРВИС"}</span>
+    <div class="rr" style="display:flex;align-items:center;gap:8px">
+      <div>
+        <div class="ra ${iF?"raf":"ras"}">${am?cu+am.toFixed(0):"—"}</div>
+        <span class="badge ${iF?"bf":"bs"}">${iF?"ТОПЛИВО":"СЕРВИС"}</span>
+      </div>
+      <button onclick="${editFn}" style="background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:6px;padding:5px 7px;font-size:12px;cursor:pointer;flex-shrink:0">✏</button>
     </div>
   </div>`;
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // SETTINGS
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function applySettings() {
   const url = S.scriptUrl;
   const pill = g("shpill");
-
-  if (HARDCODED_SCRIPT_URL) {
-    // URL вшит — скрываем форму, показываем статус
-    g("url-hardcoded").style.display = "block";
-    g("url-form").style.display = "none";
-    g("url-display").textContent = HARDCODED_SCRIPT_URL;
-    pill.className = "pill pok"; pill.textContent = "● Подключено (вшито)";
-  } else if (url) {
-    g("url-hardcoded").style.display = "block";
-    g("url-form").style.display = "none";
-    g("url-display").textContent = url;
-    pill.className = "pill pok"; pill.textContent = "● Подключено";
+  if (url) {
+    g("url-hardcoded").style.display="block";
+    g("url-form").style.display="none";
+    g("url-display").textContent = HARDCODED_SCRIPT_URL ? "Вшит в приложение ✅" : url;
+    pill.className="pill pok"; pill.textContent="● Подключено";
   } else {
-    g("url-hardcoded").style.display = "none";
-    g("url-form").style.display = "block";
-    pill.className = "pill pno"; pill.textContent = "● Не подключено";
+    g("url-hardcoded").style.display="none";
+    g("url-form").style.display="block";
+    pill.className="pill pno"; pill.textContent="● Не подключено";
   }
-
-  // Кнопка смены URL всегда доступна
-  if (url || HARDCODED_SCRIPT_URL) {
-    // Добавляем кнопку смены если нет hardcoded
-    if (!HARDCODED_SCRIPT_URL) {
-      const ex = g("url-change-btn");
-      if (!ex) {
-        const btn = document.createElement("button");
-        btn.className = "btn bg2"; btn.id = "url-change-btn";
-        btn.textContent = "✏ Изменить URL";
-        btn.onclick = () => {
-          g("url-hardcoded").style.display = "none";
-          g("url-form").style.display = "block";
-          g("surl").value = S.scriptUrl;
-        };
-        g("url-hardcoded").appendChild(btn);
-      }
-    }
-  }
-
-  // Валюта
-  ["GEL","USD","RUB"].forEach(c => {
-    const el = g("c-"+c); if (el) el.classList.remove("active");
-  });
-  const ce = g("c-"+S.currency); if (ce) ce.classList.add("active");
-
+  ["GEL","USD","RUB"].forEach(c=>{const e=g("c-"+c);if(e)e.classList.remove("active");});
+  const ce=g("c-"+S.currency); if(ce) ce.classList.add("active");
   updatePendingUI();
 }
 
 function saveUrl() {
-  const url = (g("surl").value || "").trim();
+  const url=(g("surl").value||"").trim();
   if (!url) { showToast("⚠ Введите URL"); return; }
-  S.scriptUrl = url; saveS();
-  applySettings();
-  testConnection();
+  S.scriptUrl=url; saveS(); applySettings(); testConnection();
 }
 
 async function testConnection() {
-  const url = S.scriptUrl;
-  if (!url) { showToast("⚠ URL не задан"); return; }
-  setSbar("syncing", "Проверка подключения...");
-  const ok = await post(url, {action:"init"});
+  if (!S.scriptUrl) { showToast("⚠ URL не задан"); return; }
+  setSbar("syncing","Проверка подключения...");
+  const ok = await post(S.scriptUrl,{action:"init"});
   if (ok) {
-    setSbar("ok", "✅ Google Sheets подключён, листы готовы");
-    showToast("✅ Подключено!");
+    setSbar("ok","✅ Google Sheets подключён"); showToast("✅ Подключено!");
     applySettings();
-    // Синхронизируем очередь
-    if (S.queue.length > 0) syncNow();
+    syncThenLoad();
   } else {
-    setSbar("error", "❌ Не удалось подключиться — проверьте URL");
+    setSbar("error","❌ Не удалось подключиться — проверьте URL");
     showToast("❌ Ошибка подключения");
   }
 }
 
-function setCurr(c, btn) {
-  S.currency = c; saveS();
-  document.querySelectorAll(".tabs .tb").forEach(b => {
-    if (["c-GEL","c-USD","c-RUB"].includes(b.id)) b.classList.remove("active");
-  });
+function setCurr(c,btn) {
+  S.currency=c; saveS();
+  document.querySelectorAll(".tabs .tb").forEach(b=>{ if(["c-GEL","c-USD","c-RUB"].includes(b.id)) b.classList.remove("active"); });
   btn.classList.add("active");
   const fe=g("f-curr"); if(fe) fe.value=c;
   const se=g("s-curr"); if(se) se.value=c;
 }
 
 function exportJ() {
-  const b = new Blob([JSON.stringify(S,null,2)], {type:"application/json"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(b); a.download = "carlog.json"; a.click();
+  const t={...S}; delete t.queue;
+  const b=new Blob([JSON.stringify(t,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="carlog.json"; a.click();
   showToast("📤 Экспортировано");
 }
 
 function clearAll() {
-  if (!confirm("Удалить ВСЕ данные? Это необратимо!")) return;
-  S = {cars:[], fuels:[], services:[], activeCar:null, currency:"GEL",
-       scriptUrl: HARDCODED_SCRIPT_URL || "", queue:[]};
+  if (!confirm("Удалить ВСЕ локальные данные?")) return;
+  S={cars:[],fuels:[],services:[],activeCar:null,currency:"GEL",scriptUrl:HARDCODED_SCRIPT_URL||"",queue:[]};
   saveS(); renderDash(); applySettings(); updatePendingUI();
-  showToast("🗑 Очищено");
+  showToast("🗑 Очищено — загружаем из таблицы...");
+  if (S.scriptUrl) setTimeout(loadFromSheets, 500);
 }
 
-// ═══════════════════════════════════════════════
-// SYNC — офлайн очередь
-// ═══════════════════════════════════════════════
-function qSync(op) {
-  S.queue.push({...op, _qid:uid()});
-  saveS();
-  updatePendingUI();
-  if (navigator.onLine && S.scriptUrl) {
-    // Небольшая задержка чтобы UI успел обновиться
-    setTimeout(syncNow, 500);
-  } else if (!navigator.onLine) {
-    setSbar("pending", `📡 Офлайн — ${S.queue.length} записей ждут синхронизации`);
-  }
+// ══════════════════════════════════════════════════════
+// SYNC — Google Sheets как главная БД
+// ══════════════════════════════════════════════════════
+async function syncThenLoad() {
+  if (S.queue.length>0) await syncNow();
+  await loadFromSheets();
 }
 
-let syncing = false;
+let syncing=false;
 async function syncNow() {
-  if (syncing) return;
-  if (!S.scriptUrl || !S.queue.length) return;
-  if (!navigator.onLine) { showToast("📡 Нет сети"); return; }
-  syncing = true;
-  setSbar("syncing", `Отправка ${S.queue.length} записей в Google Sheets...`);
-  const failed = [];
-  for (const op of S.queue) {
-    const ok = await post(S.scriptUrl, op);
-    if (!ok) failed.push(op);
+  if (syncing||!S.scriptUrl||!S.queue.length||!navigator.onLine) return;
+  syncing=true;
+  setSbar("syncing",`Отправка ${S.queue.length} записей...`);
+  const failed=[];
+  for (const op of [...S.queue]) {
+    if (!await post(S.scriptUrl,op)) failed.push(op);
   }
-  S.queue = failed;
-  saveS();
-  updatePendingUI();
-  syncing = false;
-  if (failed.length === 0) {
-    setSbar("ok", "☁ Всё синхронизировано с Google Sheets");
-  } else {
-    setSbar("error", `⚠ ${failed.length} записей не удалось отправить`);
-  }
+  S.queue=failed; saveS(); updatePendingUI(); syncing=false;
+  if (!failed.length) setSbar("ok","☁ Синхронизировано");
+  else setSbar("error",`⚠ ${failed.length} записей не отправлено`);
 }
 
-async function post(url, data) {
+let loading=false;
+async function loadFromSheets() {
+  if (loading||!S.scriptUrl||!navigator.onLine) return;
+  loading=true;
+  setSbar("syncing","Загрузка данных из Google Sheets...");
   try {
-    const r = await fetch(url, {
-      method:"POST",
-      headers:{"Content-Type":"text/plain"},
-      body: JSON.stringify(data)
-    });
-    if (!r.ok) return false;
-    const json = await r.json();
-    return json.ok === true;
+    const resp = await post(S.scriptUrl,{action:"getData"},true);
+    if (!resp||!resp.ok) { setSbar("error","⚠ Не удалось загрузить данные"); loading=false; return; }
+
+    const data = resp.data;
+    const prevActive=S.activeCar, prevCurr=S.currency;
+
+    // Мержим данные из Sheets с локальными фото (фото хранятся только локально)
+    const localPhotos={};
+    S.cars.forEach(c=>{ if(c.photo) localPhotos[c.id]=c.photo; });
+
+    S.cars     = (data.cars||[]).map(c=>({...c, photo: localPhotos[c.id]||""}));
+    S.fuels    = data.fuels    || [];
+    S.services = data.services || [];
+
+    // Убираем записи с пустым id
+    S.cars     = S.cars.filter(c=>c.id);
+    S.fuels    = S.fuels.filter(f=>f.id&&f.carId);
+    S.services = S.services.filter(s=>s.id&&s.carId);
+
+    S.activeCar = S.cars.find(c=>c.id===prevActive) ? prevActive : (S.cars[0]?.id||null);
+    S.currency  = prevCurr;
+    saveS();
+
+    // Обновляем UI
+    renderDash();
+    const activeScr=document.querySelector(".scr.active")?.id?.replace("scr-","");
+    if (activeScr==="fuel")    renderFuel();
+    if (activeScr==="service") renderSvc();
+    if (activeScr==="history") renderHist("all");
+    setSbar("ok",`✅ Данные загружены (${S.cars.length} авто, ${S.fuels.length} заправок, ${S.services.length} сервисов)`);
   } catch(e) {
-    console.warn("Sync failed:", e);
-    return false;
+    console.warn("loadFromSheets:", e);
+    setSbar("error","⚠ Ошибка загрузки");
   }
+  loading=false;
+}
+
+async function post(url, data, returnFull=false) {
+  try {
+    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(data)});
+    if (!r.ok) return returnFull?null:false;
+    const json=await r.json();
+    return returnFull?json:(json.ok===true);
+  } catch(e) { return returnFull?null:false; }
+}
+
+function qSync(op) {
+  S.queue.push({...op,_qid:uid()}); saveS(); updatePendingUI();
+  if (navigator.onLine&&S.scriptUrl) setTimeout(syncNow,400);
+  else if (!navigator.onLine) setSbar("pending",`📡 Офлайн — ${S.queue.length} записей ждут`);
 }
 
 function updatePendingUI() {
-  const n = S.queue?.length || 0;
-  g("pinfo").style.display = n > 0 ? "block" : "none";
-  const pcnt = g("pcnt"); if (pcnt) pcnt.textContent = n;
-  const bs = g("btn-sync"); if (bs) bs.style.display = n > 0 ? "flex" : "none";
-  if (n > 0 && navigator.onLine) {
-    setSbar("pending", `⏳ ${n} записей ожидают синхронизации`);
-  }
+  const n=S.queue?.length||0;
+  g("pinfo").style.display=n?"block":"none";
+  const p=g("pcnt"); if(p) p.textContent=n;
+  const b=g("btn-sync"); if(b) b.style.display=n?"flex":"none";
+  if(n&&navigator.onLine) setSbar("pending",`⏳ ${n} записей ожидают отправки`);
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // SYNC BAR
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 let sbarT;
-function setSbar(state, msg) {
-  const b = g("sbar");
-  b.className = "sbar show " + state;
-  g("smsg").textContent = msg;
+function setSbar(state,msg) {
+  const b=g("sbar"); b.className="sbar show "+state; g("smsg").textContent=msg;
   clearTimeout(sbarT);
-  if (state === "ok" || state === "error") {
-    sbarT = setTimeout(() => b.classList.remove("show"), 3500);
-  }
+  if (state==="ok"||state==="error") sbarT=setTimeout(()=>b.classList.remove("show"),3500);
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════════
-function clearF2(ids) {
-  ids.forEach(id => { const e = g(id); if (e) e.value = ""; });
-}
-
+// ══════════════════════════════════════════════════════
+function clearF2(ids) { ids.forEach(id=>{const e=g(id);if(e)e.value="";}); }
 let toastT;
 function showToast(msg) {
-  const e = g("toast");
-  e.textContent = msg;
-  e.classList.add("show");
-  clearTimeout(toastT);
-  toastT = setTimeout(() => e.classList.remove("show"), 2600);
+  const e=g("toast"); e.textContent=msg; e.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove("show"),2700);
 }
 
-// ═══════════════════════════════════════════════
-// PWA
-// ═══════════════════════════════════════════════
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
-}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 
-// ═══════════════════════════════════════════════
-// START
-// ═══════════════════════════════════════════════
 init();
 </script>
 </body>
