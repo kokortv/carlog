@@ -1508,7 +1508,9 @@ function openOilModal(recId=null) {
   g("oil-date").value     = rec?.date     || new Date().toISOString().split("T")[0];
   g("oil-km").value       = rec?.mileage  || car.mileage || "";
   g("oil-interval").value = rec?.interval || 10000;
-  g("oil-note").value     = rec?.note     || "";
+  // Если note содержит закодированный interval — показываем чистый текст
+  const parsedNote = rec ? parseOilNote(rec.note) : { note: "" };
+  g("oil-note").value     = parsedNote.note;
   g("oil-cost").value     = rec?.cost     || "";
   g("oil-curr").value     = rec?.currency || S.currency;
   g("oil-del-btn").style.display = rec ? "flex" : "none";
@@ -1536,21 +1538,25 @@ function saveOil() {
     if (rec) {
       Object.assign(rec, {date,mileage:km,interval,note,cost,currency});
       saveS();
+      const noteWithInterval2 = `[int:${interval}]${note}`;
       qSync({action:"update",sheet:"Service",id:eid,
-             row:[eid,rec.carId,date,"🛢 Замена масла",km,cost,currency,note,rec.createdAt]});
+             row:[eid,rec.carId,date,"🛢 Замена масла",km,cost,currency,noteWithInterval2,rec.createdAt]});
       showToast("✅ Обновлено");
     }
   } else {
     const rec = {id:uid(),carId:car.id,date,mileage:km,interval,note,cost,currency,createdAt:now()};
     S.oils.push(rec);
-    // Also add to services for history
+    // Добавляем в services — note содержит закодированный interval для Sheets
+    const encodedNote = `[int:${interval}]${note}`;
     const svcRec = {id:rec.id,carId:car.id,type:"service",serviceType:"🛢 Замена масла",
-                    date,mileage:km,cost,currency,note,createdAt:rec.createdAt};
+                    date,mileage:km,cost,currency,note:encodedNote,createdAt:rec.createdAt};
     S.services.push(svcRec);
     updKm(km, car.id);
     saveS();
+    // Кодируем interval в поле Note чтобы он сохранялся в Sheets
+    const noteWithInterval = `[int:${interval}]${note}`;
     qSync({action:"append",sheet:"Service",
-           row:[rec.id,car.id,date,"🛢 Замена масла",km,cost,currency,note,rec.createdAt]});
+           row:[rec.id,car.id,date,"🛢 Замена масла",km,cost,currency,noteWithInterval,rec.createdAt]});
     showToast("✅ Замена масла записана");
   }
   closeModal("m-oil");
@@ -1637,7 +1643,7 @@ function renderOil() {
       return `<div class="crow" onclick="openOilModal('${o.id}')" style="cursor:pointer">
         <div class="ri" style="background:rgba(245,158,11,.12)">🛢</div>
         <div class="rb">
-          <div class="rt">${o.note||"Замена масла"}</div>
+          <div class="rt">${parseOilNote(o.note).note||o.note||"Замена масла"}</div>
           <div class="rs2">${d} · ${o.mileage.toLocaleString()} км · интервал ${o.interval.toLocaleString()} км</div>
         </div>
         <div class="rr">
@@ -1663,19 +1669,42 @@ function estimateNextDate(lastDateStr, lastKm, curKm, interval) {
 }
 
 // Sync oils from services on load (oils are stored as service records)
+function parseOilNote(rawNote) {
+  // Формат: "[int:10000]Mobil 5W-30" или просто "Mobil 5W-30"
+  if (!rawNote) return { interval: 10000, note: "" };
+  const m = rawNote.match(/^\[int:(\d+)\](.*)/s);
+  if (m) return { interval: parseInt(m[1]) || 10000, note: m[2] };
+  return { interval: 10000, note: rawNote };
+}
+
 function syncOilsFromServices() {
   if (!S.oils) S.oils = [];
-  // Find all "🛢 Замена масла" records in services that aren't in oils
-  S.services.filter(s=>s.serviceType==="🛢 Замена масла").forEach(svc=>{
-    if (!S.oils.find(o=>o.id===svc.id)) {
+  // Восстанавливаем oils из services (данные пришли из Sheets)
+  S.services.filter(s => s.serviceType === "🛢 Замена масла").forEach(svc => {
+    const existing = S.oils.find(o => o.id === svc.id);
+    const { interval, note } = parseOilNote(svc.note);
+    if (!existing) {
+      // Новая запись — добавляем
       S.oils.push({
-        id:svc.id, carId:svc.carId, date:svc.date,
-        mileage:svc.mileage, interval:10000,
-        note:svc.note, cost:svc.cost, currency:svc.currency,
-        createdAt:svc.createdAt
+        id: svc.id, carId: svc.carId, date: svc.date,
+        mileage: svc.mileage, interval,
+        note, cost: svc.cost, currency: svc.currency,
+        createdAt: svc.createdAt
       });
+    } else {
+      // Обновляем существующую (могла измениться в Sheets)
+      existing.date     = svc.date;
+      existing.mileage  = svc.mileage;
+      existing.interval = interval;
+      existing.note     = note;
+      existing.cost     = svc.cost;
+      existing.currency = svc.currency;
     }
   });
+  // Удаляем oils у которых нет соответствующей записи в services
+  S.oils = S.oils.filter(o =>
+    S.services.some(s => s.id === o.id && s.serviceType === "🛢 Замена масла")
+  );
 }
 
 init();
