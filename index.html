@@ -158,8 +158,86 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 .cprev{display:flex;justify-content:center;padding:12px;background:var(--sf2);border-radius:var(--rs);border:1px solid var(--bd);margin:10px 0 5px}
 
 .codebox{background:var(--sf2);border-radius:8px;padding:10px;margin:7px 0;font-family:monospace;font-size:10px;color:var(--tx2);white-space:pre;border:1px solid var(--bd);line-height:1.7;overflow-x:auto;-webkit-overflow-scrolling:touch}
-
 .script-url-display{background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:9px 12px;font-size:11px;font-family:monospace;color:var(--tx2);word-break:break-all;margin-bottom:8px}
+
+/* ── BOTTOM NAV — bigger, modern pill indicator ── */
+.bnav{background:rgba(13,19,35,.98);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--bd);display:flex;padding:8px 6px max(10px,env(safe-area-inset-bottom));flex-shrink:0;gap:2px}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 6px;cursor:pointer;color:var(--tx3);background:none;border:none;font-family:inherit;border-radius:12px;transition:color .2s,background .2s;position:relative}
+.ni:active{background:rgba(255,255,255,.04)}
+.ni.active{color:var(--ac2)}
+.ni.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:3px;background:var(--ac2);border-radius:0 0 3px 3px}
+.ni-ic{font-size:24px;transition:transform .25s cubic-bezier(.34,1.56,.64,1);display:block;line-height:1}
+.ni.active .ni-ic{transform:scale(1.15) translateY(-1px)}
+.ni span{font-size:10px;font-weight:600;letter-spacing:.2px;transition:opacity .2s}
+.ni:not(.active) span{opacity:.6}
+
+/* ── SCREEN TRANSITIONS ── */
+.scr{display:none}
+.scr.active{display:block;animation:scrIn .28s cubic-bezier(.4,0,.2,1)}
+@keyframes scrIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HERO enhancements ── */
+.hero{background:linear-gradient(140deg,#0b1d40 0%,#130c35 100%);padding:18px 16px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(59,130,246,.14),transparent 70%);border-radius:50%;pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:-20px;width:160px;height:160px;background:radial-gradient(circle,rgba(139,92,246,.1),transparent 70%);border-radius:50%;pointer-events:none}
+.csel{position:relative;z-index:1;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);padding:11px 13px;cursor:pointer;transition:background .2s,transform .15s}
+.csel:active{transform:scale(.98);background:rgba(255,255,255,.09)}
+
+/* ── STAT CARDS animations ── */
+.sc{background:rgba(255,255,255,.045);border:1px solid var(--bd);border-radius:10px;padding:11px;transition:transform .2s,background .2s}
+.sc:active{transform:scale(.97)}
+.sv{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;transition:color .3s}
+
+/* ── CARDS ── */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:10px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.crow{display:flex;align-items:center;gap:10px;padding:13px 14px;transition:background .15s}
+.crow:active{background:rgba(255,255,255,.03)}
+.crow+.crow{border-top:1px solid var(--bd)}
+
+/* ── FAB pulse ── */
+.fab{position:fixed;bottom:86px;right:16px;z-index:99;width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--ac),var(--pu));border:none;color:white;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(59,130,246,.38),0 0 0 0 rgba(59,130,246,.3);transition:transform .2s,box-shadow .2s;animation:fabPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fabPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.fab:active{transform:scale(.94)}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+.mo.open{display:flex}
+.mdl{background:var(--sf);border:1px solid rgba(255,255,255,.1);border-radius:22px 22px 0 0;width:100%;max-width:600px;max-height:93vh;overflow-y:auto;animation:mdlUp .32s cubic-bezier(.34,1.4,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+@keyframes mdlUp{from{transform:translateY(100%);opacity:.5}to{transform:translateY(0);opacity:1}}
+.mh{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:12px auto 0}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:13px;border-radius:var(--rs);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:transform .15s,opacity .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.bp{background:linear-gradient(135deg,var(--ac),var(--pu));color:white;box-shadow:0 4px 14px rgba(59,130,246,.3)}
+.bp:active{transform:scale(.97);opacity:.9}
+.bd3{background:rgba(239,68,68,.11);color:var(--rd2);border:1px solid rgba(239,68,68,.2);margin-top:7px}
+.bd3:active{transform:scale(.97)}
+.bg2{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd);margin-top:7px}
+.bg2:active{transform:scale(.97)}
+
+/* ── FORM INPUTS ── */
+.fi,.fs{width:100%;padding:11px 13px;background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none;appearance:none}
+.fi:focus,.fs:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(59,130,246,.12);background:var(--sf3)}
+
+/* ── OIL REMINDER CARD ── */
+.oil-card{border-radius:var(--r);padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.oil-card.ok{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.2)}
+.oil-card.warn{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.25)}
+.oil-card.danger{background:linear-gradient(135deg,rgba(239,68,68,.14),rgba(239,68,68,.05));border:1px solid rgba(239,68,68,.28)}
+.oil-card.none{background:var(--sf);border:1px solid var(--bd)}
+.oil-progress{height:5px;border-radius:3px;background:rgba(255,255,255,.08);margin:10px 0 6px;overflow:hidden}
+.oil-bar{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.interval-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--bd2);background:var(--sf2);color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.interval-btn:active{transform:scale(.95)}
+.interval-btn.active{background:var(--ac);border-color:var(--ac);color:white}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(30,40,60,.96);backdrop-filter:blur(10px);border:1px solid var(--bd2);border-radius:12px;padding:10px 18px;font-size:12px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── SKELETON shimmer for loading ── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skel{background:linear-gradient(90deg,var(--sf2) 25%,var(--sf3) 50%,var(--sf2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px}
 </style>
 </head>
 <body>
@@ -199,6 +277,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
             <div class="sc"><div class="sl">Расход</div><div class="sv sv-a" id="d-con">—</div><div class="su">л/100км</div></div>
             <div class="sc"><div class="sl">Траты</div><div class="sv sv-g" id="d-cost">—</div><div class="su" id="d-curr">₾</div></div>
           </div>
+          <div id="d-oil-mini" style="margin-top:10px;position:relative;z-index:1"></div>
         </div>
         <div class="sec">
           <div id="d-chart"></div>
@@ -227,6 +306,15 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <div id="svc-list"></div>
       </div>
       <button class="fab" onclick="openSvcModal()">＋</button>
+    </div>
+
+    <!-- OIL REMINDER -->
+    <div class="scr" id="scr-oil">
+      <div class="hdr"><div class="logo">🛢</div><h1>Масло и ТО</h1></div>
+      <div class="sec pp">
+        <div id="oil-block"></div>
+      </div>
+      <button class="fab" onclick="openOilModal()">＋</button>
     </div>
 
     <!-- HISTORY -->
@@ -302,7 +390,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
   <nav class="bnav">
     <button class="ni active" onclick="goScr('dashboard')"><span class="ni-ic">🏠</span><span>Главная</span></button>
     <button class="ni" onclick="goScr('fuel')"><span class="ni-ic">⛽</span><span>Заправки</span></button>
-    <button class="ni" onclick="goScr('service')"><span class="ni-ic">🔧</span><span>Сервис</span></button>
+    <button class="ni" onclick="goScr('oil')"><span class="ni-ic">🛢</span><span>Масло</span></button>
     <button class="ni" onclick="goScr('history')"><span class="ni-ic">📋</span><span>История</span></button>
     <button class="ni" onclick="goScr('settings')"><span class="ni-ic">⚙</span><span>Настройки</span></button>
   </nav>
@@ -438,6 +526,39 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       <div class="fg"><label class="fl">СТО / Заметка</label><input class="fi" id="s-note" placeholder="Автосервис Авто+"></div>
       <button class="btn bp" onclick="saveSvc()">✅ Сохранить запись</button>
       <button class="btn bd3" id="s-del-btn" style="display:none" onclick="deleteSvc()">🗑 Удалить запись</button>
+    </div>
+  </div>
+</div>
+
+<!-- OIL REMINDER MODAL -->
+<div class="mo" id="m-oil">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="oil-modal-title">🛢 Замена масла</div><button class="mc2" onclick="closeModal('m-oil')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="oil-eid" value="">
+      <div class="fg"><label class="fl">Дата замены</label><input class="fi" id="oil-date" type="date"></div>
+      <div class="fg"><label class="fl">Пробег при замене (км)</label><input class="fi" id="oil-km" type="number" placeholder="52000" min="0"></div>
+      <div class="fg">
+        <label class="fl">Следующая замена через (км)</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <button type="button" class="interval-btn" onclick="setInterval2(5000,this)">5 000</button>
+          <button type="button" class="interval-btn" onclick="setInterval2(7000,this)">7 000</button>
+          <button type="button" class="interval-btn active" onclick="setInterval2(10000,this)">10 000</button>
+          <button type="button" class="interval-btn" onclick="setInterval2(15000,this)">15 000</button>
+        </div>
+        <input class="fi" id="oil-interval" type="number" placeholder="10000" min="1000" step="500" value="10000">
+      </div>
+      <div class="fg"><label class="fl">Марка масла / Заметка</label><input class="fi" id="oil-note" placeholder="Mobil 5W-30, дилер"></div>
+      <div class="fg">
+        <label class="fl">Стоимость</label>
+        <div class="fr2">
+          <input class="fi" id="oil-cost" type="number" placeholder="120.00" step="0.01">
+          <select class="fs" id="oil-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option></select>
+        </div>
+      </div>
+      <button class="btn bp" onclick="saveOil()">✅ Сохранить</button>
+      <button class="btn bd3" id="oil-del-btn" style="display:none" onclick="deleteOil()">🗑 Удалить запись</button>
     </div>
   </div>
 </div>
@@ -619,6 +740,8 @@ function init() {
   updatePendingUI();
   window.addEventListener("online",  () => { updateOffline(); syncThenLoad(); });
   window.addEventListener("offline", () => { updateOffline(); showToast("📡 Офлайн — данные сохраняются локально"); });
+  if (!S.oils) S.oils = [];
+  syncOilsFromServices();
   if (navigator.onLine && S.scriptUrl) syncThenLoad();
 }
 
@@ -661,11 +784,12 @@ function goScr(name) {
   document.querySelectorAll(".scr").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".ni").forEach(n  => n.classList.remove("active"));
   g("scr-"+name).classList.add("active");
-  const idx = ["dashboard","fuel","service","history","settings"].indexOf(name);
+  const idx = ["dashboard","fuel","oil","history","settings"].indexOf(name);
   if (idx >= 0) document.querySelectorAll(".ni")[idx].classList.add("active");
   if (name==="dashboard") renderDash();
   if (name==="fuel")      renderFuel();
   if (name==="service")   renderSvc();
+  if (name==="oil")       renderOil();
   if (name==="history")   renderHist("all");
   if (name==="settings")  applySettings();
 }
@@ -1090,6 +1214,33 @@ function renderDash() {
   g("d-recent").innerHTML = all.length
     ? `<div class="card">${all.map(rRow).join("")}</div>`
     : `<div class="empty" style="padding:16px 0"><div class="esub">Добавьте первую заправку или запись об обслуживании</div></div>`;
+  renderOilMini(car);
+}
+
+function renderOilMini(car) {
+  const el = g("d-oil-mini"); if (!el) return;
+  if (!S.oils) S.oils = [];
+  const oils = S.oils.filter(o=>o.carId===car.id).sort((a,b)=>b.mileage-a.mileage);
+  if (!oils.length) { el.innerHTML=""; return; }
+  const last   = oils[0];
+  const curKm  = Number(car.mileage)||0;
+  const leftKm = (last.mileage + last.interval) - curKm;
+  const pct    = Math.min(100,Math.max(0,((curKm-last.mileage)/last.interval)*100));
+  const done   = leftKm<=0, warn=leftKm<=last.interval*0.2&&!done;
+  const color  = done?"#ef4444":warn?"#f59e0b":"#10b981";
+  const label  = done?`Замена масла просрочена! +${Math.abs(leftKm).toLocaleString()} км`
+                :warn?`Скоро замена масла — осталось ${leftKm.toLocaleString()} км`
+                :`Масло ОК — осталось ${leftKm.toLocaleString()} км`;
+  el.innerHTML=`<div onclick="goScr('oil')" style="cursor:pointer;background:rgba(0,0,0,.2);border:1px solid ${color}44;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:18px">${done?"🔴":warn?"🟡":"🟢"}</span>
+    <div style="flex:1">
+      <div style="font-size:11px;font-weight:500;color:${color}">${label}</div>
+      <div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:5px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width 1s"></div>
+      </div>
+    </div>
+    <span style="font-size:12px;color:var(--tx3)">›</span>
+  </div>`;
 }
 
 function renderFuel() {
@@ -1284,10 +1435,12 @@ async function loadFromSheets() {
     saveS();
 
     // Обновляем UI
+    syncOilsFromServices();
     renderDash();
     const activeScr=document.querySelector(".scr.active")?.id?.replace("scr-","");
     if (activeScr==="fuel")    renderFuel();
     if (activeScr==="service") renderSvc();
+    if (activeScr==="oil")     renderOil();
     if (activeScr==="history") renderHist("all");
     setSbar("ok",`✅ Данные загружены (${S.cars.length} авто, ${S.fuels.length} заправок, ${S.services.length} сервисов)`);
   } catch(e) {
@@ -1341,6 +1494,194 @@ function showToast(msg) {
 }
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+// ══════════════════════════════════════════════════════
+// OIL REMINDER
+// ══════════════════════════════════════════════════════
+function setInterval2(val, btn) {
+  document.querySelectorAll(".interval-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  g("oil-interval").value = val;
+}
+
+function openOilModal(recId=null) {
+  const car = getAC();
+  if (!car) { showToast("⚠ Выберите авто"); return; }
+  const rec = recId ? (S.oils||[]).find(o=>o.id===recId) : null;
+  g("oil-modal-title").textContent = rec ? "✏ Редактировать запись" : "🛢 Замена масла";
+  g("oil-eid").value      = rec?.id       || "";
+  g("oil-date").value     = rec?.date     || new Date().toISOString().split("T")[0];
+  g("oil-km").value       = rec?.mileage  || car.mileage || "";
+  g("oil-interval").value = rec?.interval || 10000;
+  g("oil-note").value     = rec?.note     || "";
+  g("oil-cost").value     = rec?.cost     || "";
+  g("oil-curr").value     = rec?.currency || S.currency;
+  g("oil-del-btn").style.display = rec ? "flex" : "none";
+  // Set interval button active state
+  document.querySelectorAll(".interval-btn").forEach(b => {
+    b.classList.toggle("active", parseInt(b.textContent.replace(/\s/g,"")) === (rec?.interval||10000));
+  });
+  openModal("m-oil");
+}
+
+function saveOil() {
+  const car = getAC(); if (!car) return;
+  const date     = g("oil-date").value;
+  const km       = parseInt(g("oil-km").value)||0;
+  const interval = parseInt(g("oil-interval").value)||10000;
+  const note     = (g("oil-note").value||"").trim();
+  const cost     = parseFloat(g("oil-cost").value)||0;
+  const currency = g("oil-curr").value;
+  if (!date||!km) { showToast("⚠ Укажите дату и пробег"); return; }
+  if (!S.oils) S.oils = [];
+
+  const eid = g("oil-eid").value;
+  if (eid) {
+    const rec = S.oils.find(o=>o.id===eid);
+    if (rec) {
+      Object.assign(rec, {date,mileage:km,interval,note,cost,currency});
+      saveS();
+      qSync({action:"update",sheet:"Service",id:eid,
+             row:[eid,rec.carId,date,"🛢 Замена масла",km,cost,currency,note,rec.createdAt]});
+      showToast("✅ Обновлено");
+    }
+  } else {
+    const rec = {id:uid(),carId:car.id,date,mileage:km,interval,note,cost,currency,createdAt:now()};
+    S.oils.push(rec);
+    // Also add to services for history
+    const svcRec = {id:rec.id,carId:car.id,type:"service",serviceType:"🛢 Замена масла",
+                    date,mileage:km,cost,currency,note,createdAt:rec.createdAt};
+    S.services.push(svcRec);
+    updKm(km, car.id);
+    saveS();
+    qSync({action:"append",sheet:"Service",
+           row:[rec.id,car.id,date,"🛢 Замена масла",km,cost,currency,note,rec.createdAt]});
+    showToast("✅ Замена масла записана");
+  }
+  closeModal("m-oil");
+  renderOil();
+  renderDash();
+}
+
+function deleteOil() {
+  const id = g("oil-eid").value;
+  if (!id||!confirm("Удалить запись о замене масла?")) return;
+  S.oils     = (S.oils||[]).filter(o=>o.id!==id);
+  S.services = S.services.filter(s=>s.id!==id);
+  saveS();
+  qSync({action:"delete",sheet:"Service",id});
+  closeModal("m-oil");
+  renderOil(); renderDash();
+  showToast("🗑 Удалено");
+}
+
+function renderOil() {
+  const car = getAC();
+  const el  = g("oil-block");
+  if (!el) return;
+  if (!car) { el.innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; return; }
+
+  if (!S.oils) S.oils = [];
+  const oils = S.oils.filter(o=>o.carId===car.id).sort((a,b)=>b.mileage-a.mileage);
+
+  // ── Current reminder block ──
+  let reminderHTML = "";
+  if (oils.length) {
+    const last     = oils[0];
+    const curKm    = Number(car.mileage)||0;
+    const nextKm   = last.mileage + last.interval;
+    const leftKm   = nextKm - curKm;
+    const pct      = Math.min(100, Math.max(0, ((curKm - last.mileage) / last.interval) * 100));
+    const done     = leftKm <= 0;
+    const warn     = leftKm <= last.interval * 0.2 && !done;  // last 20%
+    const state    = done ? "danger" : warn ? "warn" : "ok";
+    const stateIcon= done ? "🔴" : warn ? "🟡" : "🟢";
+    const barColor = done ? "#ef4444" : warn ? "#f59e0b" : "#10b981";
+    const lastDate = new Date(last.date).toLocaleDateString("ru",{day:"numeric",month:"long",year:"numeric"});
+    const nextDate = estimateNextDate(last.date, last.mileage, curKm, last.interval);
+
+    reminderHTML = `
+    <div class="oil-card ${state}" onclick="openOilModal('${last.id}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">${stateIcon} ${done?"Замена просрочена!":warn?"Скоро замена масла":"Масло в норме"}</div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:3px">${last.note||"Масло"} · замена каждые ${last.interval.toLocaleString()} км</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:${barColor}">${done?"+"+Math.abs(leftKm).toLocaleString():leftKm.toLocaleString()}</div>
+          <div style="font-size:10px;color:var(--tx2)">${done?"км просрочено":"км осталось"}</div>
+        </div>
+      </div>
+      <div class="oil-progress">
+        <div class="oil-bar" style="width:${pct}%;background:${barColor}"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2)">
+        <span>Замена: ${lastDate} · ${last.mileage.toLocaleString()} км</span>
+        <span>Следующая: ~${nextKm.toLocaleString()} км${nextDate?" · "+nextDate:""}</span>
+      </div>
+    </div>`;
+  } else {
+    reminderHTML = `
+    <div class="oil-card none" style="cursor:pointer" onclick="openOilModal()">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:32px">🛢</div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Добавить запись о замене масла</div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:3px">Укажите пробег и интервал — приложение будет напоминать</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── History ──
+  const histHTML = oils.length ? `
+    <div class="sh" style="margin-top:16px"><span class="st">История замен</span></div>
+    <div class="card">${oils.map(o=>{
+      const d = new Date(o.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"});
+      const cu = CUR[o.currency]||"₾";
+      return `<div class="crow" onclick="openOilModal('${o.id}')" style="cursor:pointer">
+        <div class="ri" style="background:rgba(245,158,11,.12)">🛢</div>
+        <div class="rb">
+          <div class="rt">${o.note||"Замена масла"}</div>
+          <div class="rs2">${d} · ${o.mileage.toLocaleString()} км · интервал ${o.interval.toLocaleString()} км</div>
+        </div>
+        <div class="rr">
+          <div class="ra raf">${o.cost?cu+o.cost.toFixed(0):"—"}</div>
+          <button style="margin-top:4px;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:5px;padding:3px 7px;font-size:11px;cursor:pointer">✏</button>
+        </div>
+      </div>`;
+    }).join("")}</div>` : "";
+
+  el.innerHTML = reminderHTML + histHTML;
+}
+
+function estimateNextDate(lastDateStr, lastKm, curKm, interval) {
+  // Простая оценка следующей даты по среднему пробегу
+  const lastDate = new Date(lastDateStr);
+  const daysSince = (Date.now() - lastDate.getTime()) / 86400000;
+  if (daysSince <= 0 || curKm <= lastKm) return "";
+  const kmPerDay = (curKm - lastKm) / daysSince;
+  if (kmPerDay <= 0) return "";
+  const daysLeft = (lastKm + interval - curKm) / kmPerDay;
+  const nextDate = new Date(Date.now() + daysLeft * 86400000);
+  return nextDate.toLocaleDateString("ru",{day:"numeric",month:"short"});
+}
+
+// Sync oils from services on load (oils are stored as service records)
+function syncOilsFromServices() {
+  if (!S.oils) S.oils = [];
+  // Find all "🛢 Замена масла" records in services that aren't in oils
+  S.services.filter(s=>s.serviceType==="🛢 Замена масла").forEach(svc=>{
+    if (!S.oils.find(o=>o.id===svc.id)) {
+      S.oils.push({
+        id:svc.id, carId:svc.carId, date:svc.date,
+        mileage:svc.mileage, interval:10000,
+        note:svc.note, cost:svc.cost, currency:svc.currency,
+        createdAt:svc.createdAt
+      });
+    }
+  });
+}
 
 init();
 </script>
