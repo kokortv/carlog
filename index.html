@@ -48,12 +48,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .sbar.syncing .sdot{animation:pulse 1s infinite}
 
-.bnav{background:rgba(17,24,39,.97);backdrop-filter:blur(20px);border-top:1px solid var(--bd);display:flex;padding:5px 0 max(5px,env(safe-area-inset-bottom));flex-shrink:0}
-.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;cursor:pointer;color:var(--tx3);background:none;border:none;font-family:inherit;transition:color .2s}
-.ni.active{color:var(--ac2)}
-.ni-ic{font-size:19px;transition:transform .2s}
-.ni.active .ni-ic{transform:translateY(-2px)}
-.ni span{font-size:10px;font-weight:500;letter-spacing:.3px}
+/* nav CSS is below */
 
 .scr{display:none;animation:fi .22s ease}
 .scr.active{display:block}
@@ -160,16 +155,16 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 .codebox{background:var(--sf2);border-radius:8px;padding:10px;margin:7px 0;font-family:monospace;font-size:10px;color:var(--tx2);white-space:pre;border:1px solid var(--bd);line-height:1.7;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .script-url-display{background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:9px 12px;font-size:11px;font-family:monospace;color:var(--tx2);word-break:break-all;margin-bottom:8px}
 
-/* ── BOTTOM NAV — bigger, modern pill indicator ── */
-.bnav{background:rgba(13,19,35,.98);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--bd);display:flex;padding:8px 6px max(10px,env(safe-area-inset-bottom));flex-shrink:0;gap:2px}
-.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px 6px;cursor:pointer;color:var(--tx3);background:none;border:none;font-family:inherit;border-radius:12px;transition:color .2s,background .2s;position:relative}
-.ni:active{background:rgba(255,255,255,.04)}
+/* ── BOTTOM NAV — large icons, modern pill ── */
+.bnav{background:rgba(10,14,28,.99);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-top:1px solid var(--bd);display:flex;padding:10px 4px max(14px,env(safe-area-inset-bottom));flex-shrink:0;gap:0}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 2px 8px;cursor:pointer;color:var(--tx3);background:none;border:none;font-family:inherit;border-radius:14px;transition:color .2s,background .15s;position:relative;min-height:64px}
+.ni:active{background:rgba(255,255,255,.05);transform:scale(.95)}
 .ni.active{color:var(--ac2)}
-.ni.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:24px;height:3px;background:var(--ac2);border-radius:0 0 3px 3px}
-.ni-ic{font-size:24px;transition:transform .25s cubic-bezier(.34,1.56,.64,1);display:block;line-height:1}
-.ni.active .ni-ic{transform:scale(1.15) translateY(-1px)}
-.ni span{font-size:10px;font-weight:600;letter-spacing:.2px;transition:opacity .2s}
-.ni:not(.active) span{opacity:.6}
+.ni.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:3px;background:linear-gradient(90deg,var(--ac),var(--pu));border-radius:0 0 4px 4px}
+.ni-ic{font-size:30px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);display:block;line-height:1}
+.ni.active .ni-ic{transform:scale(1.18) translateY(-2px)}
+.ni span{font-size:10px;font-weight:700;letter-spacing:.3px;transition:opacity .2s;text-transform:uppercase}
+.ni:not(.active) span{opacity:.45}
 
 /* ── SCREEN TRANSITIONS ── */
 .scr{display:none}
