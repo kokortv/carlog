@@ -572,7 +572,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       В таблице: <b style="color:var(--tx)">Расширения → Apps Script</b><br>
       Удалите всё и вставьте код ниже, заменив <code>ВАШ_ID</code>:
 
-      <div class="codebox">const SPREADSHEET_ID = "ВАШ_ID_ТАБЛИЦЫ";
+      <div class="codebox">const SPREADSHEET_ID = "https://script.google.com/macros/s/AKfycbykPTLjAYwcj3FbehEGOY4azzH1dgD9aR6TjM9A48fwNNuYE73N6o8b_4PgqMF9EhlE/exec";
 // ID находится в URL таблицы:
 // docs.google.com/spreadsheets/d/ВАШ_ID/edit
 
@@ -696,7 +696,7 @@ function respond(data) {
 // ══════════════════════════════════════════════════════
 // 🔧 ВСТАВЬТЕ URL СЮДА — будет работать на всех устройствах
 // ══════════════════════════════════════════════════════
-const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykPTLjAYwcj3FbehEGOY4azzH1dgD9aR6TjM9A48fwNNuYE73N6o8b_4PgqMF9EhlE/exec";
+const HARDCODED_SCRIPT_URL = "";
 // Пример: const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/.../exec";
 
 // ══════════════════════════════════════════════════════
@@ -735,8 +735,6 @@ function init() {
   updatePendingUI();
   window.addEventListener("online",  () => { updateOffline(); syncThenLoad(); });
   window.addEventListener("offline", () => { updateOffline(); showToast("📡 Офлайн — данные сохраняются локально"); });
-  if (!S.oils) S.oils = [];
-  syncOilsFromServices();
   if (navigator.onLine && S.scriptUrl) syncThenLoad();
 }
 
@@ -750,6 +748,7 @@ function loadS() {
     if (!Array.isArray(S.cars))     S.cars     = [];
     if (!Array.isArray(S.fuels))    S.fuels    = [];
     if (!Array.isArray(S.services)) S.services = [];
+    delete S.oils; // S.oils больше не используется — всё через S.services
   } catch(e) {}
 }
 
@@ -1214,497 +1213,54 @@ function renderDash() {
 
 function renderOilMini(car) {
   const el = g("d-oil-mini"); if (!el) return;
-  if (!S.oils) S.oils = [];
-  const oils = S.oils.filter(o=>o.carId===car.id).sort((a,b)=>b.mileage-a.mileage);
-  if (!oils.length) { el.innerHTML=""; return; }
+  const oils = getOilRecords(car.id);
+  if (!oils.length) { el.innerHTML = ""; return; }
+
   const last   = oils[0];
-  const curKm  = Number(car.mileage)||0;
+  const curKm  = Number(car.mileage) || 0;
   const leftKm = (last.mileage + last.interval) - curKm;
-  const pct    = Math.min(100,Math.max(0,((curKm-last.mileage)/last.interval)*100));
-  const done   = leftKm<=0, warn=leftKm<=last.interval*0.2&&!done;
-  const color  = done?"#ef4444":warn?"#f59e0b":"#10b981";
-  const label  = done?`Замена масла просрочена! +${Math.abs(leftKm).toLocaleString()} км`
-                :warn?`Скоро замена масла — осталось ${leftKm.toLocaleString()} км`
-                :`Масло ОК — осталось ${leftKm.toLocaleString()} км`;
-  el.innerHTML=`<div onclick="goScr('oil')" style="cursor:pointer;background:rgba(0,0,0,.2);border:1px solid ${color}44;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:10px">
-    <span style="font-size:18px">${done?"🔴":warn?"🟡":"🟢"}</span>
+  const pct    = Math.min(100, Math.max(0, (curKm - last.mileage) / last.interval * 100));
+  const done   = leftKm <= 0;
+  const warn   = !done && leftKm <= last.interval * 0.2;
+  const color  = done ? "#ef4444" : warn ? "#f59e0b" : "#10b981";
+  const icon   = done ? "🔴" : warn ? "🟡" : "🟢";
+  const label  = done
+    ? `Замена масла просрочена! +${Math.abs(leftKm).toLocaleString()} км`
+    : warn
+    ? `Скоро замена масла — осталось ${leftKm.toLocaleString()} км`
+    : `Масло в норме — осталось ${leftKm.toLocaleString()} км`;
+
+  el.innerHTML = `
+  <div onclick="goScr('oil')" style="cursor:pointer;background:rgba(0,0,0,.2);border:1px solid ${color}44;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:18px">${icon}</span>
     <div style="flex:1">
-      <div style="font-size:11px;font-weight:500;color:${color}">${label}</div>
+      <div style="font-size:11px;font-weight:600;color:${color}">${label}</div>
       <div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:5px;overflow:hidden">
         <div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width 1s"></div>
       </div>
     </div>
-    <span style="font-size:12px;color:var(--tx3)">›</span>
+    <span style="font-size:14px;color:var(--tx3)">›</span>
   </div>`;
-}
-
-function renderFuel() {
-  const car=getAC();
-  if (!car) { g("fuel-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; g("fuel-cblock").innerHTML=""; return; }
-  const fs=S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
-
-  const cons=calcCons(car.id), cel=g("fuel-cblock");
-  if (cons&&fs.length>=2) {
-    const tL=fs.reduce((s,f)=>s+f.liters,0), tC=fs.reduce((s,f)=>s+(f.total||0),0), cu=CUR[fs[0]?.currency]||"₾";
-    cel.innerHTML=`<div class="ccard"><div><div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div><div class="cbig">${cons}</div><div class="cunit">л/100км</div></div><div class="cstats"><div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div><div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div><div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div></div></div>`;
-  } else cel.innerHTML="";
-
-  g("fuel-list").innerHTML = fs.length
-    ? `<div class="card">${fs.map(f=>rRow({...f,_t:"fuel"})).join("")}</div>`
-    : `<div class="empty"><div class="ei">⛽</div><div class="etit">Нет заправок</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
-}
-
-function renderSvc() {
-  const car=getAC();
-  if (!car) { g("svc-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; return; }
-  const ss=S.services.filter(s=>s.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
-  g("svc-list").innerHTML = ss.length
-    ? `<div class="card">${ss.map(s=>rRow({...s,_t:"service"})).join("")}</div>`
-    : `<div class="empty"><div class="ei">🔧</div><div class="etit">Нет записей</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
-}
-
-function renderHist(filter) {
-  const car=getAC();
-  if (!car) { g("hist-list").innerHTML=`<div class="empty"><div class="esub">Выберите авто</div></div>`; return; }
-  let all=[...S.fuels.filter(x=>x.carId===car.id).map(x=>({...x,_t:"fuel"})),
-           ...S.services.filter(x=>x.carId===car.id).map(x=>({...x,_t:"service"}))];
-  if (filter==="fuel")    all=all.filter(r=>r._t==="fuel");
-  if (filter==="service") all=all.filter(r=>r._t==="service");
-  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
-  g("hist-list").innerHTML = all.length
-    ? `<div class="card">${all.map(rRow).join("")}</div>`
-    : `<div class="empty"><div class="ei">📋</div><div class="etit">Нет записей</div></div>`;
-}
-
-function fHist(f,btn) { document.querySelectorAll(".tabs .tb").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); renderHist(f); }
-
-// Строка записи — с кнопкой редактирования
-function rRow(r) {
-  const iF=r._t==="fuel"||r.type==="fuel";
-  const cu=CUR[r.currency]||"₾";
-  const am=iF?r.total:r.cost;
-  const ds=r.date?new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short"}):"";
-  const editFn=iF?`openFuelModal('${r.id}')`:`openSvcModal('${r.id}')`;
-  return `<div class="crow">
-    <div class="ri ${iF?"rif":"ris"}">${iF?"⛽":"🔧"}</div>
-    <div class="rb" onclick="${editFn}" style="cursor:pointer">
-      <div class="rt">${iF?(r.note||"Заправка"):r.serviceType}</div>
-      <div class="rs2">${ds}${r.mileage?" · "+r.mileage.toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}</div>
-    </div>
-    <div class="rr" style="display:flex;align-items:center;gap:8px">
-      <div>
-        <div class="ra ${iF?"raf":"ras"}">${am?cu+am.toFixed(0):"—"}</div>
-        <span class="badge ${iF?"bf":"bs"}">${iF?"ТОПЛИВО":"СЕРВИС"}</span>
-      </div>
-      <button onclick="${editFn}" style="background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:6px;padding:5px 7px;font-size:12px;cursor:pointer;flex-shrink:0">✏</button>
-    </div>
-  </div>`;
-}
-
-// ══════════════════════════════════════════════════════
-// SETTINGS
-// ══════════════════════════════════════════════════════
-function applySettings() {
-  const url = S.scriptUrl;
-  const pill = g("shpill");
-  if (url) {
-    g("url-hardcoded").style.display="block";
-    g("url-form").style.display="none";
-    g("url-display").textContent = HARDCODED_SCRIPT_URL ? "Вшит в приложение ✅" : url;
-    pill.className="pill pok"; pill.textContent="● Подключено";
-  } else {
-    g("url-hardcoded").style.display="none";
-    g("url-form").style.display="block";
-    pill.className="pill pno"; pill.textContent="● Не подключено";
-  }
-  ["GEL","USD","RUB"].forEach(c=>{const e=g("c-"+c);if(e)e.classList.remove("active");});
-  const ce=g("c-"+S.currency); if(ce) ce.classList.add("active");
-  updatePendingUI();
-}
-
-function saveUrl() {
-  const url=(g("surl").value||"").trim();
-  if (!url) { showToast("⚠ Введите URL"); return; }
-  S.scriptUrl=url; saveS(); applySettings(); testConnection();
-}
-
-async function testConnection() {
-  if (!S.scriptUrl) { showToast("⚠ URL не задан"); return; }
-  setSbar("syncing","Проверка подключения...");
-  const ok = await post(S.scriptUrl,{action:"init"});
-  if (ok) {
-    setSbar("ok","✅ Google Sheets подключён"); showToast("✅ Подключено!");
-    applySettings();
-    syncThenLoad();
-  } else {
-    setSbar("error","❌ Не удалось подключиться — проверьте URL");
-    showToast("❌ Ошибка подключения");
-  }
-}
-
-function setCurr(c,btn) {
-  S.currency=c; saveS();
-  document.querySelectorAll(".tabs .tb").forEach(b=>{ if(["c-GEL","c-USD","c-RUB"].includes(b.id)) b.classList.remove("active"); });
-  btn.classList.add("active");
-  const fe=g("f-curr"); if(fe) fe.value=c;
-  const se=g("s-curr"); if(se) se.value=c;
-}
-
-function exportJ() {
-  const t={...S}; delete t.queue;
-  const b=new Blob([JSON.stringify(t,null,2)],{type:"application/json"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(b); a.download="carlog.json"; a.click();
-  showToast("📤 Экспортировано");
-}
-
-function clearAll() {
-  if (!confirm("Удалить ВСЕ локальные данные?")) return;
-  S={cars:[],fuels:[],services:[],activeCar:null,currency:"GEL",scriptUrl:HARDCODED_SCRIPT_URL||"",queue:[]};
-  saveS(); renderDash(); applySettings(); updatePendingUI();
-  showToast("🗑 Очищено — загружаем из таблицы...");
-  if (S.scriptUrl) setTimeout(loadFromSheets, 500);
-}
-
-// ══════════════════════════════════════════════════════
-// SYNC — Google Sheets как главная БД
-// ══════════════════════════════════════════════════════
-async function syncThenLoad() {
-  if (S.queue.length>0) await syncNow();
-  await loadFromSheets();
-}
-
-let syncing=false;
-async function syncNow() {
-  if (syncing||!S.scriptUrl||!S.queue.length||!navigator.onLine) return;
-  syncing=true;
-  setSbar("syncing",`Отправка ${S.queue.length} записей...`);
-  const failed=[];
-  for (const op of [...S.queue]) {
-    if (!await post(S.scriptUrl,op)) failed.push(op);
-  }
-  S.queue=failed; saveS(); updatePendingUI(); syncing=false;
-  if (!failed.length) setSbar("ok","☁ Синхронизировано");
-  else setSbar("error",`⚠ ${failed.length} записей не отправлено`);
-}
-
-let loading=false;
-async function loadFromSheets() {
-  if (loading||!S.scriptUrl||!navigator.onLine) return;
-  loading=true;
-  setSbar("syncing","Загрузка данных из Google Sheets...");
-  try {
-    const resp = await post(S.scriptUrl,{action:"getData"},true);
-    if (!resp||!resp.ok) { setSbar("error","⚠ Не удалось загрузить данные"); loading=false; return; }
-
-    const data = resp.data;
-    const prevActive=S.activeCar, prevCurr=S.currency;
-
-    // Мержим данные из Sheets с локальными фото (фото хранятся только локально)
-    const localPhotos={};
-    S.cars.forEach(c=>{ if(c.photo) localPhotos[c.id]=c.photo; });
-
-    S.cars     = (data.cars||[]).map(c=>({...c, photo: localPhotos[c.id]||""}));
-    S.fuels    = data.fuels    || [];
-    S.services = data.services || [];
-
-    // Убираем записи с пустым id
-    S.cars     = S.cars.filter(c=>c.id);
-    S.fuels    = S.fuels.filter(f=>f.id&&f.carId);
-    S.services = S.services.filter(s=>s.id&&s.carId);
-
-    // Пересчитываем пробег каждой машины — берём максимум из:
-    // поля машины + всех заправок + всех сервисных записей
-    S.cars.forEach(car => {
-      const fuelMax = S.fuels
-        .filter(f=>f.carId===car.id)
-        .reduce((mx,f)=>Math.max(mx, Number(f.mileage)||0), 0);
-      const svcMax  = S.services
-        .filter(s=>s.carId===car.id)
-        .reduce((mx,s)=>Math.max(mx, Number(s.mileage)||0), 0);
-      const realKm  = Math.max(Number(car.mileage)||0, fuelMax, svcMax);
-      car.mileage   = realKm;  // всегда актуальный пробег
-    });
-
-    S.activeCar = S.cars.find(c=>c.id===prevActive) ? prevActive : (S.cars[0]?.id||null);
-    S.currency  = prevCurr;
-    saveS();
-
-    // Обновляем UI
-    syncOilsFromServices();
-    renderDash();
-    const activeScr=document.querySelector(".scr.active")?.id?.replace("scr-","");
-    if (activeScr==="fuel")    renderFuel();
-    if (activeScr==="service") renderSvc();
-    if (activeScr==="oil")     renderOil();
-    if (activeScr==="history") renderHist("all");
-    setSbar("ok",`✅ Данные загружены (${S.cars.length} авто, ${S.fuels.length} заправок, ${S.services.length} сервисов)`);
-  } catch(e) {
-    console.warn("loadFromSheets:", e);
-    setSbar("error","⚠ Ошибка загрузки");
-  }
-  loading=false;
-}
-
-async function post(url, data, returnFull=false) {
-  try {
-    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(data)});
-    if (!r.ok) return returnFull?null:false;
-    const json=await r.json();
-    return returnFull?json:(json.ok===true);
-  } catch(e) { return returnFull?null:false; }
-}
-
-function qSync(op) {
-  S.queue.push({...op,_qid:uid()}); saveS(); updatePendingUI();
-  if (navigator.onLine&&S.scriptUrl) setTimeout(syncNow,400);
-  else if (!navigator.onLine) setSbar("pending",`📡 Офлайн — ${S.queue.length} записей ждут`);
-}
-
-function updatePendingUI() {
-  const n=S.queue?.length||0;
-  g("pinfo").style.display=n?"block":"none";
-  const p=g("pcnt"); if(p) p.textContent=n;
-  const b=g("btn-sync"); if(b) b.style.display=n?"flex":"none";
-  if(n&&navigator.onLine) setSbar("pending",`⏳ ${n} записей ожидают отправки`);
-}
-
-// ══════════════════════════════════════════════════════
-// SYNC BAR
-// ══════════════════════════════════════════════════════
-let sbarT;
-function setSbar(state,msg) {
-  const b=g("sbar"); b.className="sbar show "+state; g("smsg").textContent=msg;
-  clearTimeout(sbarT);
-  if (state==="ok"||state==="error") sbarT=setTimeout(()=>b.classList.remove("show"),3500);
-}
-
-// ══════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════
-function clearF2(ids) { ids.forEach(id=>{const e=g(id);if(e)e.value="";}); }
-let toastT;
-function showToast(msg) {
-  const e=g("toast"); e.textContent=msg; e.classList.add("show");
-  clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove("show"),2700);
-}
-
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
-
-// ══════════════════════════════════════════════════════
-// OIL REMINDER
-// ══════════════════════════════════════════════════════
-function setInterval2(val, btn) {
-  document.querySelectorAll(".interval-btn").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-  g("oil-interval").value = val;
-}
-
-function openOilModal(recId=null) {
-  const car = getAC();
-  if (!car) { showToast("⚠ Выберите авто"); return; }
-  const rec = recId ? (S.oils||[]).find(o=>o.id===recId) : null;
-  g("oil-modal-title").textContent = rec ? "✏ Редактировать запись" : "🛢 Замена масла";
-  g("oil-eid").value      = rec?.id       || "";
-  g("oil-date").value     = rec?.date     || new Date().toISOString().split("T")[0];
-  g("oil-km").value       = rec?.mileage  || car.mileage || "";
-  g("oil-interval").value = rec?.interval || 10000;
-  // Если note содержит закодированный interval — показываем чистый текст
-  const parsedNote = rec ? parseOilNote(rec.note) : { note: "" };
-  g("oil-note").value     = parsedNote.note;
-  g("oil-cost").value     = rec?.cost     || "";
-  g("oil-curr").value     = rec?.currency || S.currency;
-  g("oil-del-btn").style.display = rec ? "flex" : "none";
-  // Set interval button active state
-  document.querySelectorAll(".interval-btn").forEach(b => {
-    b.classList.toggle("active", parseInt(b.textContent.replace(/\s/g,"")) === (rec?.interval||10000));
-  });
-  openModal("m-oil");
-}
-
-function saveOil() {
-  const car = getAC(); if (!car) return;
-  const date     = g("oil-date").value;
-  const km       = parseInt(g("oil-km").value)||0;
-  const interval = parseInt(g("oil-interval").value)||10000;
-  const note     = (g("oil-note").value||"").trim();
-  const cost     = parseFloat(g("oil-cost").value)||0;
-  const currency = g("oil-curr").value;
-  if (!date||!km) { showToast("⚠ Укажите дату и пробег"); return; }
-  if (!S.oils) S.oils = [];
-
-  const eid = g("oil-eid").value;
-  if (eid) {
-    const rec = S.oils.find(o=>o.id===eid);
-    if (rec) {
-      Object.assign(rec, {date,mileage:km,interval,note,cost,currency});
-      saveS();
-      const noteWithInterval2 = `[int:${interval}]${note}`;
-      qSync({action:"update",sheet:"Service",id:eid,
-             row:[eid,rec.carId,date,"🛢 Замена масла",km,cost,currency,noteWithInterval2,rec.createdAt]});
-      showToast("✅ Обновлено");
-    }
-  } else {
-    const rec = {id:uid(),carId:car.id,date,mileage:km,interval,note,cost,currency,createdAt:now()};
-    S.oils.push(rec);
-    // Добавляем в services — note содержит закодированный interval для Sheets
-    const encodedNote = `[int:${interval}]${note}`;
-    const svcRec = {id:rec.id,carId:car.id,type:"service",serviceType:"🛢 Замена масла",
-                    date,mileage:km,cost,currency,note:encodedNote,createdAt:rec.createdAt};
-    S.services.push(svcRec);
-    updKm(km, car.id);
-    saveS();
-    // Кодируем interval в поле Note чтобы он сохранялся в Sheets
-    const noteWithInterval = `[int:${interval}]${note}`;
-    qSync({action:"append",sheet:"Service",
-           row:[rec.id,car.id,date,"🛢 Замена масла",km,cost,currency,noteWithInterval,rec.createdAt]});
-    showToast("✅ Замена масла записана");
-  }
-  closeModal("m-oil");
-  renderOil();
-  renderDash();
-}
-
-function deleteOil() {
-  const id = g("oil-eid").value;
-  if (!id||!confirm("Удалить запись о замене масла?")) return;
-  S.oils     = (S.oils||[]).filter(o=>o.id!==id);
-  S.services = S.services.filter(s=>s.id!==id);
-  saveS();
-  qSync({action:"delete",sheet:"Service",id});
-  closeModal("m-oil");
-  renderOil(); renderDash();
-  showToast("🗑 Удалено");
-}
-
-function renderOil() {
-  const car = getAC();
-  const el  = g("oil-block");
-  if (!el) return;
-  if (!car) { el.innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; return; }
-
-  if (!S.oils) S.oils = [];
-  const oils = S.oils.filter(o=>o.carId===car.id).sort((a,b)=>b.mileage-a.mileage);
-
-  // ── Current reminder block ──
-  let reminderHTML = "";
-  if (oils.length) {
-    const last     = oils[0];
-    const curKm    = Number(car.mileage)||0;
-    const nextKm   = last.mileage + last.interval;
-    const leftKm   = nextKm - curKm;
-    const pct      = Math.min(100, Math.max(0, ((curKm - last.mileage) / last.interval) * 100));
-    const done     = leftKm <= 0;
-    const warn     = leftKm <= last.interval * 0.2 && !done;  // last 20%
-    const state    = done ? "danger" : warn ? "warn" : "ok";
-    const stateIcon= done ? "🔴" : warn ? "🟡" : "🟢";
-    const barColor = done ? "#ef4444" : warn ? "#f59e0b" : "#10b981";
-    const lastDate = new Date(last.date).toLocaleDateString("ru",{day:"numeric",month:"long",year:"numeric"});
-    const nextDate = estimateNextDate(last.date, last.mileage, curKm, last.interval);
-
-    reminderHTML = `
-    <div class="oil-card ${state}" onclick="openOilModal('${last.id}')">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">${stateIcon} ${done?"Замена просрочена!":warn?"Скоро замена масла":"Масло в норме"}</div>
-          <div style="font-size:11px;color:var(--tx2);margin-top:3px">${last.note||"Масло"} · замена каждые ${last.interval.toLocaleString()} км</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:${barColor}">${done?"+"+Math.abs(leftKm).toLocaleString():leftKm.toLocaleString()}</div>
-          <div style="font-size:10px;color:var(--tx2)">${done?"км просрочено":"км осталось"}</div>
-        </div>
-      </div>
-      <div class="oil-progress">
-        <div class="oil-bar" style="width:${pct}%;background:${barColor}"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2)">
-        <span>Замена: ${lastDate} · ${last.mileage.toLocaleString()} км</span>
-        <span>Следующая: ~${nextKm.toLocaleString()} км${nextDate?" · "+nextDate:""}</span>
-      </div>
-    </div>`;
-  } else {
-    reminderHTML = `
-    <div class="oil-card none" style="cursor:pointer" onclick="openOilModal()">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="font-size:32px">🛢</div>
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Добавить запись о замене масла</div>
-          <div style="font-size:12px;color:var(--tx2);margin-top:3px">Укажите пробег и интервал — приложение будет напоминать</div>
-        </div>
-      </div>
-    </div>`;
-  }
-
-  // ── History ──
-  const histHTML = oils.length ? `
-    <div class="sh" style="margin-top:16px"><span class="st">История замен</span></div>
-    <div class="card">${oils.map(o=>{
-      const d = new Date(o.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"});
-      const cu = CUR[o.currency]||"₾";
-      return `<div class="crow" onclick="openOilModal('${o.id}')" style="cursor:pointer">
-        <div class="ri" style="background:rgba(245,158,11,.12)">🛢</div>
-        <div class="rb">
-          <div class="rt">${parseOilNote(o.note).note||o.note||"Замена масла"}</div>
-          <div class="rs2">${d} · ${o.mileage.toLocaleString()} км · интервал ${o.interval.toLocaleString()} км</div>
-        </div>
-        <div class="rr">
-          <div class="ra raf">${o.cost?cu+o.cost.toFixed(0):"—"}</div>
-          <button style="margin-top:4px;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:5px;padding:3px 7px;font-size:11px;cursor:pointer">✏</button>
-        </div>
-      </div>`;
-    }).join("")}</div>` : "";
-
-  el.innerHTML = reminderHTML + histHTML;
 }
 
 function estimateNextDate(lastDateStr, lastKm, curKm, interval) {
-  // Простая оценка следующей даты по среднему пробегу
-  const lastDate = new Date(lastDateStr);
-  const daysSince = (Date.now() - lastDate.getTime()) / 86400000;
+  const lastDate   = new Date(lastDateStr);
+  const daysSince  = (Date.now() - lastDate.getTime()) / 86400000;
   if (daysSince <= 0 || curKm <= lastKm) return "";
-  const kmPerDay = (curKm - lastKm) / daysSince;
+  const kmPerDay   = (curKm - lastKm) / daysSince;
   if (kmPerDay <= 0) return "";
-  const daysLeft = (lastKm + interval - curKm) / kmPerDay;
-  const nextDate = new Date(Date.now() + daysLeft * 86400000);
-  return nextDate.toLocaleDateString("ru",{day:"numeric",month:"short"});
+  const daysLeft   = (lastKm + interval - curKm) / kmPerDay;
+  const next       = new Date(Date.now() + daysLeft * 86400000);
+  return next.toLocaleDateString("ru", {day:"numeric", month:"short"});
 }
 
-// Sync oils from services on load (oils are stored as service records)
+// Парсим интервал и заметку из поля note
+// Формат: "[int:10000]Mobil 5W-30"  →  { interval: 10000, note: "Mobil 5W-30" }
 function parseOilNote(rawNote) {
-  // Формат: "[int:10000]Mobil 5W-30" или просто "Mobil 5W-30"
   if (!rawNote) return { interval: 10000, note: "" };
-  const m = rawNote.match(/^\[int:(\d+)\](.*)/s);
-  if (m) return { interval: parseInt(m[1]) || 10000, note: m[2] };
-  return { interval: 10000, note: rawNote };
-}
-
-function syncOilsFromServices() {
-  if (!S.oils) S.oils = [];
-  // Восстанавливаем oils из services (данные пришли из Sheets)
-  S.services.filter(s => s.serviceType === "🛢 Замена масла").forEach(svc => {
-    const existing = S.oils.find(o => o.id === svc.id);
-    const { interval, note } = parseOilNote(svc.note);
-    if (!existing) {
-      // Новая запись — добавляем
-      S.oils.push({
-        id: svc.id, carId: svc.carId, date: svc.date,
-        mileage: svc.mileage, interval,
-        note, cost: svc.cost, currency: svc.currency,
-        createdAt: svc.createdAt
-      });
-    } else {
-      // Обновляем существующую (могла измениться в Sheets)
-      existing.date     = svc.date;
-      existing.mileage  = svc.mileage;
-      existing.interval = interval;
-      existing.note     = note;
-      existing.cost     = svc.cost;
-      existing.currency = svc.currency;
-    }
-  });
-  // Удаляем oils у которых нет соответствующей записи в services
-  S.oils = S.oils.filter(o =>
-    S.services.some(s => s.id === o.id && s.serviceType === "🛢 Замена масла")
-  );
+  const m = String(rawNote).match(/^\[int:(\d+)\]([\s\S]*)/);
+  if (m) return { interval: parseInt(m[1]) || 10000, note: m[2].trim() };
+  return { interval: 10000, note: String(rawNote) };
 }
 
 init();
