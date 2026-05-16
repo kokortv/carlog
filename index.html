@@ -155,6 +155,10 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 .codebox{background:var(--sf2);border-radius:8px;padding:10px;margin:7px 0;font-family:monospace;font-size:10px;color:var(--tx2);white-space:pre;border:1px solid var(--bd);line-height:1.7;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .script-url-display{background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:9px 12px;font-size:11px;font-family:monospace;color:var(--tx2);word-break:break-all;margin-bottom:8px}
 
+/* ── Analytics ── */
+.ana-ring{animation:ringDraw 1.4s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes ringDraw{from{stroke-dashoffset:var(--circ)}to{stroke-dashoffset:var(--dash)}}
+
 /* ── BOTTOM NAV — large icons, modern pill ── */
 .bnav{background:rgba(10,14,28,.99);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-top:1px solid var(--bd);display:flex;padding:10px 4px max(14px,env(safe-area-inset-bottom));flex-shrink:0;gap:0}
 .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 2px 8px;cursor:pointer;color:var(--tx3);background:none;border:none;font-family:inherit;border-radius:14px;transition:color .2s,background .15s;position:relative;min-height:64px}
@@ -230,6 +234,51 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 /* ── TOAST ── */
 .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(30,40,60,.96);backdrop-filter:blur(10px);border:1px solid var(--bd2);border-radius:12px;padding:10px 18px;font-size:12px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── COLOR LABELS ── */
+.clabel{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;flex-shrink:0}
+.crow-label{border-left:3px solid transparent}
+.crow-label.fuel-92{border-left-color:#f59e0b}
+.crow-label.fuel-95{border-left-color:#3b82f6}
+.crow-label.fuel-98{border-left-color:#8b5cf6}
+.crow-label.fuel-dt{border-left-color:#10b981}
+.crow-label.fuel-gas{border-left-color:#06b6d4}
+.crow-label.svc-oil{border-left-color:#f59e0b}
+.crow-label.svc-brake{border-left-color:#ef4444}
+.crow-label.svc-other{border-left-color:#6b7280}
+
+/* ── TANK ANIMATION ── */
+@keyframes wave{0%{transform:translateX(0) translateY(0)}50%{transform:translateX(-5%) translateY(-2px)}100%{transform:translateX(0) translateY(0)}}
+@keyframes fillUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes bubbles{0%{opacity:0;transform:translateY(0) scale(0)}50%{opacity:.7}100%{opacity:0;transform:translateY(-24px) scale(1)}}
+.tank-widget{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:10px;display:flex;gap:16px;align-items:center}
+.tank-visual{position:relative;width:54px;height:80px;border:2px solid var(--bd2);border-radius:6px 6px 4px 4px;overflow:hidden;flex-shrink:0;background:var(--sf2)}
+.tank-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(59,130,246,.8),rgba(59,130,246,.4));transition:height 1.2s cubic-bezier(.4,0,.2,1);border-radius:0 0 2px 2px}
+.tank-fill::after{content:'';position:absolute;top:-4px;left:-10%;width:120%;height:8px;background:rgba(59,130,246,.6);border-radius:50%;animation:wave 2s ease-in-out infinite}
+.tank-bubble{position:absolute;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);animation:bubbles 1.5s ease-out infinite}
+.tank-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:white;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.tank-info{flex:1}
+.tank-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px}
+.tank-sub{font-size:11px;color:var(--tx2);line-height:1.7}
+.tank-empty{color:var(--rd2)}.tank-low{color:var(--am2)}.tank-ok{color:var(--gn2)}
+
+/* ── ANALYTICS SCREEN ── */
+.chart-wrap{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.chart-wrap h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:12px;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px}
+.bar-chart{display:flex;gap:4px;align-items:flex-end;height:90px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:default}
+.bar-col .bv{font-size:9px;color:var(--tx2);font-weight:600;text-align:center}
+.bar-col .bb{width:100%;border-radius:3px 3px 0 0;min-height:3px;transition:height .7s cubic-bezier(.34,1.2,.64,1)}
+.bar-col .bl{font-size:8px;color:var(--tx3);text-align:center;white-space:nowrap;overflow:hidden}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat-tile{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:13px}
+.stat-tile .til{font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.stat-tile .tiv{font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+.stat-tile .tis{font-size:10px;color:var(--tx2);margin-top:2px}
+
+/* ── OIL BAR ANIMATED ── */
+.oil-bar{height:100%;border-radius:3px;transition:width 1.1s cubic-bezier(.34,1.1,.64,1)}
+/* Oil bar animates via JS: set width to 0 then transition to real value */
 
 /* ── SKELETON shimmer for loading ── */
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
@@ -326,6 +375,12 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       </div>
     </div>
 
+    <!-- ANALYTICS -->
+    <div class="scr" id="scr-analytics">
+      <div class="hdr"><div class="logo">📊</div><h1>Аналитика</h1></div>
+      <div class="sec pp" id="analytics-body"></div>
+    </div>
+
     <!-- SETTINGS -->
     <div class="scr" id="scr-settings">
       <div class="hdr"><div class="logo">⚙</div><h1>Настройки</h1></div>
@@ -384,7 +439,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
     <button class="ni active" onclick="goScr('dashboard')"><span class="ni-ic">🏠</span><span>Главная</span></button>
     <button class="ni" onclick="goScr('fuel')"><span class="ni-ic">⛽</span><span>Заправки</span></button>
     <button class="ni" onclick="goScr('oil')"><span class="ni-ic">🛢</span><span>Масло</span></button>
-    <button class="ni" onclick="goScr('history')"><span class="ni-ic">📋</span><span>История</span></button>
+    <button class="ni" onclick="goScr('analytics')"><span class="ni-ic">📊</span><span>Аналитика</span></button>
     <button class="ni" onclick="goScr('settings')"><span class="ni-ic">⚙</span><span>Настройки</span></button>
   </nav>
 </div>
@@ -405,6 +460,18 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="c-km" type="number" placeholder="50000" min="0"></div>
       </div>
       <div class="fg"><label class="fl">VIN</label><input class="fi" id="c-vin" placeholder="1HGBH41JXMN109186" maxlength="17" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px"></div>
+      <div class="fg">
+        <label class="fl">Объём бака (л)</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px">
+          <button type="button" class="interval-btn" onclick="setTankSize(40,this)">40</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(45,this)">45</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(50,this)">50</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(55,this)">55</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(60,this)">60</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(70,this)">70</button>
+        </div>
+        <input class="fi" id="c-tank" type="number" placeholder="50" min="10" max="200" step="1">
+      </div>
       <div class="fg">
         <label class="fl">Фото автомобиля</label>
         <div id="car-photo-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
@@ -815,12 +882,13 @@ function goScr(name) {
   document.querySelectorAll(".scr").forEach(s => s.classList.remove("active"));
   document.querySelectorAll(".ni").forEach(n  => n.classList.remove("active"));
   g("scr-"+name).classList.add("active");
-  const idx = ["dashboard","fuel","oil","history","settings"].indexOf(name);
+  const idx = ["dashboard","fuel","oil","analytics","settings"].indexOf(name);
   if (idx >= 0) document.querySelectorAll(".ni")[idx].classList.add("active");
   if (name==="dashboard") renderDash();
   if (name==="fuel")      renderFuel();
   if (name==="service")   renderSvc();
   if (name==="oil")       renderOil();
+  if (name==="analytics") renderAnalytics();
   if (name==="history")   renderHist("all");
   if (name==="settings")  applySettings();
 }
@@ -925,6 +993,12 @@ function openCarModal(carId=null) {
   g("c-km").value     = car?.mileage || "";
   g("c-vin").value    = car?.vin   || "";
   g("del-car-btn").style.display = car ? "flex" : "none";
+  g("c-tank").value = car?.tank || "";
+  // Подсветить кнопку объёма бака
+  document.querySelectorAll("#c-tank ~ * .interval-btn, .interval-btn").forEach(b => {
+    const v = parseInt(b.textContent);
+    if (!isNaN(v)) b.classList.toggle("active", v === (car?.tank||0));
+  });
 
   const col = car?.color || "#e74c3c";
   g("c-color").value = col;
@@ -955,24 +1029,24 @@ function saveCar() {
   const photo   = g("c-photo").value || "";
   if (!brand||!model) { showToast("⚠ Укажите марку и модель"); return; }
 
+  const tank = parseInt(g("c-tank").value)||0;
   const eid = g("car-eid").value;
   if (eid) {
     const car = S.cars.find(c=>c.id===eid);
     if (car) {
-      Object.assign(car, {brand,model,year,mileage,vin,color,photo});
+      Object.assign(car, {brand,model,year,mileage,vin,color,photo,tank});
       saveS();
-      // Фото не шлём в Sheets (слишком большое) — только метаданные
       qSync({action:"update", sheet:"Cars", id:eid,
-             row:[eid,brand,model,year,mileage,vin,color,car.createdAt]});
+             row:[eid,brand,model,year,mileage,vin,color,tank,car.createdAt]});
       showToast("✅ Авто обновлено");
     }
   } else {
-    const car = {id:uid(),brand,model,year,mileage,vin,color,photo,createdAt:now()};
+    const car = {id:uid(),brand,model,year,mileage,vin,color,photo,tank,createdAt:now()};
     S.cars.push(car);
     if (!S.activeCar) S.activeCar = car.id;
     saveS();
     qSync({action:"append", sheet:"Cars",
-           row:[car.id,brand,model,year,mileage,vin,color,car.createdAt]});
+           row:[car.id,brand,model,year,mileage,vin,color,tank,car.createdAt]});
     showToast("✅ Автомобиль добавлен");
   }
   closeModal("m-car"); closeModal("m-carlist");
@@ -1491,19 +1565,54 @@ function showToast(msg) {
 function renderFuel() {
   const car = getAC();
   if (!car) { g("fuel-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; g("fuel-cblock").innerHTML=""; return; }
-  const fs = S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const fs   = S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
   const cons = calcCons(car.id);
   const cel  = g("fuel-cblock");
+
+  // ── Tank widget with animation ──
+  let tankHTML = "";
+  if (car.tank && fs.length > 0) {
+    const last   = fs[0];
+    const lit    = last.liters || 0;
+    const tank   = Number(car.tank);
+    const pct    = Math.min(100, Math.round(lit / tank * 100));
+    const cls    = pct < 20 ? "tank-empty" : pct < 50 ? "tank-low" : "tank-ok";
+    const label  = pct < 20 ? "Почти пусто" : pct < 50 ? "Меньше половины" : "Хороший запас";
+    const cu     = CUR[last.currency]||"₾";
+    const {fuelType} = parseNote(last.note||"");
+    const bubs   = pct > 15 ? [0,1,2].map(i =>
+      `<div class="tank-bubble" style="left:${10+i*30}%;bottom:${4+i*10}%;animation-delay:${i*0.45}s;animation-duration:${1.4+i*0.3}s"></div>`
+    ).join("") : "";
+    tankHTML = `<div class="tank-widget">
+      <div class="tank-visual">
+        <div class="tank-fill" style="height:${pct}%">${bubs}</div>
+        <div class="tank-pct">${pct}%</div>
+      </div>
+      <div class="tank-info">
+        <div class="tank-title">Последняя заправка</div>
+        <div class="tank-sub">
+          <span class="${cls}">⬤ ${label}</span><br>
+          <b>${lit}л</b> из ${tank}л${fuelType?" · <b>"+fuelType+"</b>":""}<br>
+          ${last.total?cu+last.total.toFixed(0)+" · ":""}${new Date(last.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"})}
+        </div>
+      </div>
+    </div>`;
+  }
+
   if (cons && fs.length>=2) {
     const tL = fs.reduce((s,f)=>s+f.liters,0);
     const tC = fs.reduce((s,f)=>s+(f.total||0),0);
     const cu = CUR[fs[0]?.currency]||"₾";
-    cel.innerHTML = `<div class="ccard"><div><div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div><div class="cbig">${cons}</div><div class="cunit">л/100км</div></div><div class="cstats"><div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div><div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div><div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div></div></div>`;
-  } else cel.innerHTML = "";
+    cel.innerHTML = tankHTML + `<div class="ccard"><div><div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div><div class="cbig">${cons}</div><div class="cunit">л/100км</div></div><div class="cstats"><div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div><div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div><div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div></div></div>`;
+  } else {
+    cel.innerHTML = tankHTML;
+  }
+
   g("fuel-list").innerHTML = fs.length
     ? `<div class="card">${fs.map(f=>rRow({...f,_t:"fuel"})).join("")}</div>`
     : `<div class="empty"><div class="ei">⛽</div><div class="etit">Нет заправок</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
 }
+
 
 function renderSvc() {
   const car = getAC();
@@ -1539,10 +1648,14 @@ function rRow(r) {
   const iF = r._t==="fuel" || r.type==="fuel";
   const cu  = CUR[r.currency] || "₾";
   const am  = iF ? r.total : r.cost;
-  const ds  = r.date ? new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short"}) : "";
+  const ds  = r.date ? new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"}) : "";
   const fn  = iF ? `openFuelModal('${r.id}')` : `openSvcModal('${r.id}')`;
-  return `<div class="crow">
-    <div class="ri ${iF?"rif":"ris"}">${iF?"⛽":"🔧"}</div>
+  // Dynamic color labels via stationColor / svcColor
+  const dotColor = iF
+    ? stationColor(parseNote(r.note||"").station || parseNote(r.note||"").fuelType)
+    : svcColor(r.serviceType);
+  return `<div class="crow" style="border-left:3px solid ${dotColor}22">
+    <div class="ri ${iF?"rif":"ris"}" style="border-left:3px solid ${dotColor}">${iF?"⛽":"🔧"}</div>
     <div class="rb" onclick="${fn}" style="cursor:pointer">
       <div class="rt">${iF ? (() => { const n=parseNote(r.note||""); return [n.fuelType, n.station].filter(Boolean).join(" · ")||"Заправка"; })() : r.serviceType}</div>
       <div class="rs2">${ds}${r.mileage?" · "+Number(r.mileage).toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}</div>
@@ -1558,6 +1671,147 @@ function rRow(r) {
 // ══════════════════════════════════════════════════════
 // OIL
 // ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// OIL CRUD + RENDER
+// ══════════════════════════════════════════════════════
+function openOilModal(recId=null) {
+  const car = getAC();
+  if (!car) { showToast("⚠ Выберите авто"); return; }
+  const rec = recId
+    ? S.services.find(s=>s.id===recId && s.serviceType==="🛢 Замена масла")
+    : null;
+  g("oil-modal-title").textContent = rec ? "✏ Редактировать замену" : "🛢 Замена масла";
+  g("oil-eid").value  = rec?.id || "";
+  g("oil-date").value = rec?.date || new Date().toISOString().split("T")[0];
+  g("oil-km").value   = rec ? rec.mileage : (car.mileage||"");
+  g("oil-cost").value = rec?.cost || "";
+  g("oil-curr").value = rec?.currency || S.currency;
+  g("oil-del-btn").style.display = rec ? "flex" : "none";
+  const {interval, note} = parseOilNote(rec?.note);
+  g("oil-interval").value = interval;
+  g("oil-note").value = note;
+  document.querySelectorAll(".interval-btn").forEach(b=>{
+    const v=parseInt(b.textContent.replace(/\D/g,""));
+    b.classList.toggle("active", v===interval);
+  });
+  openModal("m-oil");
+}
+
+function saveOil() {
+  const car=getAC(); if(!car) return;
+  const date    = g("oil-date").value;
+  const km      = parseInt(g("oil-km").value)||0;
+  const interval= parseInt(g("oil-interval").value)||10000;
+  const note    = (g("oil-note").value||"").trim();
+  const cost    = parseFloat(g("oil-cost").value)||0;
+  const currency= g("oil-curr").value;
+  if (!date||!km) { showToast("⚠ Укажите дату и пробег"); return; }
+  const encodedNote = `[int:${interval}]${note}`;
+  const eid = g("oil-eid").value;
+  if (eid) {
+    const svc = S.services.find(s=>s.id===eid);
+    if (svc) {
+      Object.assign(svc,{date,mileage:km,cost,currency,note:encodedNote});
+      updKm(km,car.id); saveS();
+      qSync({action:"update",sheet:"Service",id:eid,
+             row:[eid,svc.carId,date,"🛢 Замена масла",km,cost,currency,encodedNote,svc.createdAt]});
+      showToast("✅ Обновлено");
+    }
+  } else {
+    const id=uid(), cAt=now();
+    const svc={id,carId:car.id,type:"service",serviceType:"🛢 Замена масла",
+               date,mileage:km,cost,currency,note:encodedNote,createdAt:cAt};
+    S.services.push(svc);
+    updKm(km,car.id); saveS();
+    qSync({action:"append",sheet:"Service",
+           row:[id,car.id,date,"🛢 Замена масла",km,cost,currency,encodedNote,cAt]});
+    showToast("✅ Замена масла записана");
+  }
+  closeModal("m-oil"); renderOil(); renderDash();
+}
+
+function deleteOil() {
+  const id=g("oil-eid").value;
+  if (!id||!confirm("Удалить запись о замене масла?")) return;
+  S.services=S.services.filter(s=>s.id!==id); saveS();
+  qSync({action:"delete",sheet:"Service",id});
+  closeModal("m-oil"); renderOil(); renderDash(); showToast("🗑 Удалено");
+}
+
+function renderOil() {
+  const car=getAC(), el=g("oil-block");
+  if (!el) return;
+  if (!car) { el.innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; return; }
+  const oils=getOilRecords(car.id);
+  let reminderHTML="";
+  if (oils.length) {
+    const last=oils[0], curKm=Number(car.mileage)||0;
+    const nextKm=last.mileage+last.interval, leftKm=nextKm-curKm;
+    const pct=Math.min(100,Math.max(0,(curKm-last.mileage)/last.interval*100));
+    const done=leftKm<=0, warn=!done&&leftKm<=last.interval*0.2;
+    const state=done?"danger":warn?"warn":"ok";
+    const icon=done?"🔴":warn?"🟡":"🟢";
+    const color=done?"#ef4444":warn?"#f59e0b":"#10b981";
+    const lastDate=new Date(last.date).toLocaleDateString("ru",{day:"numeric",month:"long",year:"numeric"});
+    const nextDate=estimateNextDate(last.date,last.mileage,curKm,last.interval);
+    reminderHTML=`
+    <div class="oil-card ${state}" onclick="openOilModal('${last.id}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">${icon} ${done?"Замена просрочена!":warn?"Скоро замена масла":"Масло в норме"}</div>
+          <div style="font-size:11px;color:var(--tx2);margin-top:3px">${last.cleanNote||"Масло"} · каждые ${last.interval.toLocaleString()} км</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${color}">${done?"+"+Math.abs(leftKm).toLocaleString():leftKm.toLocaleString()}</div>
+          <div style="font-size:10px;color:var(--tx2)">${done?"км просрочено":"км осталось"}</div>
+        </div>
+      </div>
+      <div class="oil-progress">
+        <div class="oil-bar" id="oil-anim-bar" style="width:0;background:${color}"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2);margin-top:4px">
+        <span>Замена: ${lastDate} · ${last.mileage.toLocaleString()} км</span>
+        <span>Следующая: ~${nextKm.toLocaleString()} км${nextDate?" · "+nextDate:""}</span>
+      </div>
+    </div>`;
+  } else {
+    reminderHTML=`
+    <div class="oil-card none" style="cursor:pointer" onclick="openOilModal()">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:32px">🛢</div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Добавить запись о замене масла</div>
+          <div style="font-size:12px;color:var(--tx2);margin-top:3px">Укажите пробег и интервал — приложение будет напоминать</div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const histHTML=oils.length?`
+    <div class="sh" style="margin-top:16px"><span class="st">История замен</span></div>
+    <div class="card">${oils.map(o=>{
+      const d=new Date(o.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"});
+      const cu=CUR[o.currency]||"₾";
+      return `<div class="crow" onclick="openOilModal('${o.id}')" style="cursor:pointer">
+        <div class="ri" style="background:rgba(245,158,11,.12)">🛢</div>
+        <div class="rb"><div class="rt">${o.cleanNote||"Замена масла"}</div>
+        <div class="rs2">${d} · ${o.mileage.toLocaleString()} км · интервал ${o.interval.toLocaleString()} км</div></div>
+        <div class="rr" style="display:flex;align-items:center;gap:8px">
+          <div><div class="ra raf">${o.cost?cu+o.cost.toFixed(0):"—"}</div></div>
+          <button style="background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer">✏</button>
+        </div>
+      </div>`;
+    }).join("")}</div>`:"";
+  el.innerHTML=reminderHTML+histHTML;
+  // Animate oil progress bar
+  if (oils.length) {
+    requestAnimationFrame(()=>setTimeout(()=>{
+      const b=g("oil-anim-bar");
+      if(b){const last=oils[0],curKm=Number(car.mileage)||0;
+        b.style.width=Math.min(100,Math.max(0,(curKm-last.mileage)/last.interval*100))+"%";}
+    },80));
+  }
+}
+
 function getOilRecords(carId) {
   return S.services
     .filter(s => s.carId === carId && s.serviceType === "🛢 Замена масла")
@@ -1590,6 +1844,9 @@ function renderDash() {
   const realKm = Number(car.mileage)||0;
   g("d-sub").textContent = [car.year, car.vin, realKm ? realKm.toLocaleString()+" км":""].filter(Boolean).join(" · ");
   g("d-km").textContent  = realKm ? realKm.toLocaleString() : "—";
+
+  // Обновляем виджет бака в аналитике (и на главной если добавим слот)
+  // Обновляется при переходе на аналитику
   g("d-con").textContent = calcCons(car.id) || "—";
   g("d-curr").textContent = CUR[S.currency]||"₾";
 
@@ -1606,7 +1863,7 @@ function renderDash() {
     chel.innerHTML=`<div class="chbox"><div class="chtit">⛽ Последние заправки</div><div class="chbars">${
       lastFs.map(f=>{
         const h=Math.round(f.liters/mx*56)+8;
-        const d=new Date(f.date).toLocaleDateString("ru",{day:"numeric",month:"short"});
+        const d=new Date(f.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"});
         return `<div class="cbw"><div class="cbv">${f.liters}л</div><div class="cb" style="height:${h}px"></div><div class="cbl">${d}</div></div>`;
       }).join("")
     }</div></div>`;
@@ -1632,25 +1889,416 @@ function renderOilMini(car) {
   const done   = leftKm <= 0;
   const warn   = !done && leftKm <= last.interval * 0.2;
   const color  = done ? "#ef4444" : warn ? "#f59e0b" : "#10b981";
-  const icon   = done ? "🔴" : warn ? "🟡" : "🟢";
   const label  = done
-    ? `Замена масла просрочена! +${Math.abs(leftKm).toLocaleString()} км`
-    : warn
-    ? `Скоро замена масла — осталось ${leftKm.toLocaleString()} км`
-    : `Масло в норме — осталось ${leftKm.toLocaleString()} км`;
+    ? `Просрочена! +${Math.abs(leftKm).toLocaleString()} км`
+    : warn ? `Скоро замена — ${leftKm.toLocaleString()} км`
+    : `Масло OK — осталось ${leftKm.toLocaleString()} км`;
+
+  // SVG ring animation
+  const R = 18, circ = 2 * Math.PI * R;
+  const dash = circ * (1 - pct/100);
 
   el.innerHTML = `
-  <div onclick="goScr('oil')" style="cursor:pointer;background:rgba(0,0,0,.2);border:1px solid ${color}44;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:10px">
-    <span style="font-size:18px">${icon}</span>
-    <div style="flex:1">
-      <div style="font-size:11px;font-weight:600;color:${color}">${label}</div>
-      <div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:5px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:${color};border-radius:2px;transition:width 1s"></div>
+  <div onclick="goScr('oil')" style="cursor:pointer;background:rgba(0,0,0,.18);border:1px solid ${color}33;border-radius:12px;padding:10px 13px;display:flex;align-items:center;gap:12px">
+    <!-- Animated ring -->
+    <div style="flex-shrink:0;position:relative;width:44px;height:44px">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <!-- bg ring -->
+        <circle cx="22" cy="22" r="${R}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="4"/>
+        <!-- animated progress ring -->
+        <circle cx="22" cy="22" r="${R}" fill="none"
+          stroke="${color}" stroke-width="4"
+          stroke-linecap="round"
+          stroke-dasharray="${circ.toFixed(1)}"
+          stroke-dashoffset="${circ.toFixed(1)}"
+          transform="rotate(-90 22 22)">
+          <animate attributeName="stroke-dashoffset"
+            from="${circ.toFixed(1)}" to="${dash.toFixed(1)}"
+            dur="1.4s" fill="freeze"
+            calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+        </circle>
+        <!-- drop icon -->
+        <text x="22" y="26" text-anchor="middle" font-size="13">🛢</text>
+      </svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:12px;font-weight:600;color:${color};margin-bottom:3px">${label}</div>
+      <div style="font-size:10px;color:var(--tx2)">${last.cleanNote||"Масло"} · каждые ${last.interval.toLocaleString()} км</div>
+      <!-- animated bar -->
+      <div style="height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden">
+        <div style="height:100%;width:0%;background:${color};border-radius:2px;transition:width 1.4s cubic-bezier(.34,1.2,.64,1)"
+             data-target="${pct}%"
+             onload="this.style.width=this.dataset.target"></div>
       </div>
     </div>
-    <span style="font-size:14px;color:var(--tx3)">›</span>
+    <span style="font-size:16px;color:var(--tx3);flex-shrink:0">›</span>
+  </div>`;
+
+  // Trigger bar animation on next frame
+  requestAnimationFrame(() => {
+    const bar = el.querySelector("[data-target]");
+    if (bar) bar.style.width = bar.dataset.target;
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// ЦВЕТОВЫЕ МЕТКИ для АЗС / типов работ
+// ══════════════════════════════════════════════════════════════
+const STATION_COLORS = [
+  "#f59e0b","#3b82f6","#10b981","#8b5cf6","#ef4444",
+  "#06b6d4","#f97316","#84cc16","#ec4899","#6366f1"
+];
+const _stationColorMap = {};
+let _stationColorIdx = 0;
+
+function stationColor(name) {
+  if (!name) return "rgba(255,255,255,.12)";
+  const key = name.toLowerCase().trim();
+  if (!_stationColorMap[key]) {
+    _stationColorMap[key] = STATION_COLORS[_stationColorIdx % STATION_COLORS.length];
+    _stationColorIdx++;
+  }
+  return _stationColorMap[key];
+}
+
+const SVC_COLORS = {
+  "🛢 Замена масла":            "#f59e0b",
+  "🔄 Замена масляного фильтра":"#fbbf24",
+  "💨 Замена воздушного фильтра":"#34d399",
+  "⛽ Замена топливного фильтра":"#60a5fa",
+  "⚡ Замена свечей зажигания":  "#a78bfa",
+  "🛑 Замена тормозных колодок": "#f87171",
+  "⭕ Замена тормозного диска":  "#fb7185",
+  "⚙ Замена ремня ГРМ":         "#f97316",
+  "🔋 Замена аккумулятора":      "#22d3ee",
+  "🚗 Замена шин":               "#4ade80",
+};
+
+function svcColor(type) {
+  return SVC_COLORS[type] || "#8892a4";
+}
+
+// ══════════════════════════════════════════════════════════════
+// АНИМАЦИЯ БЕНЗОБАКА
+// ══════════════════════════════════════════════════════════════
+function renderTankWidget(car, fuels) {
+  const tank = Number(car.tank) || 0;
+  const last = fuels.filter(f => f.carId === car.id)
+                    .sort((a,b) => new Date(b.date) - new Date(a.date))[0];
+  if (!tank || !last) return "";
+
+  const lit  = last.liters || 0;
+  const pct  = Math.min(100, Math.round(lit / tank * 100));
+  const fuelColor = pct > 60 ? "#10b981" : pct > 25 ? "#f59e0b" : "#ef4444";
+  const { fuelType } = parseNote(last.note || "");
+
+  return `
+  <div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">⛽ Бензобак</div>
+        <div style="font-size:11px;color:var(--tx2);margin-top:2px">${fuelType||"Топливо"} · последняя заправка ${lit}л</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${fuelColor}">${pct}%</div>
+        <div style="font-size:10px;color:var(--tx2)">${lit}л / ${tank}л</div>
+      </div>
+    </div>
+    <!-- SVG Tank -->
+    <div style="position:relative;height:56px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
+      <!-- animated fill -->
+      <div class="tank-fill" style="
+        position:absolute;bottom:0;left:0;right:0;
+        height:${pct}%;
+        background:linear-gradient(180deg,${fuelColor}cc,${fuelColor}66);
+        border-radius:0 0 9px 9px;
+        transition:height 1.4s cubic-bezier(.34,1.2,.64,1);
+        overflow:hidden;
+      ">
+        <!-- wave SVG -->
+        <svg viewBox="0 0 200 20" preserveAspectRatio="none"
+             style="position:absolute;top:-12px;left:0;right:0;width:100%;height:20px">
+          <path d="M0,10 C30,0 70,20 100,10 C130,0 170,20 200,10 L200,20 L0,20Z"
+                fill="${fuelColor}88">
+            <animateTransform attributeName="transform" type="translate"
+              from="-200,0" to="0,0" dur="2.5s" repeatCount="indefinite"/>
+          </path>
+          <path d="M0,12 C40,2 80,22 120,12 C160,2 200,22 240,12 L240,20 L0,20Z"
+                fill="${fuelColor}55">
+            <animateTransform attributeName="transform" type="translate"
+              from="0,0" to="-200,0" dur="3.5s" repeatCount="indefinite"/>
+          </path>
+        </svg>
+      </div>
+      <!-- level marks -->
+      ${[25,50,75].map(mark => `
+        <div style="position:absolute;bottom:${mark}%;left:0;right:0;height:1px;background:rgba(255,255,255,.08)"></div>
+        <div style="position:absolute;bottom:${mark}%;right:8px;font-size:9px;color:rgba(255,255,255,.25);line-height:1;transform:translateY(50%)">${mark}%</div>
+      `).join("")}
+    </div>
   </div>`;
 }
+
+// ══════════════════════════════════════════════════════════════
+// АНАЛИТИКА
+// ══════════════════════════════════════════════════════════════
+function renderAnalytics() {
+  const car = getAC();
+  const el  = g("analytics-body");
+  if (!el) return;
+  if (!car) { el.innerHTML = `<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; return; }
+
+  const fuels = S.fuels.filter(f => f.carId === car.id).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const svcs  = S.services.filter(s => s.carId === car.id).sort((a,b) => new Date(a.date)-new Date(b.date));
+  const all   = [...fuels.map(f=>({...f,_t:"fuel"})), ...svcs.map(s=>({...s,_t:"svc"}))];
+
+  if (!all.length) {
+    el.innerHTML = `<div class="empty"><div class="ei">📊</div><div class="etit">Нет данных</div><div class="esub">Добавьте заправки и обслуживание</div></div>`;
+    return;
+  }
+
+  // ── По месяцам ─────────────────────────────────────────────
+  const byMonth = {};
+  fuels.forEach(f => {
+    const key = f.date?.slice(0,7);
+    if (!key) return;
+    if (!byMonth[key]) byMonth[key] = { fuel:0, svc:0, liters:0, fuelCnt:0 };
+    byMonth[key].fuel   += f.total    || 0;
+    byMonth[key].liters += f.liters   || 0;
+    byMonth[key].fuelCnt++;
+  });
+  svcs.forEach(s => {
+    const key = s.date?.slice(0,7);
+    if (!key) return;
+    if (!byMonth[key]) byMonth[key] = { fuel:0, svc:0, liters:0, fuelCnt:0 };
+    byMonth[key].svc += s.cost || 0;
+  });
+
+  const months = Object.keys(byMonth).sort().slice(-6);
+  const maxVal = Math.max(...months.map(m => byMonth[m].fuel + byMonth[m].svc), 1);
+
+  // ── Totals ──────────────────────────────────────────────────
+  const totalFuel  = fuels.reduce((s,f)=>s+(f.total||0),0);
+  const totalSvc   = svcs.reduce((s,f)=>s+(f.cost||0),0);
+  const totalLit   = fuels.reduce((s,f)=>s+(f.liters||0),0);
+  const avgPrice   = totalLit > 0 ? totalFuel/totalLit : 0;
+  const cons       = calcCons(car.id);
+  const cu         = CUR[S.currency] || "₾";
+
+  // ── Расход по месяцам (линейный график SVG) ────────────────
+  const consByMonth = {};
+  months.forEach(m => {
+    const mFuels = fuels.filter(f=>f.date?.startsWith(m)).sort((a,b)=>a.mileage-b.mileage);
+    if (mFuels.length >= 2) {
+      const km = mFuels[mFuels.length-1].mileage - mFuels[0].mileage;
+      const lt = mFuels.slice(1).reduce((s,f)=>s+f.liters,0);
+      if (km > 0) consByMonth[m] = +(lt/km*100).toFixed(1);
+    }
+  });
+
+  // ── Топ сервисных трат ──────────────────────────────────────
+  const svcByType = {};
+  svcs.forEach(s => {
+    const k = s.serviceType || "Другое";
+    if (!svcByType[k]) svcByType[k] = 0;
+    svcByType[k] += s.cost || 0;
+  });
+  const topSvc = Object.entries(svcByType).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxSvc = topSvc[0]?.[1] || 1;
+
+  // ── АЗС статистика ─────────────────────────────────────────
+  const byStation = {};
+  fuels.forEach(f => {
+    const { station } = parseNote(f.note||"");
+    const k = station || "Другие";
+    if (!byStation[k]) byStation[k] = { cnt:0, total:0, liters:0 };
+    byStation[k].cnt++;
+    byStation[k].total  += f.total  || 0;
+    byStation[k].liters += f.liters || 0;
+  });
+  const topStations = Object.entries(byStation).sort((a,b)=>b[1].cnt-a[1].cnt).slice(0,4);
+
+  // ── Топ топлива по маркам ───────────────────────────────────
+  const byFuelType = {};
+  fuels.forEach(f => {
+    const { fuelType } = parseNote(f.note||"");
+    const k = fuelType || "—";
+    if (!byFuelType[k]) byFuelType[k] = 0;
+    byFuelType[k] += f.liters || 0;
+  });
+  const topFuelTypes = Object.entries(byFuelType).sort((a,b)=>b[1]-a[1]);
+
+  // ── HTML ────────────────────────────────────────────────────
+  el.innerHTML = `
+
+  <!-- TANK WIDGET -->
+  ${renderTankWidget(car, fuels)}
+
+  <!-- SUMMARY CARDS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    ${summaryCard("💰 Всего потрачено", cu+(totalFuel+totalSvc).toFixed(0), "var(--ac2)")}
+    ${summaryCard("⛽ На топливо", cu+totalFuel.toFixed(0), "var(--am2)")}
+    ${summaryCard("🔧 На сервис", cu+totalSvc.toFixed(0), "#60a5fa")}
+    ${summaryCard("🛢 Всего залито", totalLit.toFixed(0)+"л", "var(--gn2)")}
+  </div>
+  ${avgPrice ? summaryCard("📊 Средняя цена топлива", cu+avgPrice.toFixed(2)+"/л", "var(--pu2)", true) : ""}
+  ${cons ? summaryCard("🔥 Средний расход", cons+" л/100км", "var(--am2)", true) : ""}
+
+  <!-- MONTHLY BAR CHART -->
+  ${months.length >= 2 ? `
+  <div class="card" style="padding:14px;margin-bottom:10px">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px">📅 Расходы по месяцам</div>
+    <div style="display:flex;gap:6px;align-items:flex-end;height:90px;margin-bottom:8px">
+      ${months.map(m => {
+        const d  = byMonth[m];
+        const hF = Math.round(d.fuel/maxVal*80)+4;
+        const hS = Math.round(d.svc/maxVal*80)+4;
+        const mn = new Date(m+"-01").toLocaleDateString("ru",{month:"short"});
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+          <div style="width:100%;display:flex;flex-direction:column;gap:2px;align-items:center">
+            ${d.svc>0?`<div style="width:70%;height:${hS}px;background:rgba(59,130,246,.6);border-radius:3px 3px 0 0;transition:height 1s cubic-bezier(.34,1.2,.64,1)"></div>`:""}
+            <div style="width:100%;height:${hF}px;background:linear-gradient(180deg,var(--am2),rgba(245,158,11,.4));border-radius:3px 3px 0 0;transition:height 1s cubic-bezier(.34,1.2,.64,1)"></div>
+          </div>
+          <div style="font-size:9px;color:var(--tx3)">${mn}</div>
+        </div>`;
+      }).join("")}
+    </div>
+    <div style="display:flex;gap:12px;font-size:10px;color:var(--tx2)">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--am2);border-radius:2px;display:inline-block"></span>Топливо</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:rgba(59,130,246,.7);border-radius:2px;display:inline-block"></span>Сервис</span>
+    </div>
+  </div>` : ""}
+
+  <!-- CONSUMPTION LINE CHART -->
+  ${Object.keys(consByMonth).length >= 2 ? lineChart("🔥 Расход по месяцам (л/100км)", months, consByMonth, "var(--am2)") : ""}
+
+  <!-- TOP STATIONS with color labels -->
+  ${topStations.length ? `
+  <div class="card" style="padding:14px;margin-bottom:10px">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:12px">📍 Любимые АЗС</div>
+    ${topStations.map(([name, d]) => {
+      const col = stationColor(name);
+      const pct = Math.round(d.cnt / fuels.length * 100);
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:7px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
+            <span style="font-size:13px;font-weight:500">${name}</span>
+          </div>
+          <div style="font-size:11px;color:var(--tx2)">${d.cnt} раз · ${cu}${d.total.toFixed(0)}</div>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:width 1.2s cubic-bezier(.34,1.2,.64,1)"></div>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>` : ""}
+
+  <!-- FUEL TYPES PIE-like -->
+  ${topFuelTypes.length > 1 ? `
+  <div class="card" style="padding:14px;margin-bottom:10px">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:12px">⛽ Марки топлива</div>
+    <div style="display:flex;gap:6px;height:8px;border-radius:4px;overflow:hidden;margin-bottom:10px">
+      ${topFuelTypes.map(([t,l]) => {
+        const pct = totalLit>0?l/totalLit*100:0;
+        const col = stationColor(t);
+        return `<div style="height:100%;width:${pct}%;background:${col};transition:width 1s ease;min-width:4px"></div>`;
+      }).join("")}
+    </div>
+    ${topFuelTypes.map(([t,l]) => {
+      const pct = totalLit>0?Math.round(l/totalLit*100):0;
+      const col = stationColor(t);
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:3px 0">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${col}"></div>
+          <span style="font-size:12px">${t}</span>
+        </div>
+        <span style="font-size:12px;color:var(--tx2)">${l.toFixed(0)}л · ${pct}%</span>
+      </div>`;
+    }).join("")}
+  </div>` : ""}
+
+  <!-- TOP SERVICE by cost with color labels -->
+  ${topSvc.length ? `
+  <div class="card" style="padding:14px;margin-bottom:10px">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:12px">🔧 Траты на обслуживание</div>
+    ${topSvc.map(([type,cost]) => {
+      const col = svcColor(type);
+      const pct = Math.round(cost/maxSvc*100);
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="display:flex;align-items:center;gap:7px">
+            <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
+            <span style="font-size:12px;font-weight:500">${type}</span>
+          </div>
+          <span style="font-size:12px;color:var(--tx2)">${cu}${cost.toFixed(0)}</span>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:width 1.2s cubic-bezier(.34,1.2,.64,1)"></div>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>` : ""}
+
+  `;
+}
+
+function summaryCard(label, value, color, full=false) {
+  return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px;${full?'margin-bottom:8px':''}">
+    <div style="font-size:10px;color:var(--tx2);margin-bottom:4px">${label}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:${color}">${value}</div>
+  </div>`;
+}
+
+function lineChart(title, months, dataByMonth, color) {
+  const vals = months.map(m => dataByMonth[m] || null);
+  const valid = vals.filter(v=>v!==null);
+  if (valid.length < 2) return "";
+  const mn = Math.min(...valid)*0.9, mx = Math.max(...valid)*1.1 || 1;
+  const W=280, H=60, pad=8;
+  const points = months.map((m,i) => {
+    const v = dataByMonth[m];
+    if (v == null) return null;
+    const x = pad + i/(months.length-1)*(W-pad*2);
+    const y = H - pad - (v-mn)/(mx-mn)*(H-pad*2);
+    return [x,y,v];
+  }).filter(Boolean);
+
+  const pathD = points.map((p,i)=>i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`).join(" ");
+  const areaD = pathD + ` L${points[points.length-1][0]},${H} L${points[0][0]},${H} Z`;
+
+  return `<div class="card" style="padding:14px;margin-bottom:10px">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:12px">${title}</div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible">
+      <defs>
+        <linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity=".25"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaD}" fill="url(#lg1)"/>
+      <path d="${pathD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <animate attributeName="stroke-dashoffset" from="1000" to="0" dur="1.5s" fill="freeze"
+                 calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+      </path>
+      ${points.map(([x,y,v])=>`
+        <circle cx="${x}" cy="${y}" r="3" fill="${color}"/>
+        <text x="${x}" y="${y-6}" text-anchor="middle" fill="${color}"
+              font-size="8" font-family="sans-serif">${v}</text>
+      `).join("")}
+      ${months.map((m,i)=>{
+        const x = pad + i/(months.length-1)*(W-pad*2);
+        const mn2 = new Date(m+"-01").toLocaleDateString("ru",{month:"short"});
+        return `<text x="${x}" y="${H+2}" text-anchor="middle" fill="#3d4a5e"
+                     font-size="8" font-family="sans-serif" dominant-baseline="hanging">${mn2}</text>`;
+      }).join("")}
+    </svg>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// АНИМАЦИЯ МАСЛА — обновляем renderOilMini с анимацией линии
+// ══════════════════════════════════════════════════════════════
 
 function estimateNextDate(lastDateStr, lastKm, curKm, interval) {
   const lastDate   = new Date(lastDateStr);
@@ -1716,6 +2364,119 @@ async function runDiag() {
     log("\n❌ Сетевая ошибка:", e.message);
     log("Возможно CORS — убедитесь что деплой: Доступ = Все");
   }
+}
+
+// ══════════════════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════════════════
+function renderAnalytics() {
+  const car = getAC();
+  const el  = g("analytics-body");
+  if (!el) return;
+  if (!car) { el.innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; return; }
+
+  const fuels = S.fuels.filter(f=>f.carId===car.id);
+  const svcs  = S.services.filter(s=>s.carId===car.id);
+  if (!fuels.length && !svcs.length) {
+    el.innerHTML=`<div class="empty"><div class="ei">📊</div><div class="etit">Нет данных</div><div class="esub">Добавьте заправки и записи об обслуживании</div></div>`;
+    return;
+  }
+
+  const totalFuel = fuels.reduce((s,f)=>s+(f.total||0),0);
+  const totalSvc  = svcs.reduce((s,s2)=>s+(s2.cost||0),0);
+  const totalAll  = totalFuel + totalSvc;
+  const totalLit  = fuels.reduce((s,f)=>s+f.liters,0);
+  const cons      = calcCons(car.id);
+  const cu        = CUR[S.currency]||"₾";
+
+  // Last 6 months
+  const now2   = new Date();
+  const months = Array.from({length:6},(_,i)=>{
+    const d = new Date(now2.getFullYear(), now2.getMonth()-5+i, 1);
+    return {year:d.getFullYear(),month:d.getMonth(),
+            label:d.toLocaleDateString("ru",{month:"short"}),fuel:0,svc:0};
+  });
+  fuels.forEach(f=>{
+    const d=new Date(f.date);
+    const m=months.find(m=>m.year===d.getFullYear()&&m.month===d.getMonth());
+    if(m) m.fuel+=f.total||0;
+  });
+  svcs.forEach(s=>{
+    const d=new Date(s.date);
+    const m=months.find(m=>m.year===d.getFullYear()&&m.month===d.getMonth());
+    if(m) m.svc+=s.cost||0;
+  });
+  const maxBar=Math.max(...months.map(m=>m.fuel+m.svc),1);
+
+  const barsHTML=months.map(m=>{
+    const tot=m.fuel+m.svc;
+    const hf=Math.round(m.fuel/maxBar*78);
+    const hs=Math.round(m.svc/maxBar*78);
+    return `<div class="bar-col" title="${m.label}: ${cu}${tot.toFixed(0)}">
+      <div class="bv">${tot>0?cu+Math.round(tot):"—"}</div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end;height:78px;width:100%;gap:1px">
+        ${hs>0?`<div class="bb" style="height:${hs}px;background:linear-gradient(180deg,rgba(59,130,246,.85),rgba(59,130,246,.4))"></div>`:""}
+        ${hf>0?`<div class="bb" style="height:${hf}px;background:linear-gradient(180deg,var(--am),rgba(245,158,11,.4))"></div>`:""}
+      </div>
+      <div class="bl">${m.label}</div>
+    </div>`;
+  }).join("");
+
+  const byType={};
+  fuels.forEach(f=>{
+    const {fuelType}=parseNote(f.note||"");
+    const key=fuelType||"Другое";
+    if(!byType[key]){byType[key]={lit:0,cost:0,count:0};}
+    byType[key].lit+=f.liters||0; byType[key].cost+=f.total||0; byType[key].count++;
+  });
+  const typeHTML=Object.entries(byType).sort((a,b)=>b[1].cost-a[1].cost).map(([type,d])=>
+    `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)">
+      <span>⛽</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${type}</div>
+      <div style="font-size:11px;color:var(--tx2)">${d.count} заправок · ${d.lit.toFixed(0)}л</div></div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--am2)">${cu}${d.cost.toFixed(0)}</div>
+    </div>`
+  ).join("");
+
+  const bySvc={};
+  svcs.forEach(s=>{
+    const key=s.serviceType||"Другое";
+    if(!bySvc[key]){bySvc[key]={cost:0,count:0};}
+    bySvc[key].cost+=s.cost||0; bySvc[key].count++;
+  });
+  const svcHTML=Object.entries(bySvc).sort((a,b)=>b[1].cost-a[1].cost).slice(0,5).map(([type,d])=>
+    `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bd)">
+      <span>🔧</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${type}</div>
+      <div style="font-size:11px;color:var(--tx2)">${d.count}×</div></div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;color:var(--ac2)">${d.cost>0?cu+d.cost.toFixed(0):"—"}</div>
+    </div>`
+  ).join("");
+
+  el.innerHTML=`
+  <div class="stat-grid">
+    <div class="stat-tile"><div class="til">Всего потрачено</div><div class="tiv" style="color:var(--gn2)">${cu}${totalAll.toFixed(0)}</div><div class="tis">за всё время</div></div>
+    <div class="stat-tile"><div class="til">На топливо</div><div class="tiv" style="color:var(--am2)">${cu}${totalFuel.toFixed(0)}</div><div class="tis">${totalLit.toFixed(0)}л · ${fuels.length} заправок</div></div>
+    <div class="stat-tile"><div class="til">На сервис</div><div class="tiv" style="color:var(--ac2)">${cu}${totalSvc.toFixed(0)}</div><div class="tis">${svcs.length} записей</div></div>
+    <div class="stat-tile"><div class="til">Расход</div><div class="tiv" style="color:var(--pu2)">${cons||"—"}</div><div class="tis">л/100км</div></div>
+  </div>
+  <div class="chart-wrap">
+    <h3>📈 Расходы по месяцам</h3>
+    <div style="display:flex;gap:12px;font-size:11px;color:var(--tx2);margin-bottom:10px">
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--am);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Топливо</span>
+      <span><span style="display:inline-block;width:10px;height:10px;background:var(--ac);border-radius:2px;margin-right:4px;vertical-align:middle"></span>Сервис</span>
+    </div>
+    <div class="bar-chart">${barsHTML}</div>
+  </div>
+  ${Object.keys(byType).length?`<div class="chart-wrap"><h3>⛽ По типу топлива</h3>${typeHTML}</div>`:""}
+  ${Object.keys(bySvc).length?`<div class="chart-wrap"><h3>🔧 Топ обслуживания</h3>${svcHTML}</div>`:""}`;
+}
+
+function setTankSize(val, btn) {
+  btn.closest("div").querySelectorAll(".interval-btn")
+     .forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  g("c-tank").value = val;
 }
 
 init();
