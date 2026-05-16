@@ -222,9 +222,10 @@ h1,h2,h3{font-family:'Syne',sans-serif}
 .oil-card.none{background:var(--sf);border:1px solid var(--bd)}
 .oil-progress{height:5px;border-radius:3px;background:rgba(255,255,255,.08);margin:10px 0 6px;overflow:hidden}
 .oil-bar{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
-.interval-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--bd2);background:var(--sf2);color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
-.interval-btn:active{transform:scale(.95)}
+.interval-btn,.fuel-type-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--bd2);background:var(--sf2);color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.interval-btn:active,.fuel-type-btn:active{transform:scale(.95)}
 .interval-btn.active{background:var(--ac);border-color:var(--ac);color:white}
+.fuel-type-btn.active{background:var(--am);border-color:var(--am);color:#000;font-weight:700}
 
 /* ── TOAST ── */
 .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(30,40,60,.96);backdrop-filter:blur(10px);border:1px solid var(--bd2);border-radius:12px;padding:10px 18px;font-size:12px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
@@ -336,23 +337,15 @@ h1,h2,h3{font-family:'Syne',sans-serif}
           </div>
 
           <!-- Если URL уже вшит — показываем статус, не форму -->
-          <div id="url-hardcoded" style="display:none">
-            <div class="hint" style="margin-bottom:8px">URL синхронизации вшит в приложение:</div>
-            <div class="script-url-display" id="url-display"></div>
-            <button class="btn bp" onclick="testConnection()">✅ Проверить подключение</button>
-          </div>
-
-          <!-- Форма ввода URL (если не вшит) -->
-          <div id="url-form">
-            <div class="fg">
-              <label class="fl">URL веб-приложения Apps Script</label>
-              <input class="fi" id="surl" placeholder="https://script.google.com/macros/s/.../exec">
-              <div class="hint">Разверните скрипт как веб-приложение и вставьте URL.<br>
-                <button class="sa" onclick="openModal('m-guide')">Как настроить →</button>
-              </div>
+          <div class="fg">
+            <label class="fl">URL веб-приложения Apps Script</label>
+            <input class="fi" id="surl" placeholder="https://script.google.com/macros/s/.../exec">
+            <div class="hint">Разверните скрипт как веб-приложение и вставьте URL.<br>
+              <button class="sa" onclick="openModal('m-guide')">Как настроить →</button>
             </div>
-            <button class="btn bp" onclick="saveUrl()">💾 Сохранить и подключить</button>
           </div>
+          <button class="btn bp" onclick="saveUrl()" style="margin-bottom:7px">💾 Сохранить и подключить</button>
+          <button class="btn bg2" onclick="testConnection()">🔌 Проверить подключение</button>
 
           <button class="btn bp" onclick="loadFromSheets()" style="margin-top:8px">🔄 Загрузить данные из таблицы</button>
           <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">
@@ -366,7 +359,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
           <div class="tabs">
             <button class="tb active" id="c-GEL" onclick="setCurr('GEL',this)">₾ Лари</button>
             <button class="tb" id="c-USD" onclick="setCurr('USD',this)">$ Доллар</button>
-            <button class="tb" id="c-RUB" onclick="setCurr('RUB',this)">₽ Рубль</button>
+            <button class="tb" id="c-TRY" onclick="setCurr('TRY',this)">₺ Лира</button>
           </div>
         </div>
 
@@ -376,7 +369,12 @@ h1,h2,h3{font-family:'Syne',sans-serif}
           <button class="btn bd3" onclick="clearAll()">🗑 Очистить всё</button>
         </div>
 
-        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.0 · PWA · Офлайн-режим</div>
+        <div class="setc">
+          <div class="settit" style="font-size:13px">🔍 Диагностика</div>
+          <button class="btn bg2" onclick="runDiag()" style="margin-top:0">Проверить подключение и показать лог</button>
+          <div id="diag-out" style="margin-top:10px;font-size:11px;font-family:monospace;color:var(--tx2);line-height:1.8;display:none;background:var(--sf2);border-radius:8px;padding:10px;word-break:break-all"></div>
+        </div>
+        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.1 · PWA · Офлайн-режим</div>
       </div>
     </div>
 
@@ -465,21 +463,59 @@ h1,h2,h3{font-family:'Syne',sans-serif}
     <div class="mhdr"><div class="mt2" id="fuel-modal-title">⛽ Заправка</div><button class="mc2" onclick="closeModal('m-fuel')">✕</button></div>
     <div class="mb">
       <input type="hidden" id="f-eid" value="">
-      <div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div>
+
       <div class="fr2">
+        <div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div>
         <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="f-km" type="number" placeholder="52000" min="0"></div>
-        <div class="fg"><label class="fl">Литры</label><input class="fi" id="f-lit" type="number" placeholder="40" min="0" step="0.1" oninput="calcF()"></div>
       </div>
-      <div class="fr2">
-        <div class="fg"><label class="fl">Цена за литр</label><input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.01" oninput="calcF()"></div>
-        <div class="fg"><label class="fl">Валюта</label>
-          <select class="fs" id="f-curr">
-            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option>
-          </select>
+
+      <div class="fg">
+        <label class="fl">Марка топлива</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px" id="fuel-type-btns">
+          <button type="button" class="fuel-type-btn active" onclick="setFuelType('АИ-92',this)">АИ-92</button>
+          <button type="button" class="fuel-type-btn" onclick="setFuelType('АИ-95',this)">АИ-95</button>
+          <button type="button" class="fuel-type-btn" onclick="setFuelType('АИ-98',this)">АИ-98</button>
+          <button type="button" class="fuel-type-btn" onclick="setFuelType('ДТ',this)">ДТ</button>
+          <button type="button" class="fuel-type-btn" onclick="setFuelType('Газ',this)">Газ</button>
+        </div>
+        <input class="fi" id="f-ftype" placeholder="Или введите вручную..." style="font-size:13px">
+      </div>
+
+      <div style="background:var(--sf2);border-radius:10px;padding:12px;border:1px solid var(--bd)">
+        <div style="font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:600">
+          💡 Введите любые два поля — третье рассчитается автоматически
+        </div>
+        <div class="fr2" style="margin-bottom:10px">
+          <div class="fg" style="margin:0">
+            <label class="fl">Литры</label>
+            <input class="fi" id="f-lit" type="number" placeholder="40.0" min="0" step="0.01" oninput="calcFuel3('lit')">
+          </div>
+          <div class="fg" style="margin:0">
+            <label class="fl">Цена за литр</label>
+            <input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.001" oninput="calcFuel3('price')">
+          </div>
+        </div>
+        <div class="fr2">
+          <div class="fg" style="margin:0">
+            <label class="fl">Итого</label>
+            <input class="fi" id="f-total" type="number" placeholder="116.00" min="0" step="0.01" oninput="calcFuel3('total')">
+          </div>
+          <div class="fg" style="margin:0">
+            <label class="fl">Валюта</label>
+            <select class="fs" id="f-curr">
+              <option value="GEL">₾ Лари</option>
+              <option value="USD">$ Доллар</option>
+              <option value="TRY">₺ Лира</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div class="fg"><label class="fl">Итого</label><input class="fi" id="f-total" type="number" placeholder="116.00" step="0.01"></div>
-      <div class="fg"><label class="fl">АЗС / Заметка</label><input class="fi" id="f-note" placeholder="Lukoil, полный бак"></div>
+
+      <div class="fg" style="margin-top:10px">
+        <label class="fl">АЗС / Станция (необязательно)</label>
+        <input class="fi" id="f-note" placeholder="Lukoil, BP, Wissol...">
+      </div>
+
       <button class="btn bp" onclick="saveFuel()">✅ Сохранить заправку</button>
       <button class="btn bd3" id="f-del-btn" style="display:none" onclick="deleteFuel()">🗑 Удалить заправку</button>
     </div>
@@ -514,7 +550,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <div class="fg"><label class="fl">Стоимость</label><input class="fi" id="s-cost" type="number" placeholder="120.00" step="0.01"></div>
         <div class="fg"><label class="fl">Валюта</label>
           <select class="fs" id="s-curr">
-            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option>
+            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="TRY">₺ Лира</option>
           </select>
         </div>
       </div>
@@ -549,7 +585,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
         <label class="fl">Стоимость</label>
         <div class="fr2">
           <input class="fi" id="oil-cost" type="number" placeholder="120.00" step="0.01">
-          <select class="fs" id="oil-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="RUB">₽ Рубль</option></select>
+          <select class="fs" id="oil-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="TRY">₺ Лира</option></select>
         </div>
       </div>
       <button class="btn bp" onclick="saveOil()">✅ Сохранить</button>
@@ -572,7 +608,7 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       В таблице: <b style="color:var(--tx)">Расширения → Apps Script</b><br>
       Удалите всё и вставьте код ниже, заменив <code>ВАШ_ID</code>:
 
-      <div class="codebox">const SPREADSHEET_ID = "";
+      <div class="codebox">const SPREADSHEET_ID = "ВАШ_ID_ТАБЛИЦЫ";
 // ID находится в URL таблицы:
 // docs.google.com/spreadsheets/d/ВАШ_ID/edit
 
@@ -702,7 +738,7 @@ const HARDCODED_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbykPTLjAYw
 // ══════════════════════════════════════════════════════
 // КОНСТАНТЫ
 // ══════════════════════════════════════════════════════
-const CUR = {GEL:"₾", USD:"$", RUB:"₽"};
+const CUR = {GEL:"₾", USD:"$", TRY:"₺"};
 const COLORS = [
   "#e74c3c","#c0392b","#e67e22","#f39c12","#f1c40f",
   "#2ecc71","#27ae60","#1abc9c","#3498db","#2980b9",
@@ -726,7 +762,10 @@ let S = { cars:[], fuels:[], services:[], activeCar:null, currency:"GEL", script
 // ══════════════════════════════════════════════════════
 function init() {
   loadS();
+  // Приоритет: вшитый URL > сохранённый в localStorage
   if (HARDCODED_SCRIPT_URL) S.scriptUrl = HARDCODED_SCRIPT_URL;
+  // Если URL есть — убедимся что он сохранён
+  if (S.scriptUrl) saveS();
   buildSwatches();
   setDates();
   updateOffline();
@@ -754,9 +793,7 @@ function loadS() {
 
 function saveS() {
   try {
-    const t = {...S};
-    if (HARDCODED_SCRIPT_URL) delete t.scriptUrl;
-    localStorage.setItem("cl4", JSON.stringify(t));
+    localStorage.setItem("cl4", JSON.stringify(S));
   } catch(e) {}
 }
 
@@ -997,43 +1034,117 @@ function openFuelModal(recId=null) {
   g("f-price").value = rec?.pricePerLiter || "";
   g("f-curr").value  = rec?.currency      || S.currency;
   g("f-total").value = rec?.total         || "";
-  g("f-note").value  = rec?.note          || "";
   g("f-del-btn").style.display = rec ? "flex" : "none";
+
+  // Восстанавливаем марку топлива и АЗС из поля note
+  // Формат: "АИ-95|Lukoil" или просто "Lukoil" (старый формат)
+  const noteData = parseNote(rec?.note || "");
+  g("f-ftype").value = "";
+  g("f-note").value  = noteData.station;
+  // Подсвечиваем кнопку марки
+  document.querySelectorAll(".fuel-type-btn").forEach(b => {
+    b.classList.toggle("active", b.textContent.trim() === noteData.fuelType);
+  });
+  if (!noteData.fuelType) {
+    const firstBtn = document.querySelector(".fuel-type-btn");
+    if (firstBtn) firstBtn.classList.add("active");
+  }
+
+  // Подставляем последнюю цену если это новая запись
+  if (!rec && S.fuels.filter(f=>f.carId===S.activeCar).length > 0) {
+    const lastFuel = S.fuels.filter(f=>f.carId===S.activeCar)
+      .sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    if (lastFuel?.pricePerLiter) g("f-price").value = lastFuel.pricePerLiter;
+  }
+
   openModal("m-fuel");
 }
 
-function calcF() {
-  const l=parseFloat(g("f-lit").value)||0, p=parseFloat(g("f-price").value)||0;
-  if(l&&p) g("f-total").value=(l*p).toFixed(2);
+// Кодируем марку топлива и станцию в одно поле note: "АИ-95|Lukoil"
+function encodeNote(fuelType, station) {
+  if (fuelType && station) return fuelType + "|" + station;
+  return fuelType || station || "";
+}
+function parseNote(raw) {
+  if (!raw) return { fuelType: "", station: "" };
+  const idx = raw.indexOf("|");
+  if (idx === -1) {
+    // Старый формат — просто заметка
+    const knownTypes = ["АИ-92","АИ-95","АИ-98","ДТ","Газ"];
+    if (knownTypes.includes(raw.trim())) return { fuelType: raw.trim(), station: "" };
+    return { fuelType: "", station: raw };
+  }
+  return { fuelType: raw.slice(0, idx), station: raw.slice(idx+1) };
+}
+
+function setFuelType(type, btn) {
+  document.querySelectorAll(".fuel-type-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  g("f-ftype").value = "";  // кнопка выбрана — очищаем ручной ввод
+}
+
+// Умный калькулятор: любые 2 из 3 → вычисляет третье
+// lastEdited — какое поле только что изменил пользователь
+function calcFuel3(lastEdited) {
+  const lit   = parseFloat(g("f-lit").value);
+  const price = parseFloat(g("f-price").value);
+  const total = parseFloat(g("f-total").value);
+
+  // Считаем только если ровно 2 поля заполнены
+  if (lastEdited === "lit" && lit > 0 && price > 0) {
+    g("f-total").value = (lit * price).toFixed(2);
+  } else if (lastEdited === "price" && lit > 0 && price > 0) {
+    g("f-total").value = (lit * price).toFixed(2);
+  } else if (lastEdited === "total" && total > 0) {
+    if (lit > 0 && !price) {
+      g("f-price").value = (total / lit).toFixed(3);
+    } else if (price > 0 && !lit) {
+      g("f-lit").value = (total / price).toFixed(2);
+    } else if (lit > 0 && price > 0) {
+      // Оба заполнены — пересчитываем цену за литр
+      g("f-price").value = (total / lit).toFixed(3);
+    }
+  } else if (lastEdited === "lit" && total > 0 && lit > 0) {
+    g("f-price").value = (total / lit).toFixed(3);
+  } else if (lastEdited === "price" && total > 0 && price > 0) {
+    g("f-lit").value = (total / price).toFixed(2);
+  }
 }
 
 function saveFuel() {
   if (!S.activeCar) { showToast("⚠ Выберите авто"); return; }
   const date  = g("f-date").value;
   const km    = parseInt(g("f-km").value)||0;
+  const curr  = g("f-curr").value;
+  // Марка топлива из кнопок или ручного ввода
+  const activeFuelBtn = document.querySelector(".fuel-type-btn.active");
+  const manualType = (g("f-ftype").value||"").trim();
+  const fuelType = manualType || (activeFuelBtn?.textContent.trim() || "");
+  const station  = (g("f-note").value||"").trim();
+  const note  = encodeNote(fuelType, station);
   const lit   = parseFloat(g("f-lit").value)||0;
   const price = parseFloat(g("f-price").value)||0;
-  const curr  = g("f-curr").value;
-  const total = parseFloat(g("f-total").value)||(lit*price);
-  const note  = (g("f-note").value||"").trim();
-  if (!date||!lit) { showToast("⚠ Укажите дату и литры"); return; }
+  const total = parseFloat(g("f-total").value)||0;
+  const finalTotal = total || (lit * price) || 0;
+  if (!date) { showToast("⚠ Укажите дату"); return; }
+  if (!lit && !total) { showToast("⚠ Укажите литры или сумму"); return; }
 
   const eid = g("f-eid").value;
   if (eid) {
     // РЕДАКТИРОВАНИЕ
     const rec = S.fuels.find(f=>f.id===eid);
     if (rec) {
-      Object.assign(rec, {date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+total.toFixed(2),note});
+      Object.assign(rec, {date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+finalTotal.toFixed(2),note});
       updKm(km, rec.carId);  // обновляем пробег машины если вырос
       saveS();
       qSync({action:"update",sheet:"Fuel",id:eid,
-             row:[eid,rec.carId,date,km,lit,price,curr,rec.total,note,rec.createdAt]});
+             row:[eid,rec.carId,date,km,lit,price,curr,finalTotal.toFixed(2),note,rec.createdAt]});
       showToast("✅ Заправка обновлена");
     }
   } else {
     // ДОБАВЛЕНИЕ
     const rec = {id:uid(),carId:S.activeCar,type:"fuel",date,mileage:km,liters:lit,
-                 pricePerLiter:price,currency:curr,total:+total.toFixed(2),note,createdAt:now()};
+                 pricePerLiter:price,currency:curr,total:+finalTotal.toFixed(2),note,createdAt:now()};
     S.fuels.push(rec);
     updKm(km);
     saveS();
@@ -1042,8 +1153,9 @@ function saveFuel() {
     showToast("✅ Заправка добавлена");
   }
   closeModal("m-fuel");
-  clearF2(["f-km","f-lit","f-price","f-total","f-note"]);
+  clearF2(["f-km","f-lit","f-price","f-total","f-note","f-ftype"]);
   g("f-eid").value = "";
+  document.querySelectorAll(".fuel-type-btn").forEach((b,i) => b.classList.toggle("active", i===0));
   renderDash();
   if (g("scr-fuel").classList.contains("active"))    renderFuel();
   if (g("scr-history").classList.contains("active")) renderHist("all");
@@ -1157,6 +1269,303 @@ function deleteSvc() {
 }
 
 // ══════════════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════════════
+function applySettings() {
+  const url = S.scriptUrl;
+  const surlEl = g("surl");
+  if (surlEl) surlEl.value = url || "";
+  const pill = g("shpill");
+  if (url) { pill.className="pill pok"; pill.textContent="● Подключено"; }
+  else     { pill.className="pill pno"; pill.textContent="● Не подключено"; }
+  ["GEL","USD","TRY"].forEach(code => {
+    const e = g("c-"+code); if(e) e.classList.remove("active");
+  });
+  const ce = g("c-"+S.currency); if(ce) ce.classList.add("active");
+  updatePendingUI();
+}
+
+function saveUrl() {
+  const url = (g("surl").value || "").trim();
+  if (!url) { showToast("⚠ Введите URL"); return; }
+  S.scriptUrl = url; saveS();
+  applySettings();
+  testConnection();
+}
+
+async function testConnection() {
+  if (!S.scriptUrl) { showToast("⚠ URL не задан"); return; }
+  setSbar("syncing", "🔍 Проверка подключения...");
+  try {
+    const resp = await post(S.scriptUrl, {action:"init"}, true);
+    if (resp && resp.ok) {
+      setSbar("ok", "✅ Подключено! Листы созданы в таблице");
+      showToast("✅ Подключено!");
+      applySettings();
+      await syncThenLoad();
+    } else {
+      const msg = resp?.msg || "нет ответа от скрипта";
+      setSbar("error", "❌ Ошибка: " + msg);
+      showToast("❌ " + msg);
+    }
+  } catch(e) {
+    setSbar("error", "❌ Сетевая ошибка: " + e.message);
+    showToast("❌ Сетевая ошибка");
+  }
+}
+
+function setCurr(cur, btn) {
+  S.currency = cur; saveS();
+  ["GEL","USD","TRY"].forEach(c => {
+    const e = g("c-"+c); if (e) e.classList.remove("active");
+  });
+  btn.classList.add("active");
+  const fe = g("f-curr"); if (fe) fe.value = cur;
+  const se = g("s-curr"); if (se) se.value = cur;
+  const oe = g("oil-curr"); if (oe) oe.value = cur;
+}
+
+function exportJ() {
+  const t = {...S}; delete t.queue;
+  const b = new Blob([JSON.stringify(t, null, 2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(b); a.download = "carlog.json"; a.click();
+  showToast("📤 Экспортировано");
+}
+
+function clearAll() {
+  if (!confirm("Удалить ВСЕ локальные данные?")) return;
+  S = {cars:[],fuels:[],services:[],activeCar:null,currency:"GEL",
+       scriptUrl: HARDCODED_SCRIPT_URL||"", queue:[]};
+  saveS(); renderDash(); applySettings(); updatePendingUI();
+  showToast("🗑 Очищено");
+  if (S.scriptUrl && navigator.onLine) setTimeout(loadFromSheets, 500);
+}
+
+// ══════════════════════════════════════════════════════
+// SYNC — Google Sheets = главная БД
+// ══════════════════════════════════════════════════════
+async function syncThenLoad() {
+  if (S.queue.length > 0) await syncNow();
+  await loadFromSheets();
+}
+
+let syncing = false;
+async function syncNow() {
+  if (syncing) return;
+  if (!navigator.onLine)  { setSbar("pending", "📡 Офлайн"); return; }
+  if (!S.scriptUrl)       { setSbar("error", "⚠ URL не задан — зайдите в Настройки"); return; }
+  if (!S.queue.length)    return;
+  syncing = true;
+  setSbar("syncing", "📤 Отправка " + S.queue.length + " записей в Google Sheets...");
+  const failed = [];
+  for (const op of [...S.queue]) {
+    const ok = await post(S.scriptUrl, op);
+    if (!ok) { failed.push(op); console.error("syncNow: failed op", op.action, op.sheet); }
+  }
+  S.queue = failed; saveS(); updatePendingUI(); syncing = false;
+  if (!failed.length) setSbar("ok", "☁ Все данные сохранены в Google Sheets");
+  else setSbar("error", "⚠ " + failed.length + " записей не отправлено — проверьте URL и права");
+}
+
+let loading = false;
+async function loadFromSheets() {
+  if (loading || !S.scriptUrl || !navigator.onLine) return;
+  loading = true;
+  setSbar("syncing", "⬇ Загрузка данных из Google Sheets...");
+  try {
+    const resp = await post(S.scriptUrl, {action:"getData"}, true);
+    if (!resp || !resp.ok) {
+      setSbar("error", "⚠ Не удалось загрузить — " + (resp?.msg || "нет ответа"));
+      loading = false; return;
+    }
+    const data = resp.data;
+    const prevActive = S.activeCar, prevCurr = S.currency;
+    const localPhotos = {};
+    S.cars.forEach(c => { if (c.photo) localPhotos[c.id] = c.photo; });
+
+    S.cars     = (data.cars     || []).filter(c => c.id).map(c => ({...c, photo: localPhotos[c.id]||""}));
+    S.fuels    = (data.fuels    || []).filter(f => f.id && f.carId);
+    S.services = (data.services || []).filter(s => s.id && s.carId);
+
+    // Пересчитываем пробег каждой машины из записей
+    S.cars.forEach(car => {
+      const fMax = S.fuels.filter(f=>f.carId===car.id).reduce((mx,f)=>Math.max(mx,Number(f.mileage)||0),0);
+      const sMax = S.services.filter(s=>s.carId===car.id).reduce((mx,s)=>Math.max(mx,Number(s.mileage)||0),0);
+      car.mileage = Math.max(Number(car.mileage)||0, fMax, sMax);
+    });
+
+    S.activeCar = S.cars.find(c => c.id === prevActive) ? prevActive : (S.cars[0]?.id || null);
+    S.currency  = prevCurr;
+    saveS();
+
+    renderDash();
+    const scr = document.querySelector(".scr.active")?.id?.replace("scr-","");
+    if (scr === "fuel")    renderFuel();
+    if (scr === "service") renderSvc();
+    if (scr === "oil")     renderOil();
+    if (scr === "history") renderHist("all");
+    setSbar("ok", "✅ Данные загружены: " + S.cars.length + " авто, " + S.fuels.length + " заправок, " + S.services.length + " сервисов");
+  } catch(e) {
+    console.warn("loadFromSheets:", e);
+    setSbar("error", "⚠ Ошибка загрузки: " + e.message);
+  }
+  loading = false;
+}
+
+async function post(url, data, returnFull=false) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      // Apps Script требует Content-Type text/plain (не application/json)
+      // и НЕ нужен mode:'no-cors' — нам нужно читать ответ
+      const r = await fetch(url, {
+        method: "POST",
+        redirect: "follow",
+        headers: {"Content-Type": "text/plain;charset=utf-8"},
+        body: JSON.stringify(data)
+      });
+      if (!r.ok) {
+        console.warn("post() HTTP", r.status);
+        return returnFull ? null : false;
+      }
+      const text = await r.text();
+      let json;
+      try { json = JSON.parse(text); }
+      catch(e) {
+        console.warn("post() non-JSON:", text.slice(0,300));
+        return returnFull ? null : false;
+      }
+      console.log("post() ✅", data.action, data.sheet||"", json.ok);
+      return returnFull ? json : (json.ok === true);
+    } catch(e) {
+      console.warn("post() attempt " + attempt + " failed:", e.message);
+      if (attempt === 2) return returnFull ? null : false;
+      await new Promise(r => setTimeout(r, 800));
+    }
+  }
+}
+
+function qSync(op) {
+  if (!S.scriptUrl) {
+    console.warn("qSync: no scriptUrl — saving locally only. Set URL in Settings.");
+    return;
+  }
+  S.queue.push({...op, _qid: uid()});
+  saveS();
+  updatePendingUI();
+  if (navigator.onLine) setTimeout(syncNow, 300);
+  else setSbar("pending", "📡 Офлайн — " + S.queue.length + " записей ждут отправки");
+}
+
+function updatePendingUI() {
+  const n = S.queue?.length || 0;
+  const pi = g("pinfo"); if (pi) pi.style.display = n ? "block" : "none";
+  const pc = g("pcnt");  if (pc) pc.textContent = n;
+  const bs = g("btn-sync"); if (bs) bs.style.display = n ? "flex" : "none";
+  if (n && navigator.onLine) setSbar("pending", "⏳ " + n + " записей ожидают отправки");
+}
+
+let sbarT;
+function setSbar(state, msg) {
+  const b = g("sbar"); if (!b) return;
+  b.className = "sbar show " + state;
+  const sm = g("smsg"); if (sm) sm.textContent = msg;
+  clearTimeout(sbarT);
+  if (state === "ok" || state === "error")
+    sbarT = setTimeout(() => b.classList.remove("show"), 4000);
+}
+
+function clearF2(ids) { ids.forEach(id => { const e = g(id); if (e) e.value = ""; }); }
+
+let toastT;
+function showToast(msg) {
+  const e = g("toast"); if (!e) return;
+  e.textContent = msg; e.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => e.classList.remove("show"), 2800);
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER FUEL / SERVICE / HISTORY
+// ══════════════════════════════════════════════════════
+function renderFuel() {
+  const car = getAC();
+  if (!car) { g("fuel-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; g("fuel-cblock").innerHTML=""; return; }
+  const fs = S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const cons = calcCons(car.id);
+  const cel  = g("fuel-cblock");
+  if (cons && fs.length>=2) {
+    const tL = fs.reduce((s,f)=>s+f.liters,0);
+    const tC = fs.reduce((s,f)=>s+(f.total||0),0);
+    const cu = CUR[fs[0]?.currency]||"₾";
+    cel.innerHTML = `<div class="ccard"><div><div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div><div class="cbig">${cons}</div><div class="cunit">л/100км</div></div><div class="cstats"><div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div><div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div><div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div></div></div>`;
+  } else cel.innerHTML = "";
+  g("fuel-list").innerHTML = fs.length
+    ? `<div class="card">${fs.map(f=>rRow({...f,_t:"fuel"})).join("")}</div>`
+    : `<div class="empty"><div class="ei">⛽</div><div class="etit">Нет заправок</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+}
+
+function renderSvc() {
+  const car = getAC();
+  if (!car) { g("svc-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`; return; }
+  const ss = S.services.filter(s=>s.carId===car.id&&s.serviceType!=="🛢 Замена масла").sort((a,b)=>new Date(b.date)-new Date(a.date));
+  g("svc-list").innerHTML = ss.length
+    ? `<div class="card">${ss.map(s=>rRow({...s,_t:"service"})).join("")}</div>`
+    : `<div class="empty"><div class="ei">🔧</div><div class="etit">Нет записей</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+}
+
+function renderHist(filter) {
+  const car = getAC();
+  if (!car) { g("hist-list").innerHTML=`<div class="empty"><div class="esub">Выберите авто</div></div>`; return; }
+  let all = [
+    ...S.fuels.filter(x=>x.carId===car.id).map(x=>({...x,_t:"fuel"})),
+    ...S.services.filter(x=>x.carId===car.id).map(x=>({...x,_t:"service"}))
+  ];
+  if (filter==="fuel")    all = all.filter(r=>r._t==="fuel");
+  if (filter==="service") all = all.filter(r=>r._t==="service");
+  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  g("hist-list").innerHTML = all.length
+    ? `<div class="card">${all.map(rRow).join("")}</div>`
+    : `<div class="empty"><div class="ei">📋</div><div class="etit">Нет записей</div></div>`;
+}
+
+function fHist(f, btn) {
+  document.querySelectorAll(".tabs .tb").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderHist(f);
+}
+
+function rRow(r) {
+  const iF = r._t==="fuel" || r.type==="fuel";
+  const cu  = CUR[r.currency] || "₾";
+  const am  = iF ? r.total : r.cost;
+  const ds  = r.date ? new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short"}) : "";
+  const fn  = iF ? `openFuelModal('${r.id}')` : `openSvcModal('${r.id}')`;
+  return `<div class="crow">
+    <div class="ri ${iF?"rif":"ris"}">${iF?"⛽":"🔧"}</div>
+    <div class="rb" onclick="${fn}" style="cursor:pointer">
+      <div class="rt">${iF ? (() => { const n=parseNote(r.note||""); return [n.fuelType, n.station].filter(Boolean).join(" · ")||"Заправка"; })() : r.serviceType}</div>
+      <div class="rs2">${ds}${r.mileage?" · "+Number(r.mileage).toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}</div>
+    </div>
+    <div class="rr" style="display:flex;align-items:center;gap:8px">
+      <div><div class="ra ${iF?"raf":"ras"}">${am?cu+Number(am).toFixed(0):"—"}</div>
+      <span class="badge ${iF?"bf":"bs"}">${iF?"ТОПЛИВО":"СЕРВИС"}</span></div>
+      <button onclick="${fn}" style="background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:6px;padding:5px 7px;font-size:12px;cursor:pointer">✏</button>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// OIL
+// ══════════════════════════════════════════════════════
+function getOilRecords(carId) {
+  return S.services
+    .filter(s => s.carId === carId && s.serviceType === "🛢 Замена масла")
+    .map(s => { const {interval, note} = parseOilNote(s.note); return {...s, interval, cleanNote: note}; })
+    .sort((a,b) => b.mileage - a.mileage);
+}
+
+// ══════════════════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════════════════
 function renderDash() {
@@ -1261,6 +1670,52 @@ function parseOilNote(rawNote) {
   const m = String(rawNote).match(/^\[int:(\d+)\]([\s\S]*)/);
   if (m) return { interval: parseInt(m[1]) || 10000, note: m[2].trim() };
   return { interval: 10000, note: String(rawNote) };
+}
+
+async function runDiag() {
+  const el = g("diag-out");
+  el.style.display = "block";
+  el.textContent = "⏳ Проверяем...\n";
+  const url = S.scriptUrl;
+  const log = (...args) => { el.textContent += args.join(" ") + "\n"; };
+
+  log("URL:", url || "(не задан)");
+  log("Онлайн:", navigator.onLine ? "да" : "нет");
+  log("Очередь:", S.queue.length + " записей");
+  log("Авто:", S.cars.length, "| Заправок:", S.fuels.length, "| Сервисов:", S.services.length);
+
+  if (!url) { log("\n❌ URL не задан! Вставьте URL в поле выше и нажмите Сохранить."); return; }
+  if (!navigator.onLine) { log("\n❌ Нет интернета"); return; }
+
+  log("\n📡 Отправляем тестовый запрос...");
+  try {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type": "text/plain;charset=utf-8"},
+      body: JSON.stringify({action:"init"})
+    });
+    log("HTTP статус:", r.status, r.statusText);
+    const text = await r.text();
+    log("Ответ:", text.slice(0, 300));
+    try {
+      const json = JSON.parse(text);
+      if (json.ok) {
+        log("\n✅ Всё работает! Листы созданы.");
+        log("Запускаем полную синхронизацию...");
+        await syncThenLoad();
+      } else {
+        log("\n❌ Скрипт вернул ошибку:", json.msg || JSON.stringify(json));
+      }
+    } catch(e) {
+      log("\n❌ Ответ не JSON. Возможные причины:");
+      log("  1. URL устарел — создайте НОВОЕ развёртывание");
+      log("  2. Доступ не 'Все' — проверьте настройки деплоя");
+      log("  3. Ошибка в коде скрипта — откройте Apps Script и проверьте лог");
+    }
+  } catch(e) {
+    log("\n❌ Сетевая ошибка:", e.message);
+    log("Возможно CORS — убедитесь что деплой: Доступ = Все");
+  }
 }
 
 init();
