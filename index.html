@@ -386,29 +386,21 @@ h1,h2,h3{font-family:'Syne',sans-serif}
       <div class="hdr"><div class="logo">⚙</div><h1>Настройки</h1></div>
       <div class="sec pp">
 
+        <!-- Статус синхронизации -->
         <div class="setc">
           <div class="settit">
-            Google Sheets <span class="pill pno" id="shpill">● Не подключено</span>
+            Google Sheets
+            <span class="pill pno" id="shpill">● Не подключено</span>
           </div>
-
-          <!-- Если URL уже вшит — показываем статус, не форму -->
-          <div class="fg">
-            <label class="fl">URL веб-приложения Apps Script</label>
-            <input class="fi" id="surl" placeholder="https://script.google.com/macros/s/.../exec">
-            <div class="hint">Разверните скрипт как веб-приложение и вставьте URL.<br>
-              <button class="sa" onclick="openModal('m-guide')">Как настроить →</button>
-            </div>
-          </div>
-          <button class="btn bp" onclick="saveUrl()" style="margin-bottom:7px">💾 Сохранить и подключить</button>
+          <button class="btn bp" onclick="loadFromSheets()" style="margin-bottom:7px">🔄 Обновить данные из таблицы</button>
           <button class="btn bg2" onclick="testConnection()">🔌 Проверить подключение</button>
-
-          <button class="btn bp" onclick="loadFromSheets()" style="margin-top:8px">🔄 Загрузить данные из таблицы</button>
           <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">
             ⏳ Ожидает отправки: <b id="pcnt">0</b> записей
-            <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">📤 Отправить ожидающие</button>
+            <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">📤 Отправить сейчас</button>
           </div>
         </div>
 
+        <!-- Валюта -->
         <div class="setc">
           <div class="settit">Валюта по умолчанию</div>
           <div class="tabs">
@@ -418,18 +410,14 @@ h1,h2,h3{font-family:'Syne',sans-serif}
           </div>
         </div>
 
+        <!-- Диагностика -->
         <div class="setc">
-          <div class="settit">Данные</div>
-          <button class="btn bg2" onclick="exportJ()">📤 Экспорт JSON</button>
-          <button class="btn bd3" onclick="clearAll()">🗑 Очистить всё</button>
-        </div>
-
-        <div class="setc">
-          <div class="settit" style="font-size:13px">🔍 Диагностика</div>
-          <button class="btn bg2" onclick="runDiag()" style="margin-top:0">Проверить подключение и показать лог</button>
+          <div class="settit">🔍 Диагностика</div>
+          <button class="btn bg2" onclick="runDiag()" style="margin-top:0">Проверить подключение · показать лог</button>
           <div id="diag-out" style="margin-top:10px;font-size:11px;font-family:monospace;color:var(--tx2);line-height:1.8;display:none;background:var(--sf2);border-radius:8px;padding:10px;word-break:break-all"></div>
         </div>
-        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.1 · PWA · Офлайн-режим</div>
+
+        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v3.2 · PWA · Google Sheets</div>
       </div>
     </div>
 
@@ -1346,9 +1334,7 @@ function deleteSvc() {
 // SETTINGS
 // ══════════════════════════════════════════════════════
 function applySettings() {
-  const url = S.scriptUrl;
-  const surlEl = g("surl");
-  if (surlEl) surlEl.value = url || "";
+  const url  = S.scriptUrl;
   const pill = g("shpill");
   if (url) { pill.className="pill pok"; pill.textContent="● Подключено"; }
   else     { pill.className="pill pno"; pill.textContent="● Не подключено"; }
@@ -1359,13 +1345,7 @@ function applySettings() {
   updatePendingUI();
 }
 
-function saveUrl() {
-  const url = (g("surl").value || "").trim();
-  if (!url) { showToast("⚠ Введите URL"); return; }
-  S.scriptUrl = url; saveS();
-  applySettings();
-  testConnection();
-}
+function saveUrl() { testConnection(); }
 
 async function testConnection() {
   if (!S.scriptUrl) { showToast("⚠ URL не задан"); return; }
@@ -1407,14 +1387,7 @@ function exportJ() {
   showToast("📤 Экспортировано");
 }
 
-function clearAll() {
-  if (!confirm("Удалить ВСЕ локальные данные?")) return;
-  S = {cars:[],fuels:[],services:[],activeCar:null,currency:"GEL",
-       scriptUrl: HARDCODED_SCRIPT_URL||"", queue:[]};
-  saveS(); renderDash(); applySettings(); updatePendingUI();
-  showToast("🗑 Очищено");
-  if (S.scriptUrl && navigator.onLine) setTimeout(loadFromSheets, 500);
-}
+function clearAll() {}
 
 // ══════════════════════════════════════════════════════
 // SYNC — Google Sheets = главная БД
@@ -1458,7 +1431,11 @@ async function loadFromSheets() {
     const localPhotos = {};
     S.cars.forEach(c => { if (c.photo) localPhotos[c.id] = c.photo; });
 
-    S.cars     = (data.cars     || []).filter(c => c.id).map(c => ({...c, photo: localPhotos[c.id]||""}));
+    S.cars = (data.cars || []).filter(c => c.id).map(c => ({
+      ...c,
+      photo: localPhotos[c.id] || "",  // фото хранится только локально
+      tank:  Number(c.tank) || 0       // объём бака из Sheets
+    }));
     S.fuels    = (data.fuels    || []).filter(f => f.id && f.carId);
     S.services = (data.services || []).filter(s => s.id && s.carId);
 
