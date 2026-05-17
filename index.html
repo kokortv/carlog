@@ -875,14 +875,33 @@ function setDate(id) { const e=g(id); if(e) e.value = new Date().toISOString().s
 function updateOffline() { g("ofbar").classList.toggle("on", !navigator.onLine); }
 
 // Показываем пробег активного авто на иконке PWA
-function updateBadge() {
+async function updateBadge() {
   if (!("setAppBadge" in navigator)) return;
   const car = getAC();
   const km  = car ? (Number(car.mileage) || 0) : 0;
-  if (km > 0) {
-    navigator.setAppBadge(km).catch(() => {});
-  } else {
-    navigator.clearAppBadge().catch(() => {});
+
+  // Samsung One UI требует разрешения на уведомления для badge
+  // Запрашиваем его если ещё не дано
+  if ("Notification" in window && Notification.permission === "default") {
+    try {
+      await Notification.requestPermission();
+    } catch(e) {}
+  }
+
+  try {
+    if (km > 0) {
+      await navigator.setAppBadge(km);
+    } else {
+      await navigator.clearAppBadge();
+    }
+  } catch(e) {
+    // Fallback: пробуем через serviceWorker registration
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if ("setAppBadge" in reg) {
+        km > 0 ? await reg.setAppBadge(km) : await reg.clearAppBadge();
+      }
+    } catch(e2) {}
   }
 }
 
