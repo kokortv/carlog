@@ -830,6 +830,17 @@ function init() {
   window.addEventListener("online",  () => { updateOffline(); syncThenLoad(); });
   window.addEventListener("offline", () => { updateOffline(); showToast("📡 Офлайн — данные сохраняются локально"); });
   if (navigator.onLine && S.scriptUrl) syncThenLoad();
+
+  // Обрабатываем ?action= из Shortcuts (долгое нажатие на иконку)
+  const action = new URLSearchParams(location.search).get("action");
+  if (action) {
+    // Даём приложению загрузиться, потом открываем нужный экран/форму
+    setTimeout(() => {
+      if (action === "fuel")    { goScr("fuel");    setTimeout(() => openFuelModal(),   200); }
+      if (action === "service") { goScr("service"); setTimeout(() => openSvcModal(),    200); }
+      if (action === "oil")     { goScr("oil");     setTimeout(() => openOilModal(),    200); }
+    }, 600);
+  }
 }
 
 function renderAll() { renderDash(); }
@@ -862,6 +873,18 @@ function setDates() {
 }
 function setDate(id) { const e=g(id); if(e) e.value = new Date().toISOString().split("T")[0]; }
 function updateOffline() { g("ofbar").classList.toggle("on", !navigator.onLine); }
+
+// Показываем пробег активного авто на иконке PWA
+function updateBadge() {
+  if (!("setAppBadge" in navigator)) return;
+  const car = getAC();
+  const km  = car ? (Number(car.mileage) || 0) : 0;
+  if (km > 0) {
+    navigator.setAppBadge(km).catch(() => {});
+  } else {
+    navigator.clearAppBadge().catch(() => {});
+  }
+}
 
 // ══════════════════════════════════════════════════════
 // NAVIGATION
@@ -1852,6 +1875,7 @@ function renderDash() {
     ? `<div class="card">${all.map(rRow).join("")}</div>`
     : `<div class="empty" style="padding:16px 0"><div class="esub">Добавьте первую заправку или запись об обслуживании</div></div>`;
   renderOilMini(car);
+  updateBadge();
 }
 
 function renderOilMini(car) {
