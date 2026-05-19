@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CarLog">
+<link rel="manifest" href="manifest.json">
+<title>CarLog</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --bg:#0a0f1e;--sf:#111827;--sf2:#1a2235;--sf3:#222d42;
+  --bd:rgba(255,255,255,.07);--bd2:rgba(255,255,255,.13);
+  --tx:#f0f4ff;--tx2:#8892a4;--tx3:#3d4a5e;
+  --ac:#3b82f6;--ac2:#60a5fa;
+  --gn2:#34d399;--am:#f59e0b;--am2:#fbbf24;
+  --rd2:#f87171;--pu:#8b5cf6;
+  --r:14px;--rs:8px;--rl:20px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);display:flex;flex-direction:column}
+h1,h2,h3{font-family:'Syne',sans-serif}
+.app{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.pp{padding:0 0 28px}
+
+.ofbar{background:rgba(245,158,11,.1);border-bottom:1px solid rgba(245,158,11,.2);color:var(--am2);font-size:12px;font-weight:500;text-align:center;padding:6px 16px;display:none;flex-shrink:0}
+.ofbar.on{display:block}
+
+.hdr{position:sticky;top:0;z-index:100;background:rgba(10,15,30,.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:13px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:15px}
+.hdr h1{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.ha{margin-left:auto;display:flex;gap:6px}
+.ib{width:32px;height:32px;border-radius:8px;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s}
+.ib:hover{background:var(--sf3);color:var(--tx)}
+
+.sbar{display:flex;align-items:center;gap:7px;padding:6px 16px;font-size:12px;font-weight:500;max-height:0;opacity:0;overflow:hidden;transition:all .3s;flex-shrink:0}
+.sbar.show{max-height:34px;opacity:1}
+.sbar.syncing{background:rgba(59,130,246,.07);color:var(--ac2)}
+.sbar.ok{background:rgba(16,185,129,.07);color:var(--gn2)}
+.sbar.error{background:rgba(239,68,68,.07);color:var(--rd2)}
+.sbar.pending{background:rgba(245,158,11,.07);color:var(--am2)}
+.sdot{width:6px;height:6px;border-radius:50%;background:currentColor}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.sbar.syncing .sdot{animation:pulse 1s infinite}
+
+/* nav CSS is below */
+
+.scr{display:none;animation:fi .22s ease}
+.scr.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+.hero{background:linear-gradient(135deg,#0d1d3e,#190f3c);padding:18px 16px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:180px;height:180px;background:radial-gradient(circle,rgba(59,130,246,.1),transparent 70%);border-radius:50%}
+.csel{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 13px;cursor:pointer;transition:all .2s;position:relative;z-index:1}
+.csel:hover{background:rgba(255,255,255,.08)}
+.cav{width:50px;height:25px;flex-shrink:0;display:flex;align-items:center}
+.ci{flex:1;min-width:0}
+.cn{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cs2{font-size:11px;color:var(--tx2);margin-top:2px}
+.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;position:relative;z-index:1}
+.sc{background:rgba(255,255,255,.04);border:1px solid var(--bd);border-radius:var(--rs);padding:10px}
+.sl{font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+.sv{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.su{font-size:10px;color:var(--tx2)}
+.sv-b{color:var(--ac2)}.sv-a{color:var(--am2)}.sv-g{color:var(--gn2)}
+
+.sec{padding:16px 16px 0}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.st{font-size:10px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.9px}
+.sa{font-size:12px;color:var(--ac2);cursor:pointer;background:none;border:none;font-family:inherit;padding:0}
+
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.crow{display:flex;align-items:center;gap:10px;padding:12px 14px;transition:background .15s}
+.crow:hover{background:rgba(255,255,255,.02)}
+.crow+.crow{border-top:1px solid var(--bd)}
+.ri{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.rif{background:rgba(245,158,11,.12)}.ris{background:rgba(59,130,246,.12)}
+.rb{flex:1;min-width:0}
+.rt{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rs2{font-size:11px;color:var(--tx2);margin-top:2px}
+.rr{text-align:right;flex-shrink:0}
+.ra{font-family:'Syne',sans-serif;font-weight:600;font-size:13px}
+.raf{color:var(--am2)}.ras{color:var(--ac2)}
+.badge{display:inline-block;padding:2px 6px;border-radius:20px;font-size:9px;font-weight:600;letter-spacing:.4px;margin-top:2px}
+.bf{background:rgba(245,158,11,.12);color:var(--am2)}.bs{background:rgba(59,130,246,.12);color:var(--ac2)}
+.pbadge{display:inline-flex;align-items:center;gap:3px;background:rgba(245,158,11,.12);color:var(--am2);border-radius:5px;padding:1px 5px;font-size:9px;font-weight:600;margin-left:4px}
+
+.fab{position:fixed;bottom:80px;right:16px;z-index:99;width:50px;height:50px;border-radius:14px;background:linear-gradient(135deg,var(--ac),var(--pu));border:none;color:white;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(59,130,246,.32);transition:all .2s}
+.fab:hover{transform:scale(1.05)}.fab:active{transform:scale(.96)}
+
+.mo{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);display:none;align-items:flex-end;justify-content:center}
+.mo.open{display:flex}
+.mdl{background:var(--sf);border:1px solid var(--bd2);border-radius:var(--rl) var(--rl) 0 0;width:100%;max-width:600px;max-height:93vh;overflow-y:auto;animation:su2 .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes su2{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mh{width:32px;height:3px;border-radius:2px;background:var(--bd2);margin:9px auto 0}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0}
+.mt2{font-family:'Syne',sans-serif;font-weight:700;font-size:17px}
+.mc2{width:28px;height:28px;border-radius:7px;background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.mb{padding:14px 16px 24px}
+
+.fg{margin-bottom:13px}
+.fl{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block}
+.fi,.fs{width:100%;padding:10px 12px;background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color .2s;outline:none;-webkit-appearance:none;appearance:none}
+.fi:focus,.fs:focus{border-color:var(--ac);background:var(--sf3)}
+.fs{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%238892a4' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;cursor:pointer}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;padding:12px;border-radius:var(--rs);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.bp{background:linear-gradient(135deg,var(--ac),var(--pu));color:white}
+.bp:hover{opacity:.9;transform:translateY(-1px)}.bp:active{transform:translateY(0)}
+.bd3{background:rgba(239,68,68,.11);color:var(--rd2);border:1px solid rgba(239,68,68,.18);margin-top:7px}
+.bg2{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd);margin-top:7px}
+
+.tabs{display:flex;background:var(--sf2);border-radius:var(--rs);padding:3px;margin-bottom:12px}
+.tb{flex:1;padding:6px 4px;border-radius:6px;border:none;background:none;color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:all .2s}
+.tb.active{background:var(--sf3);color:var(--tx)}
+
+.chbox{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:13px;margin-bottom:10px}
+.chtit{font-size:11px;color:var(--tx2);margin-bottom:9px;font-weight:500}
+.chbars{display:flex;gap:5px;align-items:flex-end;height:68px}
+.cbw{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cb{width:100%;border-radius:3px 3px 0 0;background:linear-gradient(180deg,var(--am),rgba(245,158,11,.3))}
+.cbl{font-size:9px;color:var(--tx3)}.cbv{font-size:9px;color:var(--tx2);font-weight:500}
+
+.ccard{background:linear-gradient(135deg,rgba(245,158,11,.07),rgba(239,68,68,.04));border:1px solid rgba(245,158,11,.17);border-radius:var(--r);padding:13px;margin-bottom:10px;display:flex;gap:13px;align-items:stretch}
+.cbig{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--am2);line-height:1}
+.cunit{font-size:12px;color:var(--tx2);margin-top:2px}
+.cstats{flex:1;border-left:1px solid rgba(255,255,255,.07);padding-left:13px;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
+.csr{font-size:11px}.csl{color:var(--tx2)}.csv{font-weight:500}
+
+.setc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:13px;margin-bottom:11px}
+.settit{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:11px;display:flex;align-items:center;justify-content:space-between}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.pok{background:rgba(16,185,129,.12);color:var(--gn2)}.pno{background:rgba(239,68,68,.12);color:var(--rd2)}.pwarn{background:rgba(245,158,11,.12);color:var(--am2)}
+.hint{font-size:11px;color:var(--tx2);margin-top:5px;line-height:1.7}
+.hint code{background:var(--sf2);padding:1px 4px;border-radius:3px;font-family:monospace;font-size:10px}
+
+.empty{text-align:center;padding:36px 16px}
+.ei{font-size:36px;margin-bottom:9px;opacity:.3}
+.etit{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:6px}
+.esub{font-size:12px;color:var(--tx2);line-height:1.6}
+
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--sf3);border:1px solid var(--bd2);border-radius:11px;padding:9px 16px;font-size:12px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:all .3s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.cpr{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
+.csw{width:26px;height:26px;border-radius:50%;cursor:pointer;transition:transform .2s;border:2px solid transparent;flex-shrink:0}
+.csw:hover{transform:scale(1.18)}.csw.sel{border-color:white;transform:scale(1.1)}
+.cprev{display:flex;justify-content:center;padding:12px;background:var(--sf2);border-radius:var(--rs);border:1px solid var(--bd);margin:10px 0 5px}
+
+.codebox{background:var(--sf2);border-radius:8px;padding:10px;margin:7px 0;font-family:monospace;font-size:10px;color:var(--tx2);white-space:pre;border:1px solid var(--bd);line-height:1.7;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.script-url-display{background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:9px 12px;font-size:11px;font-family:monospace;color:var(--tx2);word-break:break-all;margin-bottom:8px}
+
+/* ── Analytics ── */
+.ana-ring{animation:ringDraw 1.4s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes ringDraw{from{stroke-dashoffset:var(--circ)}to{stroke-dashoffset:var(--dash)}}
+
+/* ── BOTTOM NAV — large icons, modern pill ── */
+.bnav{background:rgba(10,14,28,.99);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-top:1px solid var(--bd);display:flex;padding:10px 4px max(14px,env(safe-area-inset-bottom));flex-shrink:0;gap:0}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 2px 8px;cursor:pointer;color:var(--tx3);background:none;border:none;font-family:inherit;border-radius:14px;transition:color .2s,background .15s;position:relative;min-height:64px}
+.ni:active{background:rgba(255,255,255,.05);transform:scale(.95)}
+.ni.active{color:var(--ac2)}
+.ni.active::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:28px;height:3px;background:linear-gradient(90deg,var(--ac),var(--pu));border-radius:0 0 4px 4px}
+.ni-ic{font-size:30px;transition:transform .3s cubic-bezier(.34,1.56,.64,1);display:block;line-height:1}
+.ni.active .ni-ic{transform:scale(1.18) translateY(-2px)}
+.ni span{font-size:10px;font-weight:700;letter-spacing:.3px;transition:opacity .2s;text-transform:uppercase}
+.ni:not(.active) span{opacity:.45}
+
+/* ── SCREEN TRANSITIONS ── */
+.scr{display:none}
+.scr.active{display:block;animation:scrIn .28s cubic-bezier(.4,0,.2,1)}
+@keyframes scrIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HERO enhancements ── */
+.hero{background:linear-gradient(140deg,#0b1d40 0%,#130c35 100%);padding:18px 16px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(59,130,246,.14),transparent 70%);border-radius:50%;pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-60px;left:-20px;width:160px;height:160px;background:radial-gradient(circle,rgba(139,92,246,.1),transparent 70%);border-radius:50%;pointer-events:none}
+.csel{position:relative;z-index:1;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);padding:11px 13px;cursor:pointer;transition:background .2s,transform .15s}
+.csel:active{transform:scale(.98);background:rgba(255,255,255,.09)}
+
+/* ── STAT CARDS animations ── */
+.sc{background:rgba(255,255,255,.045);border:1px solid var(--bd);border-radius:10px;padding:11px;transition:transform .2s,background .2s}
+.sc:active{transform:scale(.97)}
+.sv{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;transition:color .3s}
+
+/* ── CARDS ── */
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:10px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.crow{display:flex;align-items:center;gap:10px;padding:13px 14px;transition:background .15s}
+.crow:active{background:rgba(255,255,255,.03)}
+.crow+.crow{border-top:1px solid var(--bd)}
+
+/* ── FAB pulse ── */
+.fab{position:fixed;bottom:86px;right:16px;z-index:99;width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,var(--ac),var(--pu));border:none;color:white;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 20px rgba(59,130,246,.38),0 0 0 0 rgba(59,130,246,.3);transition:transform .2s,box-shadow .2s;animation:fabPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fabPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.fab:active{transform:scale(.94)}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+.mo.open{display:flex}
+.mdl{background:var(--sf);border:1px solid rgba(255,255,255,.1);border-radius:22px 22px 0 0;width:100%;max-width:600px;max-height:93vh;overflow-y:auto;animation:mdlUp .32s cubic-bezier(.34,1.4,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+@keyframes mdlUp{from{transform:translateY(100%);opacity:.5}to{transform:translateY(0);opacity:1}}
+.mh{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:12px auto 0}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:13px;border-radius:var(--rs);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:transform .15s,opacity .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.bp{background:linear-gradient(135deg,var(--ac),var(--pu));color:white;box-shadow:0 4px 14px rgba(59,130,246,.3)}
+.bp:active{transform:scale(.97);opacity:.9}
+.bd3{background:rgba(239,68,68,.11);color:var(--rd2);border:1px solid rgba(239,68,68,.2);margin-top:7px}
+.bd3:active{transform:scale(.97)}
+.bg2{background:var(--sf2);color:var(--tx2);border:1px solid var(--bd);margin-top:7px}
+.bg2:active{transform:scale(.97)}
+
+/* ── FORM INPUTS ── */
+.fi,.fs{width:100%;padding:11px 13px;background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);color:var(--tx);font-family:'DM Sans',sans-serif;font-size:14px;transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none;appearance:none}
+.fi:focus,.fs:focus{border-color:var(--ac);box-shadow:0 0 0 3px rgba(59,130,246,.12);background:var(--sf3)}
+
+/* ── OIL REMINDER CARD ── */
+.oil-card{border-radius:var(--r);padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.oil-card.ok{background:linear-gradient(135deg,rgba(16,185,129,.1),rgba(16,185,129,.04));border:1px solid rgba(16,185,129,.2)}
+.oil-card.warn{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(245,158,11,.04));border:1px solid rgba(245,158,11,.25)}
+.oil-card.danger{background:linear-gradient(135deg,rgba(239,68,68,.14),rgba(239,68,68,.05));border:1px solid rgba(239,68,68,.28)}
+.oil-card.none{background:var(--sf);border:1px solid var(--bd)}
+.oil-progress{height:5px;border-radius:3px;background:rgba(255,255,255,.08);margin:10px 0 6px;overflow:hidden}
+.oil-bar{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.interval-btn,.fuel-type-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--bd2);background:var(--sf2);color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.interval-btn:active,.fuel-type-btn:active{transform:scale(.95)}
+.interval-btn.active{background:var(--ac);border-color:var(--ac);color:white}
+.fuel-type-btn.active{background:var(--am);border-color:var(--am);color:#000;font-weight:700}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(30,40,60,.96);backdrop-filter:blur(10px);border:1px solid var(--bd2);border-radius:12px;padding:10px 18px;font-size:12px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── COLOR LABELS ── */
+.clabel{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;flex-shrink:0}
+.crow-label{border-left:3px solid transparent}
+.crow-label.fuel-92{border-left-color:#f59e0b}
+.crow-label.fuel-95{border-left-color:#3b82f6}
+.crow-label.fuel-98{border-left-color:#8b5cf6}
+.crow-label.fuel-dt{border-left-color:#10b981}
+.crow-label.fuel-gas{border-left-color:#06b6d4}
+.crow-label.svc-oil{border-left-color:#f59e0b}
+.crow-label.svc-brake{border-left-color:#ef4444}
+.crow-label.svc-other{border-left-color:#6b7280}
+
+/* ── TANK ANIMATION ── */
+@keyframes wave{0%{transform:translateX(0) translateY(0)}50%{transform:translateX(-5%) translateY(-2px)}100%{transform:translateX(0) translateY(0)}}
+@keyframes fillUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes bubbles{0%{opacity:0;transform:translateY(0) scale(0)}50%{opacity:.7}100%{opacity:0;transform:translateY(-24px) scale(1)}}
+.tank-widget{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:10px;display:flex;gap:16px;align-items:center}
+.tank-visual{position:relative;width:54px;height:80px;border:2px solid var(--bd2);border-radius:6px 6px 4px 4px;overflow:hidden;flex-shrink:0;background:var(--sf2)}
+.tank-fill{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(180deg,rgba(59,130,246,.8),rgba(59,130,246,.4));transition:height 1.2s cubic-bezier(.4,0,.2,1);border-radius:0 0 2px 2px}
+.tank-fill::after{content:'';position:absolute;top:-4px;left:-10%;width:120%;height:8px;background:rgba(59,130,246,.6);border-radius:50%;animation:wave 2s ease-in-out infinite}
+.tank-bubble{position:absolute;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.5);animation:bubbles 1.5s ease-out infinite}
+.tank-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:white;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.tank-info{flex:1}
+.tank-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px}
+.tank-sub{font-size:11px;color:var(--tx2);line-height:1.7}
+.tank-empty{color:var(--rd2)}.tank-low{color:var(--am2)}.tank-ok{color:var(--gn2)}
+
+/* ── ANALYTICS SCREEN ── */
+.chart-wrap{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.chart-wrap h3{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:12px;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px}
+.bar-chart{display:flex;gap:4px;align-items:flex-end;height:90px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:default}
+.bar-col .bv{font-size:9px;color:var(--tx2);font-weight:600;text-align:center}
+.bar-col .bb{width:100%;border-radius:3px 3px 0 0;min-height:3px;transition:height .7s cubic-bezier(.34,1.2,.64,1)}
+.bar-col .bl{font-size:8px;color:var(--tx3);text-align:center;white-space:nowrap;overflow:hidden}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.stat-tile{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:13px}
+.stat-tile .til{font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.stat-tile .tiv{font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+.stat-tile .tis{font-size:10px;color:var(--tx2);margin-top:2px}
+
+/* ── OIL BAR ANIMATED ── */
+.oil-bar{height:100%;border-radius:3px;transition:width 1.1s cubic-bezier(.34,1.1,.64,1)}
+/* Oil bar animates via JS: set width to 0 then transition to real value */
+
+/* ── SKELETON shimmer for loading ── */
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.skel{background:linear-gradient(90deg,var(--sf2) 25%,var(--sf3) 50%,var(--sf2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px}
+</style>
+</head>
+<body>
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="login-screen" style="
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(140deg,#060d1f 0%,#0d0825 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 24px;text-align:center;
+">
+  <!-- glow blobs -->
+  <div style="position:absolute;top:-60px;left:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(59,130,246,.12),transparent 70%);border-radius:50%;pointer-events:none"></div>
+  <div style="position:absolute;bottom:-60px;right:-60px;width:250px;height:250px;background:radial-gradient(circle,rgba(139,92,246,.1),transparent 70%);border-radius:50%;pointer-events:none"></div>
+
+  <!-- Logo -->
+  <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;box-shadow:0 8px 32px rgba(59,130,246,.35);position:relative;z-index:1">🚗</div>
+  <h1 style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px;position:relative;z-index:1">CarLog</h1>
+  <p style="font-size:14px;color:#8892a4;line-height:1.6;max-width:280px;margin-bottom:36px;position:relative;z-index:1">
+    Личный журнал автовладельца.<br>Данные хранятся в вашем Google Sheets.
+  </p>
+
+  <!-- Google Sign-In button -->
+  <div id="g-signin-btn" style="position:relative;z-index:1;margin-bottom:20px"></div>
+
+  <!-- Or manual token -->
+  <div style="position:relative;z-index:1;width:100%;max-width:340px">
+    <div id="login-error" style="display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:10px 14px;font-size:12px;color:#f87171;margin-bottom:16px;text-align:left;line-height:1.6"></div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:#3d4a5e;font-size:12px">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.06)"></div>
+      <span>или войдите вручную</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.06)"></div>
+    </div>
+
+    <input id="manual-token" class="fi" placeholder="Вставьте Google Access Token"
+           style="font-size:13px;margin-bottom:8px">
+    <button onclick="loginWithToken()" class="btn bp" style="margin:0">Войти с токеном</button>
+  </div>
+
+  <p style="position:relative;z-index:1;font-size:11px;color:#3d4a5e;margin-top:24px;line-height:1.7;max-width:280px">
+    Приложение запрашивает доступ только к Google Sheets и Drive.<br>Мы не видим ваши данные.
+  </p>
+</div>
+
+<div class="app" id="main-app" style="display:none">
+  <div class="ofbar" id="ofbar">📡 Офлайн — данные сохраняются и синхронизируются при подключении</div>
+
+  <div class="main">
+
+    <!-- DASHBOARD -->
+    <div class="scr active" id="scr-dashboard">
+      <div class="hdr">
+        <div class="logo">🚗</div><h1>CarLog</h1>
+        <div class="ha">
+          <button class="ib" onclick="openCarModal()" title="Добавить авто">＋</button>
+          <button class="ib" onclick="goScr('settings')" title="Настройки">⚙</button>
+        </div>
+      </div>
+      <div class="sbar" id="sbar"><div class="sdot"></div><span id="smsg"></span></div>
+
+      <div id="no-car" style="display:none">
+        <div class="empty" style="padding-top:60px">
+          <div class="ei">🚗</div><div class="etit">Нет автомобилей</div>
+          <div class="esub">Добавьте первый автомобиль</div><br>
+          <button class="btn bp" style="max-width:190px;margin:0 auto" onclick="openCarModal()">+ Добавить авто</button>
+        </div>
+      </div>
+
+      <div id="car-dash" style="display:none" class="pp">
+        <div class="hero">
+          <div class="csel" onclick="openModal('m-carlist')">
+            <div class="cav" id="d-av"></div>
+            <div class="ci"><div class="cn" id="d-nm">—</div><div class="cs2" id="d-sub">—</div></div>
+            <div style="color:var(--tx3);font-size:17px">⌄</div>
+          </div>
+          <div class="srow">
+            <div class="sc"><div class="sl">Пробег</div><div class="sv sv-b" id="d-km">—</div><div class="su">км</div></div>
+            <div class="sc"><div class="sl">Расход</div><div class="sv sv-a" id="d-con">—</div><div class="su">л/100км</div></div>
+            <div class="sc"><div class="sl">Траты</div><div class="sv sv-g" id="d-cost">—</div><div class="su" id="d-curr">₾</div></div>
+          </div>
+          <div id="d-oil-mini" style="margin-top:10px;position:relative;z-index:1"></div>
+        </div>
+        <div class="sec">
+          <div id="d-chart"></div>
+          <div class="sh"><span class="st">Последние записи</span><button class="sa" onclick="goScr('history')">Все →</button></div>
+          <div id="d-recent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUEL -->
+    <div class="scr" id="scr-fuel">
+      <div class="hdr"><div class="logo">⛽</div><h1>Заправки</h1></div>
+      <div class="sec pp">
+        <div id="fuel-cblock"></div>
+        <div class="sh"><span class="st">История заправок</span></div>
+        <div id="fuel-list"></div>
+      </div>
+      <button class="fab" onclick="openFuelModal()">＋</button>
+    </div>
+
+    <!-- SERVICE -->
+    <div class="scr" id="scr-service">
+      <div class="hdr"><div class="logo">🔧</div><h1>Обслуживание</h1></div>
+      <div class="sec pp">
+        <div class="sh"><span class="st">История обслуживания</span></div>
+        <div id="svc-list"></div>
+      </div>
+      <button class="fab" onclick="openSvcModal()">＋</button>
+    </div>
+
+    <!-- OIL REMINDER -->
+    <div class="scr" id="scr-oil">
+      <div class="hdr"><div class="logo">🛢</div><h1>Масло и ТО</h1></div>
+      <div class="sec pp">
+        <div id="oil-block"></div>
+      </div>
+      <button class="fab" onclick="openOilModal()">＋</button>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="scr" id="scr-history">
+      <div class="hdr"><div class="logo">📋</div><h1>История</h1></div>
+      <div class="sec pp">
+        <div class="tabs">
+          <button class="tb active" onclick="fHist('all',this)">Все</button>
+          <button class="tb" onclick="fHist('fuel',this)">Заправки</button>
+          <button class="tb" onclick="fHist('service',this)">Сервис</button>
+        </div>
+        <div id="hist-list"></div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="scr" id="scr-analytics">
+      <div class="hdr"><div class="logo">📊</div><h1>Аналитика</h1></div>
+      <div class="sec pp" id="analytics-body"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="scr" id="scr-settings">
+      <div class="hdr"><div class="logo">⚙</div><h1>Настройки</h1></div>
+      <div class="sec pp">
+
+        <!-- Профиль пользователя -->
+        <div class="setc" id="profile-card" style="display:none">
+          <div style="display:flex;align-items:center;gap:12px">
+            <img id="profile-avatar" src="" style="width:44px;height:44px;border-radius:50%;border:2px solid var(--ac)" alt="">
+            <div style="flex:1">
+              <div id="profile-name" style="font-weight:600;font-size:14px"></div>
+              <div id="profile-email" style="font-size:12px;color:var(--tx2);margin-top:2px"></div>
+            </div>
+            <button class="btn bd3" onclick="signOut()" style="width:auto;padding:7px 14px;margin:0;font-size:12px">Выйти</button>
+          </div>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)">
+            <div style="font-size:11px;color:var(--tx2);margin-bottom:6px">Таблица Google Sheets</div>
+            <div id="sheet-link-wrap" style="display:flex;align-items:center;gap:8px">
+              <div id="sheet-id-display" style="font-size:11px;font-family:monospace;color:var(--tx2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+              <button onclick="openSheet()" style="background:var(--sf2);border:1px solid var(--bd);color:var(--ac2);border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;flex-shrink:0">Открыть ↗</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Синхронизация -->
+        <div class="setc">
+          <div class="settit">
+            Синхронизация
+            <span class="pill pno" id="shpill">● Не подключено</span>
+          </div>
+          <button class="btn bp" onclick="loadFromSheets()" style="margin-bottom:7px">🔄 Обновить данные из таблицы</button>
+          <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">
+            ⏳ Ожидает отправки: <b id="pcnt">0</b> записей
+            <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">📤 Отправить сейчас</button>
+          </div>
+        </div>
+
+        <!-- Валюта -->
+        <div class="setc">
+          <div class="settit">Валюта по умолчанию</div>
+          <div class="tabs">
+            <button class="tb active" id="c-GEL" onclick="setCurr('GEL',this)">₾ Лари</button>
+            <button class="tb" id="c-USD" onclick="setCurr('USD',this)">$ Доллар</button>
+            <button class="tb" id="c-TRY" onclick="setCurr('TRY',this)">₺ Лира</button>
+          </div>
+        </div>
+
+        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v4.0 · PWA · Google OAuth</div>
+      </div>
+    </div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" style="display:none;position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+    <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;box-shadow:0 8px 32px rgba(59,130,246,.35)">🚗</div>
+    <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:8px">CarLog</div>
+    <div style="font-size:14px;color:var(--tx2);margin-bottom:36px;line-height:1.6">Личный журнал автовладельца<br>Заправки, обслуживание, расход</div>
+    <!-- Google Sign-In button rendered here -->
+    <div id="g-signin-btn"></div>
+    <div style="margin-top:20px;font-size:11px;color:var(--tx3);line-height:1.7">
+      Войдите через Google — CarLog автоматически<br>создаст таблицу в вашем Google Drive
+    </div>
+  </div>
+
+  </div><!-- /main -->
+
+  <nav class="bnav">
+    <button class="ni active" onclick="goScr('dashboard')"><span class="ni-ic">🏠</span><span>Главная</span></button>
+    <button class="ni" onclick="goScr('fuel')"><span class="ni-ic">⛽</span><span>Заправки</span></button>
+    <button class="ni" onclick="goScr('oil')"><span class="ni-ic">🛢</span><span>Масло</span></button>
+    <button class="ni" onclick="goScr('analytics')"><span class="ni-ic">📊</span><span>Аналитика</span></button>
+    <button class="ni" onclick="goScr('settings')"><span class="ni-ic">⚙</span><span>Настройки</span></button>
+  </nav>
+</div>
+
+<!-- ============ ADD / EDIT CAR ============ -->
+<div class="mo" id="m-car">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="car-mt">Добавить авто</div><button class="mc2" onclick="closeModal('m-car')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="car-eid">
+      <div class="fr2">
+        <div class="fg"><label class="fl">Марка</label><input class="fi" id="c-brand" placeholder="Toyota"></div>
+        <div class="fg"><label class="fl">Модель</label><input class="fi" id="c-model" placeholder="Camry"></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Год</label><input class="fi" id="c-year" type="number" placeholder="2020" min="1950" max="2030"></div>
+        <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="c-km" type="number" placeholder="50000" min="0"></div>
+      </div>
+      <div class="fg"><label class="fl">VIN</label><input class="fi" id="c-vin" placeholder="1HGBH41JXMN109186" maxlength="17" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px"></div>
+      <div class="fg">
+        <label class="fl">Объём бака (л)</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px">
+          <button type="button" class="interval-btn" onclick="setTankSize(40,this)">40</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(45,this)">45</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(50,this)">50</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(55,this)">55</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(60,this)">60</button>
+          <button type="button" class="interval-btn" onclick="setTankSize(70,this)">70</button>
+        </div>
+        <input class="fi" id="c-tank" type="number" placeholder="50" min="10" max="200" step="1">
+      </div>
+      <div class="fg">
+        <label class="fl">Фото автомобиля</label>
+        <div id="car-photo-wrap" style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div id="car-photo-preview" style="width:80px;height:52px;border-radius:8px;background:var(--sf2);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex-shrink:0">🚗</div>
+          <div style="flex:1">
+            <label style="display:inline-flex;align-items:center;gap:6px;background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:8px 12px;cursor:pointer;font-size:12px;color:var(--tx2)">
+              📷 Загрузить фото
+              <input type="file" id="c-photo-input" accept="image/*" style="display:none" onchange="handleCarPhoto(this)">
+            </label>
+            <div style="font-size:10px;color:var(--tx3);margin-top:4px">JPG, PNG до 2МБ</div>
+          </div>
+          <button onclick="clearCarPhoto()" id="c-photo-clear" style="display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:var(--rd2);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">✕</button>
+        </div>
+        <input type="hidden" id="c-photo" value="">
+      </div>
+      <div class="fg">
+        <label class="fl">Цвет (если нет фото)</label>
+        <div class="cpr" id="cswatches"></div>
+        <input type="hidden" id="c-color" value="#e74c3c">
+      </div>
+      <div class="cprev" id="car-svg-prev">
+        <svg id="cpreview" viewBox="0 0 120 60" width="150" height="75" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="28" width="104" height="22" rx="5" fill="#e74c3c" id="cp-body"/>
+          <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="#c0392b" id="cp-roof"/>
+          <path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/>
+          <path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/>
+          <path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/>
+          <circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/>
+          <circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/>
+          <rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/>
+          <rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/>
+        </svg>
+      </div>
+      <button class="btn bp" onclick="saveCar()">✅ Сохранить</button>
+      <button class="btn bd3" id="del-car-btn" style="display:none" onclick="deleteCar()">🗑 Удалить автомобиль</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAR LIST -->
+<div class="mo" id="m-carlist">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2">Мои автомобили</div><button class="mc2" onclick="closeModal('m-carlist')">✕</button></div>
+    <div class="mb">
+      <div id="carlist"></div>
+      <button class="btn bg2" onclick="closeModal('m-carlist');openCarModal()">＋ Добавить автомобиль</button>
+    </div>
+  </div>
+</div>
+
+<!-- FUEL -->
+<div class="mo" id="m-fuel">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="fuel-modal-title">⛽ Заправка</div><button class="mc2" onclick="closeModal('m-fuel')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="f-eid" value="">
+
+      <div class="fr2">
+        <div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div>
+        <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="f-km" type="number" placeholder="52000" min="0"></div>
+      </div>
+
+      <div class="fg">
+        <label class="fl">Марка топлива</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px" id="fuel-type-btns">
+          <button type="button" class="fuel-type-btn active" onclick="setFuelType('АИ-92',this)">АИ-92</button>
+          <button type="button" class="fuel-type-btn" onclick="setFuelType('АИ-95',this)">АИ-95</button>
+          <button type="button" class="fuel-type-btn" onclick="setFuelType('АИ-98',this)">АИ-98</button>
+          <button type="button" class="fuel-type-btn" onclick="setFuelType('ДТ',this)">ДТ</button>
+          <button type="button" class="fuel-type-btn" onclick="setFuelType('Газ',this)">Газ</button>
+        </div>
+        <input class="fi" id="f-ftype" placeholder="Или введите вручную..." style="font-size:13px">
+      </div>
+
+      <div style="background:var(--sf2);border-radius:10px;padding:12px;border:1px solid var(--bd)">
+        <div style="font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:600">
+          💡 Введите любые два поля — третье рассчитается автоматически
+        </div>
+        <div class="fr2" style="margin-bottom:10px">
+          <div class="fg" style="margin:0">
+            <label class="fl">Литры</label>
+            <input class="fi" id="f-lit" type="number" placeholder="40.0" min="0" step="0.01" oninput="calcFuel3('lit')">
+          </div>
+          <div class="fg" style="margin:0">
+            <label class="fl">Цена за литр</label>
+            <input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.001" oninput="calcFuel3('price')">
+          </div>
+        </div>
+        <div class="fr2">
+          <div class="fg" style="margin:0">
+            <label class="fl">Итого</label>
+            <input class="fi" id="f-total" type="number" placeholder="116.00" min="0" step="0.01" oninput="calcFuel3('total')">
+          </div>
+          <div class="fg" style="margin:0">
+            <label class="fl">Валюта</label>
+            <select class="fs" id="f-curr">
+              <option value="GEL">₾ Лари</option>
+              <option value="USD">$ Доллар</option>
+              <option value="TRY">₺ Лира</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="fg" style="margin-top:10px">
+        <label class="fl">АЗС / Станция (необязательно)</label>
+        <input class="fi" id="f-note" placeholder="Lukoil, BP, Wissol...">
+      </div>
+
+      <button class="btn bp" onclick="saveFuel()">✅ Сохранить заправку</button>
+      <button class="btn bd3" id="f-del-btn" style="display:none" onclick="deleteFuel()">🗑 Удалить заправку</button>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE -->
+<div class="mo" id="m-svc">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="svc-modal-title">🔧 Обслуживание</div><button class="mc2" onclick="closeModal('m-svc')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="s-eid" value="">
+      <div class="fg"><label class="fl">Дата</label><input class="fi" id="s-date" type="date"></div>
+      <div class="fg"><label class="fl">Вид работ</label>
+        <select class="fs" id="s-type" onchange="svcChg()">
+          <option value="">Выберите тип...</option>
+          <option>🛢 Замена масла</option><option>🔄 Замена масляного фильтра</option>
+          <option>💨 Замена воздушного фильтра</option><option>⛽ Замена топливного фильтра</option>
+          <option>⚡ Замена свечей зажигания</option><option>🛑 Замена тормозных колодок</option>
+          <option>⭕ Замена тормозного диска</option><option>💧 Замена тормозной жидкости</option>
+          <option>🌡 Замена охлаждающей жидкости</option><option>⚙ Замена ремня ГРМ</option>
+          <option>🔋 Замена аккумулятора</option><option>🚗 Замена шин</option>
+          <option>⚖ Балансировка колёс</option><option>📐 Развал-схождение</option>
+          <option>📋 Технический осмотр</option><option>🔍 Диагностика</option>
+          <option value="_other">✏ Другое...</option>
+        </select>
+      </div>
+      <div class="fg" id="s-cgrp" style="display:none"><label class="fl">Описание</label><input class="fi" id="s-custom" placeholder="Опишите работы..."></div>
+      <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="s-km" type="number" placeholder="52000" min="0"></div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Стоимость</label><input class="fi" id="s-cost" type="number" placeholder="120.00" step="0.01"></div>
+        <div class="fg"><label class="fl">Валюта</label>
+          <select class="fs" id="s-curr">
+            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="TRY">₺ Лира</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">СТО / Заметка</label><input class="fi" id="s-note" placeholder="Автосервис Авто+"></div>
+      <button class="btn bp" onclick="saveSvc()">✅ Сохранить запись</button>
+      <button class="btn bd3" id="s-del-btn" style="display:none" onclick="deleteSvc()">🗑 Удалить запись</button>
+    </div>
+  </div>
+</div>
+
+<!-- OIL REMINDER MODAL -->
+<div class="mo" id="m-oil">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="oil-modal-title">🛢 Замена масла</div><button class="mc2" onclick="closeModal('m-oil')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="oil-eid" value="">
+      <div class="fg"><label class="fl">Дата замены</label><input class="fi" id="oil-date" type="date"></div>
+      <div class="fg"><label class="fl">Пробег при замене (км)</label><input class="fi" id="oil-km" type="number" placeholder="52000" min="0"></div>
+      <div class="fg">
+        <label class="fl">Следующая замена через (км)</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <button type="button" class="interval-btn" onclick="setInterval2(5000,this)">5 000</button>
+          <button type="button" class="interval-btn" onclick="setInterval2(7000,this)">7 000</button>
+          <button type="button" class="interval-btn active" onclick="setInterval2(10000,this)">10 000</button>
+          <button type="button" class="interval-btn" onclick="setInterval2(15000,this)">15 000</button>
+        </div>
+        <input class="fi" id="oil-interval" type="number" placeholder="10000" min="1000" step="500" value="10000">
+      </div>
+      <div class="fg"><label class="fl">Марка масла / Заметка</label><input class="fi" id="oil-note" placeholder="Mobil 5W-30, дилер"></div>
+      <div class="fg">
+        <label class="fl">Стоимость</label>
+        <div class="fr2">
+          <input class="fi" id="oil-cost" type="number" placeholder="120.00" step="0.01">
+          <select class="fs" id="oil-curr"><option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="TRY">₺ Лира</option></select>
+        </div>
+      </div>
+      <button class="btn bp" onclick="saveOil()">✅ Сохранить</button>
+      <button class="btn bd3" id="oil-del-btn" style="display:none" onclick="deleteOil()">🗑 Удалить запись</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</div><!-- /main-app -->
+
+<div class="toast" id="toast"></div>
+
+
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// 🔑 ВСТАВЬТЕ ВАШИ ДАННЫЕ — Google Cloud Console → Credentials
+// ══════════════════════════════════════════════════════════════
+const CLIENT_ID = "414490794017-ovoh8sq7um851g1245jsmbhmou04cg2p.apps.googleusercontent.com";
+
+// ══════════════════════════════════════════════════════════════
+// КОНСТАНТЫ
+// ══════════════════════════════════════════════════════════════
+const SCOPES     = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file";
+const SHEET_NAME = "CarLog";  // название таблицы создаваемой в Drive
+const CUR        = {GEL:"₾", USD:"$", TRY:"₺"};
+const COLORS     = ["#e74c3c","#c0392b","#e67e22","#f39c12","#f1c40f","#2ecc71","#27ae60","#1abc9c","#3498db","#2980b9","#9b59b6","#8e44ad","#e91e63","#607d8b","#bdc3c7"];
+const SCHEMA = {
+  Cars:    ["ID","Brand","Model","Year","Mileage","VIN","Color","Tank","CreatedAt"],
+  Fuel:    ["ID","CarID","Date","Mileage","Liters","PricePerLiter","Currency","Total","Note","CreatedAt"],
+  Service: ["ID","CarID","Date","ServiceType","Mileage","Cost","Currency","Note","CreatedAt"]
+};
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let S = {
+  cars:[], fuels:[], services:[],
+  activeCar:null, currency:"GEL",
+  queue:[],
+  // OAuth
+  accessToken: null,
+  tokenExpiry:  0,
+  spreadsheetId: null,
+  userInfo: null
+};
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+const g   = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const now = () => new Date().toISOString();
+
+function saveLocal() {
+  // Локально храним только настройки + токен + spreadsheetId
+  // Данные (cars/fuels/services) живут ТОЛЬКО в Sheets
+  try {
+    localStorage.setItem("cl_auth", JSON.stringify({
+      accessToken:   S.accessToken,
+      tokenExpiry:   S.tokenExpiry,
+      spreadsheetId: S.spreadsheetId,
+      userInfo:      S.userInfo,
+      currency:      S.currency,
+      activeCar:     S.activeCar,
+      queue:         S.queue,
+      // Фото храним локально (в Sheets не грузим — слишком тяжело)
+      carPhotos:     Object.fromEntries(S.cars.filter(c=>c.photo).map(c=>[c.id,c.photo]))
+    }));
+  } catch(e) {}
+}
+
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem("cl_auth");
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    S.accessToken   = d.accessToken   || null;
+    S.tokenExpiry   = d.tokenExpiry   || 0;
+    S.spreadsheetId = d.spreadsheetId || null;
+    S.userInfo      = d.userInfo      || null;
+    S.currency      = d.currency      || "GEL";
+    S.activeCar     = d.activeCar     || null;
+    S.queue         = d.queue         || [];
+    S._carPhotos    = d.carPhotos     || {};
+  } catch(e) {}
+}
+
+function isTokenValid() {
+  return S.accessToken && Date.now() < S.tokenExpiry - 60000;
+}
+
+// ══════════════════════════════════════════════════════════════
+// GOOGLE OAUTH
+// ══════════════════════════════════════════════════════════════
+let tokenClient;
+
+function initGoogleAuth() {
+  if (typeof google === "undefined") {
+    setTimeout(initGoogleAuth, 200);
+    return;
+  }
+  // Render Google Sign-In button
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback:  handleIdToken,
+    auto_select: false
+  });
+  google.accounts.id.renderButton(g("g-signin-btn"), {
+    theme: "filled_dark",
+    size:  "large",
+    text:  "signin_with",
+    shape: "rectangular",
+    width: 280
+  });
+
+  // Token client for Sheets API access
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope:     SCOPES,
+    callback:  handleAccessToken
+  });
+
+  // Auto-restore if token still valid
+  loadLocal();
+  if (isTokenValid() && S.spreadsheetId) {
+    showApp();
+  }
+}
+
+// Called after Google Sign-In button click — получаем id_token с инфой о пользователе
+function handleIdToken(response) {
+  // Декодируем JWT payload (публичные данные)
+  const payload = JSON.parse(atob(response.credential.split(".")[1]));
+  S.userInfo = { name: payload.name, email: payload.email, picture: payload.picture };
+  saveLocal();
+  // Теперь запрашиваем access token для Sheets API
+  tokenClient.requestAccessToken({ prompt: "consent" });
+}
+
+// Called after OAuth2 token granted
+async function handleAccessToken(tokenResponse) {
+  if (tokenResponse.error) {
+    showLoginError("Ошибка авторизации: " + tokenResponse.error);
+    return;
+  }
+  S.accessToken = tokenResponse.access_token;
+  S.tokenExpiry = Date.now() + (tokenResponse.expires_in || 3600) * 1000;
+  saveLocal();
+
+  setSbar("syncing", "Подключаемся к Google Sheets...");
+  await ensureSpreadsheet();
+  showApp();
+}
+
+// Ручной ввод токена (для тестов)
+async function loginWithToken() {
+  const token = (g("manual-token").value || "").trim();
+  if (!token) return;
+  S.accessToken = token;
+  S.tokenExpiry = Date.now() + 3600000;
+  saveLocal();
+  setSbar("syncing", "Проверяем токен...");
+  await ensureSpreadsheet();
+  showApp();
+}
+
+function showLoginError(msg) {
+  const el = g("login-error");
+  el.textContent = msg;
+  el.style.display = "block";
+}
+
+function showApp() {
+  g("login-screen").style.display = "none";
+  g("main-app").style.display    = "flex";
+  g("main-app").style.flexDirection = "column";
+  g("main-app").style.height     = "100%";
+  updateUserUI();
+  init();
+}
+
+async function signOut() {
+  if (typeof google !== "undefined") {
+    google.accounts.id.disableAutoSelect();
+    if (S.accessToken) google.accounts.oauth2.revoke(S.accessToken, () => {});
+  }
+  localStorage.removeItem("cl_auth");
+  S.accessToken   = null;
+  S.spreadsheetId = null;
+  S.userInfo      = null;
+  S.cars = []; S.fuels = []; S.services = [];
+  g("main-app").style.display    = "none";
+  g("login-screen").style.display = "flex";
+}
+
+function updateUserUI() {
+  if (!S.userInfo) return;
+  const nm  = g("user-name");  if(nm)  nm.textContent  = S.userInfo.name  || "—";
+  const em  = g("user-email"); if(em)  em.textContent  = S.userInfo.email || "—";
+  const av  = g("user-avatar");
+  const avp = g("user-avatar-placeholder");
+  if (av && S.userInfo.picture) {
+    av.src = S.userInfo.picture;
+    av.style.display = "block";
+    if (avp) avp.style.display = "none";
+  }
+  const sl = g("sheet-link-wrap");
+  if (sl && S.spreadsheetId) {
+    sl.innerHTML = `<a href="https://docs.google.com/spreadsheets/d/${S.spreadsheetId}" target="_blank" style="color:var(--ac2);font-size:11px">📊 Открыть таблицу Google Sheets →</a>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// GOOGLE SHEETS API — прямые запросы без Apps Script
+// ══════════════════════════════════════════════════════════════
+const BASE = "https://sheets.googleapis.com/v4/spreadsheets";
+const DRIVE = "https://www.googleapis.com/drive/v3/files";
+
+async function apiGet(url) {
+  const r = await fetch(url, { headers: { Authorization: "Bearer " + S.accessToken } });
+  if (!r.ok) throw new Error("API GET " + r.status + " " + await r.text());
+  return r.json();
+}
+
+async function apiPost(url, body) {
+  const r = await fetch(url, {
+    method:  "POST",
+    headers: { Authorization: "Bearer " + S.accessToken, "Content-Type": "application/json" },
+    body:    JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error("API POST " + r.status + " " + await r.text());
+  return r.json();
+}
+
+async function apiPut(url, body) {
+  const r = await fetch(url, {
+    method:  "PUT",
+    headers: { Authorization: "Bearer " + S.accessToken, "Content-Type": "application/json" },
+    body:    JSON.stringify(body)
+  });
+  if (!r.ok) throw new Error("API PUT " + r.status + " " + await r.text());
+  return r.json();
+}
+
+// Создать таблицу если нет, иначе найти существующую
+async function ensureSpreadsheet() {
+  if (S.spreadsheetId) {
+    // Проверяем что таблица ещё существует
+    try {
+      await apiGet(`${BASE}/${S.spreadsheetId}?fields=spreadsheetId`);
+      await ensureSheets();
+      return;
+    } catch(e) {
+      S.spreadsheetId = null; // таблица удалена — создадим новую
+    }
+  }
+
+  // Ищем существующую таблицу CarLog в Drive
+  try {
+    const res = await apiGet(`${DRIVE}?q=name='${SHEET_NAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false&fields=files(id,name)`);
+    if (res.files && res.files.length > 0) {
+      S.spreadsheetId = res.files[0].id;
+      saveLocal();
+      await ensureSheets();
+      return;
+    }
+  } catch(e) {}
+
+  // Создаём новую таблицу
+  const created = await apiPost(BASE, {
+    properties: { title: SHEET_NAME, locale: "ru_RU" },
+    sheets: Object.keys(SCHEMA).map(name => ({
+      properties: { title: name }
+    }))
+  });
+  S.spreadsheetId = created.spreadsheetId;
+  saveLocal();
+  await ensureSheets(true);
+}
+
+// Создать заголовки в листах
+async function ensureSheets(isNew=false) {
+  const data = await apiGet(`${BASE}/${S.spreadsheetId}?fields=sheets.properties`);
+  const existingSheets = data.sheets.map(s => s.properties.title);
+
+  const requests = [];
+
+  for (const [sheetName, headers] of Object.entries(SCHEMA)) {
+    if (!existingSheets.includes(sheetName)) {
+      // Добавляем лист
+      requests.push({ addSheet: { properties: { title: sheetName } } });
+    }
+  }
+
+  if (requests.length) {
+    await apiPost(`${BASE}/${S.spreadsheetId}:batchUpdate`, { requests });
+  }
+
+  // Записываем заголовки если листы новые или пустые
+  for (const [sheetName, headers] of Object.entries(SCHEMA)) {
+    try {
+      const range = await apiGet(`${BASE}/${S.spreadsheetId}/values/${sheetName}!A1:A1`);
+      if (!range.values) {
+        // Лист пустой — пишем заголовки
+        await writeHeaders(sheetName, headers);
+      } else {
+        // Проверяем нет ли новых колонок (миграция)
+        await migrateHeaders(sheetName, headers);
+      }
+    } catch(e) {
+      await writeHeaders(sheetName, headers);
+    }
+  }
+}
+
+async function writeHeaders(sheetName, headers) {
+  await apiPut(
+    `${BASE}/${S.spreadsheetId}/values/${sheetName}!A1?valueInputOption=RAW`,
+    { values: [headers] }
+  );
+  // Форматируем заголовки жирным синим
+  const sheetData = await apiGet(`${BASE}/${S.spreadsheetId}?fields=sheets.properties`);
+  const sheet     = sheetData.sheets.find(s=>s.properties.title===sheetName);
+  if (sheet) {
+    await apiPost(`${BASE}/${S.spreadsheetId}:batchUpdate`, { requests: [{
+      repeatCell: {
+        range: { sheetId: sheet.properties.sheetId, startRowIndex:0, endRowIndex:1, startColumnIndex:0, endColumnIndex: headers.length },
+        cell:  { userEnteredFormat: { backgroundColor:{red:.1,green:.45,blue:.93}, textFormat:{foregroundColor:{red:1,green:1,blue:1},bold:true} } },
+        fields: "userEnteredFormat(backgroundColor,textFormat)"
+      }
+    }]});
+  }
+}
+
+async function migrateHeaders(sheetName, expectedHeaders) {
+  const res = await apiGet(`${BASE}/${S.spreadsheetId}/values/${sheetName}!1:1`);
+  const currentHeaders = res.values?.[0] || [];
+  const missing = expectedHeaders.filter(h => !currentHeaders.includes(h));
+  if (!missing.length) return;
+  // Добавляем недостающие колонки в конец (простой способ без смещений)
+  // Для Tank — добавляем перед CreatedAt
+  const newHeaders = [...new Set([...currentHeaders, ...missing])];
+  // Сортируем по expectedHeaders если возможно
+  const finalHeaders = expectedHeaders.filter(h => newHeaders.includes(h));
+  // Append оставшиеся
+  const extra = newHeaders.filter(h => !finalHeaders.includes(h));
+  const allHeaders = [...finalHeaders, ...extra];
+  await apiPut(
+    `${BASE}/${S.spreadsheetId}/values/${sheetName}!A1?valueInputOption=RAW`,
+    { values: [allHeaders] }
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// ЧТЕНИЕ ДАННЫХ ИЗ SHEETS
+// ══════════════════════════════════════════════════════════════
+async function loadFromSheets() {
+  if (!isTokenValid()) { refreshToken(); return; }
+  setSbar("syncing", "Загрузка данных из Google Sheets...");
+  try {
+    const [carsRaw, fuelsRaw, svcsRaw] = await Promise.all([
+      readSheet("Cars"),
+      readSheet("Fuel"),
+      readSheet("Service")
+    ]);
+    const prevActive = S.activeCar;
+    const prevCurr   = S.currency;
+    const photos     = S._carPhotos || {};
+
+    S.cars     = carsRaw.filter(c=>c.id).map(c=>({...c, photo: photos[c.id]||""}));
+    S.fuels    = fuelsRaw.filter(f=>f.id&&f.carId);
+    S.services = svcsRaw.filter(s=>s.id&&s.carId);
+
+    // Пересчитываем пробег
+    S.cars.forEach(car => {
+      const fMax = S.fuels.filter(f=>f.carId===car.id).reduce((m,f)=>Math.max(m,Number(f.mileage)||0),0);
+      const sMax = S.services.filter(s=>s.carId===car.id).reduce((m,s)=>Math.max(m,Number(s.mileage)||0),0);
+      car.mileage = Math.max(Number(car.mileage)||0, fMax, sMax);
+    });
+
+    S.activeCar = S.cars.find(c=>c.id===prevActive) ? prevActive : (S.cars[0]?.id||null);
+    S.currency  = prevCurr;
+    saveLocal();
+
+    renderDash();
+    const scr = document.querySelector(".scr.active")?.id?.replace("scr-","");
+    if (scr==="fuel")      renderFuel();
+    if (scr==="service")   renderSvc();
+    if (scr==="oil")       renderOil();
+    if (scr==="history")   renderHist("all");
+    if (scr==="analytics") renderAnalytics();
+    updateUserUI();
+
+    setSbar("ok", `✅ Загружено: ${S.cars.length} авто · ${S.fuels.length} заправок · ${S.services.length} сервисов`);
+  } catch(e) {
+    console.error("loadFromSheets:", e);
+    setSbar("error", "⚠ Ошибка загрузки: " + e.message);
+  }
+}
+
+async function readSheet(sheetName) {
+  const res = await apiGet(`${BASE}/${S.spreadsheetId}/values/${sheetName}`);
+  if (!res.values || res.values.length < 2) return [];
+  const headers = res.values[0];
+  return res.values.slice(1).map(row => {
+    const obj = {};
+    headers.forEach((h,i) => { obj[h] = row[i] !== undefined ? row[i] : ""; });
+    return parseRow(sheetName, obj);
+  }).filter(r => r.id);
+}
+
+function parseRow(sheet, obj) {
+  if (sheet === "Cars") return {
+    id:obj.ID||"", brand:obj.Brand||"", model:obj.Model||"", year:obj.Year||"",
+    mileage:Number(obj.Mileage||0), vin:obj.VIN||"", color:obj.Color||"#e74c3c",
+    tank:Number(obj.Tank||0), createdAt:obj.CreatedAt||"", type:"car"
+  };
+  if (sheet === "Fuel") return {
+    id:obj.ID||"", carId:obj.CarID||"", type:"fuel",
+    date:obj.Date||"", mileage:Number(obj.Mileage||0), liters:Number(obj.Liters||0),
+    pricePerLiter:Number(obj.PricePerLiter||0), currency:obj.Currency||"GEL",
+    total:Number(obj.Total||0), note:obj.Note||"", createdAt:obj.CreatedAt||""
+  };
+  if (sheet === "Service") return {
+    id:obj.ID||"", carId:obj.CarID||"", type:"service",
+    serviceType:obj.ServiceType||"", date:obj.Date||"",
+    mileage:Number(obj.Mileage||0), cost:Number(obj.Cost||0),
+    currency:obj.Currency||"GEL", note:obj.Note||"", createdAt:obj.CreatedAt||""
+  };
+  return obj;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ЗАПИСЬ В SHEETS
+// ══════════════════════════════════════════════════════════════
+async function appendRow(sheetName, row) {
+  await apiPost(
+    `${BASE}/${S.spreadsheetId}/values/${sheetName}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+    { values: [row] }
+  );
+}
+
+async function updateRow(sheetName, id, row) {
+  // Находим номер строки по ID
+  const res = await apiGet(`${BASE}/${S.spreadsheetId}/values/${sheetName}!A:A`);
+  const rows = res.values || [];
+  const idx  = rows.findIndex((r,i) => i>0 && String(r[0])===String(id));
+  if (idx < 0) { await appendRow(sheetName, row); return; }
+  const rowNum = idx + 1;
+  const cols   = SCHEMA[sheetName].length;
+  const range  = `${sheetName}!A${rowNum}:${colLetter(cols)}${rowNum}`;
+  await apiPut(
+    `${BASE}/${S.spreadsheetId}/values/${range}?valueInputOption=USER_ENTERED`,
+    { values: [row] }
+  );
+}
+
+async function deleteRow(sheetName, id) {
+  const sheetData = await apiGet(`${BASE}/${S.spreadsheetId}?fields=sheets.properties`);
+  const sheet     = sheetData.sheets.find(s=>s.properties.title===sheetName);
+  if (!sheet) return;
+  const sheetId = sheet.properties.sheetId;
+
+  const res  = await apiGet(`${BASE}/${S.spreadsheetId}/values/${sheetName}!A:A`);
+  const rows = res.values || [];
+  const idx  = rows.findIndex((r,i) => i>0 && String(r[0])===String(id));
+  if (idx < 0) return;
+
+  await apiPost(`${BASE}/${S.spreadsheetId}:batchUpdate`, { requests: [{
+    deleteDimension: {
+      range: { sheetId, dimension:"ROWS", startIndex:idx, endIndex:idx+1 }
+    }
+  }]});
+}
+
+function colLetter(n) {
+  let s=""; while(n>0){s=String.fromCharCode(65+(n-1)%26)+s;n=Math.floor((n-1)/26);} return s;
+}
+
+// ══════════════════════════════════════════════════════════════
+// ОЧЕРЕДЬ (офлайн-режим)
+// ══════════════════════════════════════════════════════════════
+function qSync(op) {
+  S.queue.push({...op, _qid:uid()});
+  saveLocal();
+  updatePendingUI();
+  if (navigator.onLine && isTokenValid()) setTimeout(syncNow, 300);
+  else setSbar("pending", `📡 Офлайн — ${S.queue.length} записей ждут`);
+}
+
+let syncing=false;
+async function syncNow() {
+  if (syncing||!S.queue.length||!navigator.onLine||!isTokenValid()) return;
+  syncing=true;
+  setSbar("syncing",`📤 Отправка ${S.queue.length} записей...`);
+  const failed=[];
+  for (const op of [...S.queue]) {
+    try {
+      if (op.action==="append") await appendRow(op.sheet, op.row);
+      else if (op.action==="update") await updateRow(op.sheet, op.id, op.row);
+      else if (op.action==="delete") await deleteRow(op.sheet, op.id);
+    } catch(e) {
+      console.error("syncNow failed:", op, e);
+      failed.push(op);
+    }
+  }
+  S.queue=failed; saveLocal(); updatePendingUI(); syncing=false;
+  if (!failed.length) setSbar("ok","☁ Всё синхронизировано");
+  else setSbar("error",`⚠ ${failed.length} операций не отправлено`);
+}
+
+function updatePendingUI() {
+  const n=S.queue?.length||0;
+  const pi=g("pinfo"); if(pi) pi.style.display=n?"block":"none";
+  const pc=g("pcnt");  if(pc) pc.textContent=n;
+  const bs=g("btn-sync"); if(bs) bs.style.display=n?"flex":"none";
+}
+
+// ══════════════════════════════════════════════════════════════
+// TOKEN REFRESH
+// ══════════════════════════════════════════════════════════════
+function refreshToken() {
+  if (!tokenClient) return;
+  tokenClient.requestAccessToken({ prompt:"" });
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+function init() {
+  if (!Array.isArray(S.queue)) S.queue=[];
+  buildSwatches();
+  setDates();
+  updateOffline();
+  renderDash();
+  applySettings();
+  updatePendingUI();
+
+  window.addEventListener("online",  () => { updateOffline(); if(isTokenValid()) syncThenLoad(); });
+  window.addEventListener("offline", () => { updateOffline(); showToast("📡 Офлайн — сохраняем локально"); });
+
+  if (navigator.onLine && isTokenValid()) syncThenLoad();
+
+  const action = new URLSearchParams(location.search).get("action");
+  if (action) setTimeout(() => {
+    if (action==="fuel")    { goScr("fuel");    setTimeout(()=>openFuelModal(),200); }
+    if (action==="service") { goScr("service"); setTimeout(()=>openSvcModal(),200); }
+    if (action==="oil")     { goScr("oil");     setTimeout(()=>openOilModal(),200); }
+  }, 600);
+}
+
+async function syncThenLoad() {
+  if (S.queue.length>0) await syncNow();
+  await loadFromSheets();
+}
+
+// ══════════════════════════════════════════════════════════════
+// Всё остальное (навигация, рендер, формы) — не меняется
+// ══════════════════════════════════════════════════════════════
+function renderAll() { renderDash(); }
+function setDates() { const t=new Date().toISOString().split("T")[0]; ["f-date","s-date"].forEach(id=>{const e=g(id);if(e&&!e.value)e.value=t;}); }
+function updateOffline() { g("ofbar")?.classList.toggle("on",!navigator.onLine); }
+
+function goScr(name) {
+  document.querySelectorAll(".scr").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));
+  g("scr-"+name)?.classList.add("active");
+  const idx=["dashboard","fuel","oil","history","settings"].indexOf(name);
+  if(idx>=0) document.querySelectorAll(".ni")[idx]?.classList.add("active");
+  if(name==="dashboard") renderDash();
+  if(name==="fuel")      renderFuel();
+  if(name==="service")   renderSvc();
+  if(name==="oil")       renderOil();
+  if(name==="analytics") renderAnalytics();
+  if(name==="history")   renderHist("all");
+  if(name==="settings")  applySettings();
+}
+
+function openModal(id){g(id)?.classList.add("open");setDates();if(id==="m-carlist")renderCarList();}
+function closeModal(id){g(id)?.classList.remove("open");}
+document.querySelectorAll(".mo").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open");}));
+
+function applySettings() {
+  const pill=g("shpill");
+  if(pill){ pill.className=isTokenValid()?"pill pok":"pill pno"; pill.textContent=isTokenValid()?"● Подключено":"● Не подключено"; }
+  ["GEL","USD","TRY"].forEach(code=>{const e=g("c-"+code);if(e)e.classList.remove("active");});
+  const ce=g("c-"+S.currency); if(ce) ce.classList.add("active");
+  updatePendingUI();
+  updateUserUI();
+}
+
+function setCurr(c,btn){
+  S.currency=c; saveLocal();
+  document.querySelectorAll(".tabs .tb").forEach(b=>{if(["c-GEL","c-USD","c-TRY"].includes(b.id))b.classList.remove("active");});
+  btn.classList.add("active");
+  const fe=g("f-curr"); if(fe) fe.value=c;
+  const se=g("s-curr"); if(se) se.value=c;
+}
+
+// ── updKm — обновляет пробег и сохраняет в Sheets ───────────────
+function updKm(km, carId=null) {
+  const car = carId ? S.cars.find(x=>x.id===carId) : getAC();
+  if (car && km > (Number(car.mileage)||0)) {
+    car.mileage = km;
+    saveLocal();
+    qSync({action:"update", sheet:"Cars", id:car.id,
+           row:[car.id,car.brand,car.model,car.year,km,car.vin,car.color,car.tank||0,car.createdAt]});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// CARS
+// ══════════════════════════════════════════════════════════════
+const STATION_COLORS=["#f59e0b","#3b82f6","#10b981","#8b5cf6","#ef4444","#06b6d4","#f97316","#84cc16","#ec4899","#6366f1"];
+const _scm={};let _sci=0;
+function stationColor(n){if(!n)return"rgba(255,255,255,.12)";const k=n.toLowerCase().trim();if(!_scm[k]){_scm[k]=STATION_COLORS[_sci%STATION_COLORS.length];_sci++;}return _scm[k];}
+const SVC_COLORS={"🛢 Замена масла":"#f59e0b","🔄 Замена масляного фильтра":"#fbbf24","💨 Замена воздушного фильтра":"#34d399","⛽ Замена топливного фильтра":"#60a5fa","⚡ Замена свечей зажигания":"#a78bfa","🛑 Замена тормозных колодок":"#f87171","⭕ Замена тормозного диска":"#fb7185","⚙ Замена ремня ГРМ":"#f97316","🔋 Замена аккумулятора":"#22d3ee","🚗 Замена шин":"#4ade80"};
+function svcColor(t){return SVC_COLORS[t]||"#8892a4";}
+
+function buildSwatches(sel="#e74c3c"){g("cswatches").innerHTML=COLORS.map(c=>`<div class="csw${c===sel?" sel":""}" style="background:${c}" onclick="pickColor('${c}',this)"></div>`).join("");}
+function pickColor(c,el){document.querySelectorAll(".csw").forEach(s=>s.classList.remove("sel"));el.classList.add("sel");g("c-color").value=c;previewCar(c);}
+function previewCar(c){if(g("c-photo").value)return;g("cp-body")?.setAttribute("fill",c);g("cp-roof")?.setAttribute("fill",darken(c,25));}
+function darken(hex,amt){const n=parseInt(hex.replace("#",""),16);const r=Math.max(0,(n>>16)-amt),gv=Math.max(0,((n>>8)&0xff)-amt),b=Math.max(0,(n&0xff)-amt);return"#"+[r,gv,b].map(v=>v.toString(16).padStart(2,"0")).join("");}
+function carSVG(color,w=50,h=25){const roof=darken(color||"#e74c3c",25);return`<svg viewBox="0 0 120 60" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="28" width="104" height="22" rx="5" fill="${color||"#e74c3c"}"/><path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="${roof}"/><path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/><path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/><path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/><circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/><circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/><rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/><rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/></svg>`;}
+function carAvatar(car,w=50,h=25){return car.photo?`<img src="${car.photo}" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:6px;">`:carSVG(car.color||"#e74c3c",w,h);}
+
+function handleCarPhoto(input){const file=input.files[0];if(!file)return;if(file.size>2*1024*1024){showToast("⚠ Фото слишком большое (макс 2МБ)");return;}const reader=new FileReader();reader.onload=e=>{const url=e.target.result;g("c-photo").value=url;g("car-photo-preview").innerHTML=`<img src="${url}" style="width:80px;height:52px;object-fit:cover;border-radius:7px;">`;g("c-photo-clear").style.display="block";g("car-svg-prev").style.display="none";};reader.readAsDataURL(file);}
+function clearCarPhoto(){g("c-photo").value="";g("car-photo-preview").innerHTML="🚗";g("c-photo-clear").style.display="none";g("car-svg-prev").style.display="flex";const ci=g("c-photo-input");if(ci)ci.value="";}
+
+function openCarModal(carId=null){
+  const car=carId?S.cars.find(c=>c.id===carId):null;
+  g("car-mt").textContent=car?"Редактировать авто":"Добавить авто";
+  g("car-eid").value=car?.id||""; g("c-brand").value=car?.brand||""; g("c-model").value=car?.model||"";
+  g("c-year").value=car?.year||""; g("c-km").value=car?.mileage||""; g("c-vin").value=car?.vin||"";
+  g("c-tank").value=car?.tank||""; g("del-car-btn").style.display=car?"flex":"none";
+  const col=car?.color||"#e74c3c"; g("c-color").value=col; buildSwatches(col);
+  g("c-photo").value=car?.photo||"";
+  if(car?.photo){g("car-photo-preview").innerHTML=`<img src="${car.photo}" style="width:80px;height:52px;object-fit:cover;border-radius:7px;">`;g("c-photo-clear").style.display="block";g("car-svg-prev").style.display="none";}
+  else{g("car-photo-preview").innerHTML="🚗";g("c-photo-clear").style.display="none";g("car-svg-prev").style.display="flex";previewCar(col);}
+  openModal("m-car");
+}
+
+function saveCar(){
+  const brand=(g("c-brand").value||"").trim(),model=(g("c-model").value||"").trim();
+  if(!brand||!model){showToast("⚠ Укажите марку и модель");return;}
+  const year=(g("c-year").value||"").trim(),mileage=parseInt(g("c-km").value)||0;
+  const vin=(g("c-vin").value||"").trim().toUpperCase(),color=g("c-color").value||"#e74c3c";
+  const photo=g("c-photo").value||"",tank=parseInt(g("c-tank").value)||0;
+  const row=[null,brand,model,year,mileage,vin,color,tank,null];
+  const eid=g("car-eid").value;
+  if(eid){
+    const car=S.cars.find(c=>c.id===eid);
+    if(car){Object.assign(car,{brand,model,year,mileage,vin,color,photo,tank});saveLocal();
+      row[0]=eid;row[8]=car.createdAt;
+      qSync({action:"update",sheet:"Cars",id:eid,row});showToast("✅ Авто обновлено");}
+  }else{
+    const id=uid(),cAt=now();
+    const car={id,brand,model,year,mileage,vin,color,photo,tank,createdAt:cAt};
+    S.cars.push(car);if(!S.activeCar)S.activeCar=car.id;saveLocal();
+    row[0]=id;row[8]=cAt;
+    qSync({action:"append",sheet:"Cars",row});showToast("✅ Автомобиль добавлен");}
+  closeModal("m-car");closeModal("m-carlist");renderDash();
+}
+
+function deleteCar(){
+  const id=g("car-eid").value;
+  if(!id||!confirm("Удалить авто и все его записи?"))return;
+  S.cars=S.cars.filter(c=>c.id!==id);S.fuels=S.fuels.filter(f=>f.carId!==id);S.services=S.services.filter(s=>s.carId!==id);
+  if(S.activeCar===id)S.activeCar=S.cars[0]?.id||null;
+  saveLocal();qSync({action:"delete",sheet:"Cars",id});closeModal("m-car");renderDash();showToast("🗑 Удалено");
+}
+
+function renderCarList(){
+  const el=g("carlist");
+  if(!S.cars.length){el.innerHTML=`<div class="empty" style="padding:14px 0"><div class="esub">Нет автомобилей</div></div>`;return;}
+  el.innerHTML=S.cars.map(car=>`<div style="display:flex;align-items:center;gap:9px;background:var(--sf2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;border:1px solid ${car.id===S.activeCar?"var(--ac)":"var(--bd)"}">
+    <div style="width:56px;height:28px;flex-shrink:0;overflow:hidden;border-radius:6px">${carAvatar(car,56,28)}</div>
+    <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">${car.brand} ${car.model}</div><div style="font-size:11px;color:var(--tx2)">${[car.year,car.mileage?car.mileage.toLocaleString()+" км":"",car.vin].filter(Boolean).join(" · ")}</div></div>
+    <div style="display:flex;gap:5px;flex-shrink:0">
+      <button onclick="selCar('${car.id}')" style="padding:5px 9px;border-radius:6px;background:var(--ac);color:white;border:none;font-size:11px;cursor:pointer">Выбрать</button>
+      <button onclick="closeModal('m-carlist');openCarModal('${car.id}')" style="padding:5px 8px;border-radius:6px;background:var(--sf3);color:var(--tx2);border:1px solid var(--bd);font-size:12px;cursor:pointer">✏</button>
+    </div></div>`).join("");
+}
+function selCar(id){S.activeCar=id;saveLocal();closeModal("m-carlist");renderDash();showToast("🚗 Выбрано");}
+function getAC(){return S.cars.find(c=>c.id===S.activeCar)||null;}
+
+// ══════════════════════════════════════════════════════════════
+// FUEL
+// ══════════════════════════════════════════════════════════════
+function openFuelModal(recId=null){
+  const rec=recId?S.fuels.find(f=>f.id===recId):null;
+  g("fuel-modal-title").textContent=rec?"✏ Редактировать заправку":"⛽ Заправка";
+  g("f-eid").value=rec?.id||"";g("f-date").value=rec?.date||new Date().toISOString().split("T")[0];
+  g("f-km").value=rec?.mileage||"";g("f-lit").value=rec?.liters||"";g("f-price").value=rec?.pricePerLiter||"";
+  g("f-curr").value=rec?.currency||S.currency;g("f-total").value=rec?.total||"";
+  g("f-del-btn").style.display=rec?"flex":"none";
+  const nd=parseNote(rec?.note||"");g("f-ftype").value="";g("f-note").value=nd.station;
+  document.querySelectorAll(".fuel-type-btn").forEach(b=>b.classList.toggle("active",b.textContent.trim()===nd.fuelType));
+  if(!nd.fuelType){const fb=document.querySelector(".fuel-type-btn");if(fb)fb.classList.add("active");}
+  if(!rec&&S.fuels.filter(f=>f.carId===S.activeCar).length>0){
+    const lf=S.fuels.filter(f=>f.carId===S.activeCar).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    if(lf?.pricePerLiter)g("f-price").value=lf.pricePerLiter;
+  }
+  openModal("m-fuel");
+}
+
+function setFuelType(type,btn){document.querySelectorAll(".fuel-type-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");g("f-ftype").value="";}
+function calcFuel3(last){
+  const l=parseFloat(g("f-lit").value),p=parseFloat(g("f-price").value),t=parseFloat(g("f-total").value);
+  if(last==="lit"&&l>0&&p>0)g("f-total").value=(l*p).toFixed(2);
+  else if(last==="price"&&l>0&&p>0)g("f-total").value=(l*p).toFixed(2);
+  else if(last==="total"&&t>0){if(l>0&&!p)g("f-price").value=(t/l).toFixed(3);else if(p>0&&!l)g("f-lit").value=(t/p).toFixed(2);else if(l>0&&p>0)g("f-price").value=(t/l).toFixed(3);}
+  else if(last==="lit"&&t>0&&l>0)g("f-price").value=(t/l).toFixed(3);
+  else if(last==="price"&&t>0&&p>0)g("f-lit").value=(t/p).toFixed(2);
+}
+
+function encodeNote(ft,st){return ft&&st?ft+"|"+st:ft||st||"";}
+function parseNote(raw){if(!raw)return{fuelType:"",station:""};const i=raw.indexOf("|");if(i===-1){const k=["АИ-92","АИ-95","АИ-98","ДТ","Газ"];if(k.includes(raw.trim()))return{fuelType:raw.trim(),station:""};return{fuelType:"",station:raw};}return{fuelType:raw.slice(0,i),station:raw.slice(i+1)};}
+
+function saveFuel(){
+  if(!S.activeCar){showToast("⚠ Выберите авто");return;}
+  const date=g("f-date").value,km=parseInt(g("f-km").value)||0,curr=g("f-curr").value;
+  const ab=document.querySelector(".fuel-type-btn.active"),mt=(g("f-ftype").value||"").trim();
+  const fuelType=mt||(ab?.textContent.trim()||""),station=(g("f-note").value||"").trim();
+  const note=encodeNote(fuelType,station);
+  const lit=parseFloat(g("f-lit").value)||0,price=parseFloat(g("f-price").value)||0;
+  const total=parseFloat(g("f-total").value)||0,finalTotal=total||(lit*price)||0;
+  if(!date){showToast("⚠ Укажите дату");return;}
+  if(!lit&&!total){showToast("⚠ Укажите литры или сумму");return;}
+  const eid=g("f-eid").value;
+  if(eid){
+    const rec=S.fuels.find(f=>f.id===eid);
+    if(rec){Object.assign(rec,{date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+finalTotal.toFixed(2),note});
+      updKm(km,rec.carId);saveLocal();
+      qSync({action:"update",sheet:"Fuel",id:eid,row:[eid,rec.carId,date,km,lit,price,curr,finalTotal.toFixed(2),note,rec.createdAt]});
+      showToast("✅ Заправка обновлена");}
+  }else{
+    const id=uid(),cAt=now();
+    const rec={id,carId:S.activeCar,type:"fuel",date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+finalTotal.toFixed(2),note,createdAt:cAt};
+    S.fuels.push(rec);updKm(km,S.activeCar);saveLocal();
+    qSync({action:"append",sheet:"Fuel",row:[id,S.activeCar,date,km,lit,price,curr,finalTotal.toFixed(2),note,cAt]});
+    showToast("✅ Заправка добавлена");}
+  closeModal("m-fuel");clearF2(["f-km","f-lit","f-price","f-total","f-note","f-ftype"]);g("f-eid").value="";
+  document.querySelectorAll(".fuel-type-btn").forEach((b,i)=>b.classList.toggle("active",i===0));
+  renderDash();if(g("scr-fuel").classList.contains("active"))renderFuel();if(g("scr-history").classList.contains("active"))renderHist("all");
+}
+
+function deleteFuel(){
+  const id=g("f-eid").value;if(!id||!confirm("Удалить заправку?"))return;
+  S.fuels=S.fuels.filter(f=>f.id!==id);saveLocal();qSync({action:"delete",sheet:"Fuel",id});
+  closeModal("m-fuel");g("f-eid").value="";renderDash();renderFuel();if(g("scr-history").classList.contains("active"))renderHist("all");showToast("🗑 Удалено");
+}
+
+function calcCons(carId){
+  const fs=S.fuels.filter(x=>x.carId===carId&&x.mileage>0&&x.liters>0).sort((a,b)=>a.mileage-b.mileage);
+  if(fs.length<2)return null;const km=fs[fs.length-1].mileage-fs[0].mileage;if(km<=0)return null;
+  return(fs.slice(1).reduce((s,x)=>s+x.liters,0)/km*100).toFixed(1);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SERVICE
+// ══════════════════════════════════════════════════════════════
+function openSvcModal(recId=null){
+  const rec=recId?S.services.find(s=>s.id===recId):null;
+  g("svc-modal-title").textContent=rec?"✏ Редактировать запись":"🔧 Обслуживание";
+  g("s-eid").value=rec?.id||"";g("s-date").value=rec?.date||new Date().toISOString().split("T")[0];
+  g("s-km").value=rec?.mileage||"";g("s-cost").value=rec?.cost||"";g("s-curr").value=rec?.currency||S.currency;g("s-note").value=rec?.note||"";
+  g("s-del-btn").style.display=rec?"flex":"none";
+  const st=g("s-type");
+  if(rec){const opt=Array.from(st.options).find(o=>o.value===rec.serviceType||o.text===rec.serviceType);
+    if(opt){st.value=opt.value;g("s-cgrp").style.display="none";}
+    else{st.value="_other";g("s-custom").value=rec.serviceType;g("s-cgrp").style.display="block";}}
+  else{st.value="";g("s-cgrp").style.display="none";g("s-custom").value="";}
+  openModal("m-svc");
+}
+function svcChg(){g("s-cgrp").style.display=g("s-type").value==="_other"?"block":"none";}
+
+function saveSvc(){
+  if(!S.activeCar){showToast("⚠ Выберите авто");return;}
+  const date=g("s-date").value,type=g("s-type").value,custom=(g("s-custom").value||"").trim();
+  const km=parseInt(g("s-km").value)||0,cost=parseFloat(g("s-cost").value)||0;
+  const curr=g("s-curr").value,note=(g("s-note").value||"").trim();
+  if(!date||!type){showToast("⚠ Укажите дату и тип работ");return;}
+  const sn=type==="_other"?custom:type;
+  const eid=g("s-eid").value;
+  if(eid){
+    const rec=S.services.find(s=>s.id===eid);
+    if(rec){Object.assign(rec,{serviceType:sn,date,mileage:km,cost,currency:curr,note});updKm(km,rec.carId);saveLocal();
+      qSync({action:"update",sheet:"Service",id:eid,row:[eid,rec.carId,date,sn,km,cost,curr,note,rec.createdAt]});showToast("✅ Обновлено");}
+  }else{
+    const id=uid(),cAt=now();
+    const rec={id,carId:S.activeCar,type:"service",serviceType:sn,date,mileage:km,cost,currency:curr,note,createdAt:cAt};
+    S.services.push(rec);updKm(km,S.activeCar);saveLocal();
+    qSync({action:"append",sheet:"Service",row:[id,S.activeCar,date,sn,km,cost,curr,note,cAt]});showToast("✅ Запись добавлена");}
+  closeModal("m-svc");clearF2(["s-km","s-cost","s-note","s-custom"]);g("s-type").value="";g("s-eid").value="";g("s-cgrp").style.display="none";
+  renderDash();if(g("scr-service").classList.contains("active"))renderSvc();if(g("scr-history").classList.contains("active"))renderHist("all");
+}
+
+function deleteSvc(){
+  const id=g("s-eid").value;if(!id||!confirm("Удалить запись?"))return;
+  S.services=S.services.filter(s=>s.id!==id);saveLocal();qSync({action:"delete",sheet:"Service",id});
+  closeModal("m-svc");g("s-eid").value="";renderDash();renderSvc();if(g("scr-history").classList.contains("active"))renderHist("all");showToast("🗑 Удалено");
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════
+function renderDash(){
+  if(!S.cars.length){g("no-car").style.display="block";g("car-dash").style.display="none";return;}
+  g("no-car").style.display="none";g("car-dash").style.display="block";
+  if(!S.activeCar||!S.cars.find(c=>c.id===S.activeCar)){S.activeCar=S.cars[0].id;saveLocal();}
+  const car=getAC();if(!car)return;
+  g("d-av").innerHTML=carAvatar(car,50,25);
+  g("d-nm").textContent=`${car.brand} ${car.model}`;
+  const realKm=Number(car.mileage)||0;
+  g("d-sub").textContent=[car.year,car.vin,realKm?realKm.toLocaleString()+" км":""].filter(Boolean).join(" · ");
+  g("d-km").textContent=realKm?realKm.toLocaleString():"—";
+  g("d-con").textContent=calcCons(car.id)||"—";
+  g("d-curr").textContent=CUR[S.currency]||"₾";
+  const fs=S.fuels.filter(f=>f.carId===car.id),ss=S.services.filter(s=>s.carId===car.id);
+  const total=[...fs.map(f=>f.total||0),...ss.map(s=>s.cost||0)].reduce((a,b)=>a+b,0);
+  g("d-cost").textContent=total?total.toFixed(0):"—";
+  const lastFs=[...fs].sort((a,b)=>new Date(a.date)-new Date(b.date)).slice(-6);
+  const chel=g("d-chart");
+  if(lastFs.length>1){const mx=Math.max(...lastFs.map(f=>f.liters));chel.innerHTML=`<div class="chbox"><div class="chtit">⛽ Последние заправки</div><div class="chbars">${lastFs.map(f=>{const h=Math.round(f.liters/mx*56)+8;const d=new Date(f.date).toLocaleDateString("ru",{day:"numeric",month:"short"});return`<div class="cbw"><div class="cbv">${f.liters}л</div><div class="cb" style="height:${h}px"></div><div class="cbl">${d}</div></div>`;}).join("")}</div></div>`;}else chel.innerHTML="";
+  const all=[...fs.map(f=>({...f,_t:"fuel"})),...ss.map(s=>({...s,_t:"service"}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  g("d-recent").innerHTML=all.length?`<div class="card">${all.map(rRow).join("")}</div>`:`<div class="empty" style="padding:16px 0"><div class="esub">Добавьте первую заправку или запись об обслуживании</div></div>`;
+  renderOilMini(car);
+  updateBadge();
+}
+
+function rRow(r){
+  const iF=r._t==="fuel"||r.type==="fuel";
+  const cu=CUR[r.currency]||"₾",am=iF?r.total:r.cost;
+  const ds=r.date?new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"}):"";
+  const fn=iF?`openFuelModal('${r.id}')`:`openSvcModal('${r.id}')`;
+  const dotColor=iF?stationColor(parseNote(r.note||"").station||parseNote(r.note||"").fuelType):svcColor(r.serviceType);
+  return`<div class="crow" style="border-left:3px solid ${dotColor}22">
+    <div class="ri ${iF?"rif":"ris"}" style="border-left:3px solid ${dotColor}">${iF?"⛽":"🔧"}</div>
+    <div class="rb" onclick="${fn}" style="cursor:pointer">
+      <div class="rt">${iF?(()=>{const n=parseNote(r.note||"");return[n.fuelType,n.station].filter(Boolean).join(" · ")||"Заправка";})():r.serviceType}</div>
+      <div class="rs2">${ds}${r.mileage?" · "+r.mileage.toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}</div>
+    </div>
+    <div class="rr" style="display:flex;align-items:center;gap:8px">
+      <div><div class="ra ${iF?"raf":"ras"}">${am?cu+am.toFixed(0):"—"}</div><span class="badge ${iF?"bf":"bs"}">${iF?"ТОПЛИВО":"СЕРВИС"}</span></div>
+      <button onclick="${fn}" style="background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:6px;padding:5px 7px;font-size:12px;cursor:pointer">✏</button>
+    </div></div>`;
+}
+
+function renderFuel(){
+  const car=getAC();
+  if(!car){g("fuel-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;g("fuel-cblock").innerHTML="";return;}
+  const fs=S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const cons=calcCons(car.id),cel=g("fuel-cblock");
+  if(cons&&fs.length>=2){const tL=fs.reduce((s,f)=>s+f.liters,0),tC=fs.reduce((s,f)=>s+(f.total||0),0),cu=CUR[fs[0]?.currency]||"₾";cel.innerHTML=`<div class="ccard"><div><div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div><div class="cbig">${cons}</div><div class="cunit">л/100км</div></div><div class="cstats"><div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div><div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div><div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div></div></div>`;}else cel.innerHTML="";
+  g("fuel-list").innerHTML=fs.length?`<div class="card">${fs.map(f=>rRow({...f,_t:"fuel"})).join("")}</div>`:`<div class="empty"><div class="ei">⛽</div><div class="etit">Нет заправок</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+}
+
+function renderSvc(){
+  const car=getAC();
+  if(!car){g("svc-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;return;}
+  const ss=S.services.filter(s=>s.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  g("svc-list").innerHTML=ss.length?`<div class="card">${ss.map(s=>rRow({...s,_t:"service"})).join("")}</div>`:`<div class="empty"><div class="ei">🔧</div><div class="etit">Нет записей</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+}
+
+function renderHist(f){
+  const car=getAC();
+  if(!car){g("hist-list").innerHTML=`<div class="empty"><div class="esub">Выберите авто</div></div>`;return;}
+  let all=[...S.fuels.filter(x=>x.carId===car.id).map(x=>({...x,_t:"fuel"})),...S.services.filter(x=>x.carId===car.id).map(x=>({...x,_t:"service"}))];
+  if(f==="fuel")all=all.filter(r=>r._t==="fuel");if(f==="service")all=all.filter(r=>r._t==="service");
+  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  g("hist-list").innerHTML=all.length?`<div class="card">${all.map(rRow).join("")}</div>`:`<div class="empty"><div class="ei">📋</div><div class="etit">Нет записей</div></div>`;
+}
+
+function fHist(f,btn){document.querySelectorAll(".tabs .tb").forEach(b=>b.classList.remove("active"));btn.classList.add("active");renderHist(f);}
+
+// ══════════════════════════════════════════════════════════════
+// OIL
+// ══════════════════════════════════════════════════════════════
+function parseOilNote(raw){if(!raw)return{interval:10000,note:""};const m=String(raw).match(/^\[int:(\d+)\]([\s\S]*)/);if(m)return{interval:parseInt(m[1])||10000,note:m[2].trim()};return{interval:10000,note:String(raw)};}
+
+function getOilRecords(carId){return S.services.filter(s=>s.carId===carId&&s.serviceType==="🛢 Замена масла").map(s=>{const{interval,note}=parseOilNote(s.note);return{...s,interval,cleanNote:note};}).sort((a,b)=>b.mileage-a.mileage);}
+
+function openOilModal(recId=null){
+  const car=getAC();if(!car){showToast("⚠ Выберите авто");return;}
+  const rec=recId?S.services.find(s=>s.id===recId&&s.serviceType==="🛢 Замена масла"):null;
+  g("oil-modal-title").textContent=rec?"✏ Редактировать замену":"🛢 Замена масла";
+  g("oil-eid").value=rec?.id||"";g("oil-date").value=rec?.date||new Date().toISOString().split("T")[0];
+  g("oil-km").value=rec?rec.mileage:(car.mileage||"");g("oil-cost").value=rec?.cost||"";g("oil-curr").value=rec?.currency||S.currency;g("oil-del-btn").style.display=rec?"flex":"none";
+  const{interval,note}=parseOilNote(rec?.note);g("oil-interval").value=interval;g("oil-note").value=note;
+  document.querySelectorAll(".interval-btn").forEach(b=>b.classList.toggle("active",parseInt(b.textContent.replace(/\D/g,""))===interval));
+  openModal("m-oil");
+}
+
+function setInterval2(val,btn){document.querySelectorAll(".interval-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");g("oil-interval").value=val;}
+
+function saveOil(){
+  const car=getAC();if(!car)return;
+  const date=g("oil-date").value,km=parseInt(g("oil-km").value)||0,interval=parseInt(g("oil-interval").value)||10000;
+  const note=(g("oil-note").value||"").trim(),cost=parseFloat(g("oil-cost").value)||0,currency=g("oil-curr").value;
+  if(!date||!km){showToast("⚠ Укажите дату и пробег");return;}
+  const encodedNote=`[int:${interval}]${note}`;
+  const eid=g("oil-eid").value;
+  if(eid){
+    const svc=S.services.find(s=>s.id===eid);
+    if(svc){Object.assign(svc,{date,mileage:km,cost,currency,note:encodedNote});updKm(km,car.id);saveLocal();
+      qSync({action:"update",sheet:"Service",id:eid,row:[eid,svc.carId,date,"🛢 Замена масла",km,cost,currency,encodedNote,svc.createdAt]});showToast("✅ Обновлено");}
+  }else{
+    const id=uid(),cAt=now();
+    const svc={id,carId:car.id,type:"service",serviceType:"🛢 Замена масла",date,mileage:km,cost,currency,note:encodedNote,createdAt:cAt};
+    S.services.push(svc);updKm(km,car.id);saveLocal();
+    qSync({action:"append",sheet:"Service",row:[id,car.id,date,"🛢 Замена масла",km,cost,currency,encodedNote,cAt]});showToast("✅ Замена масла записана");}
+  closeModal("m-oil");renderOil();renderDash();
+}
+
+function deleteOil(){
+  const id=g("oil-eid").value;if(!id||!confirm("Удалить запись о замене масла?"))return;
+  S.services=S.services.filter(s=>s.id!==id);saveLocal();qSync({action:"delete",sheet:"Service",id});
+  closeModal("m-oil");renderOil();renderDash();showToast("🗑 Удалено");
+}
+
+function renderOil(){
+  const car=getAC(),el=g("oil-block");if(!el)return;
+  if(!car){el.innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;return;}
+  const oils=getOilRecords(car.id);
+  let reminderHTML="";
+  if(oils.length){
+    const last=oils[0],curKm=Number(car.mileage)||0,nextKm=last.mileage+last.interval,leftKm=nextKm-curKm;
+    const pct=Math.min(100,Math.max(0,(curKm-last.mileage)/last.interval*100));
+    const done=leftKm<=0,warn=!done&&leftKm<=last.interval*.2;
+    const state=done?"danger":warn?"warn":"ok",icon=done?"🔴":warn?"🟡":"🟢",color=done?"#ef4444":warn?"#f59e0b":"#10b981";
+    const lastDate=new Date(last.date).toLocaleDateString("ru",{day:"numeric",month:"long",year:"numeric"});
+    const nextDate=estimateNextDate(last.date,last.mileage,curKm,last.interval);
+    reminderHTML=`<div class="oil-card ${state}" onclick="openOilModal('${last.id}')"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px">${icon} ${done?"Замена просрочена!":warn?"Скоро замена масла":"Масло в норме"}</div><div style="font-size:11px;color:var(--tx2);margin-top:3px">${last.cleanNote||"Масло"} · каждые ${last.interval.toLocaleString()} км</div></div><div style="text-align:right"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${color}">${done?"+"+Math.abs(leftKm).toLocaleString():leftKm.toLocaleString()}</div><div style="font-size:10px;color:var(--tx2)">${done?"км просрочено":"км осталось"}</div></div></div><div class="oil-progress"><div class="oil-bar" style="width:${pct}%;background:${color}"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--tx2);margin-top:4px"><span>Замена: ${lastDate} · ${last.mileage.toLocaleString()} км</span><span>Следующая: ~${nextKm.toLocaleString()} км${nextDate?" · "+nextDate:""}</span></div></div>`;
+  }else{reminderHTML=`<div class="oil-card none" style="cursor:pointer" onclick="openOilModal()"><div style="display:flex;align-items:center;gap:12px"><div style="font-size:32px">🛢</div><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Добавить запись о замене масла</div><div style="font-size:12px;color:var(--tx2);margin-top:3px">Укажите пробег и интервал — приложение будет напоминать</div></div></div></div>`;}
+  const histHTML=oils.length?`<div class="sh" style="margin-top:16px"><span class="st">История замен</span></div><div class="card">${oils.map(o=>{const d=new Date(o.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"});const cu=CUR[o.currency]||"₾";return`<div class="crow" onclick="openOilModal('${o.id}')" style="cursor:pointer"><div class="ri" style="background:rgba(245,158,11,.12)">🛢</div><div class="rb"><div class="rt">${o.cleanNote||"Замена масла"}</div><div class="rs2">${d} · ${o.mileage.toLocaleString()} км · интервал ${o.interval.toLocaleString()} км</div></div><div class="rr" style="display:flex;align-items:center;gap:8px"><div><div class="ra raf">${o.cost?cu+o.cost.toFixed(0):"—"}</div></div><button style="background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer">✏</button></div></div>`;}).join("")}</div>`:"";
+  el.innerHTML=reminderHTML+histHTML;
+}
+
+function renderOilMini(car){
+  const el=g("d-oil-mini");if(!el)return;
+  const oils=getOilRecords(car.id);if(!oils.length){el.innerHTML="";return;}
+  const last=oils[0],curKm=Number(car.mileage)||0,leftKm=(last.mileage+last.interval)-curKm;
+  const pct=Math.min(100,Math.max(0,(curKm-last.mileage)/last.interval*100));
+  const done=leftKm<=0,warn=!done&&leftKm<=last.interval*.2;
+  const color=done?"#ef4444":warn?"#f59e0b":"#10b981",icon=done?"🔴":warn?"🟡":"🟢";
+  const label=done?`Просрочена! +${Math.abs(leftKm).toLocaleString()} км`:warn?`Скоро замена — ${leftKm.toLocaleString()} км`:`Масло OK — осталось ${leftKm.toLocaleString()} км`;
+  const R=18,circ=2*Math.PI*R,dash=circ*(1-pct/100);
+  el.innerHTML=`<div onclick="goScr('oil')" style="cursor:pointer;background:rgba(0,0,0,.18);border:1px solid ${color}33;border-radius:12px;padding:10px 13px;display:flex;align-items:center;gap:12px"><div style="flex-shrink:0;position:relative;width:44px;height:44px"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="${R}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="4"/><circle cx="22" cy="22" r="${R}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}" transform="rotate(-90 22 22)"><animate attributeName="stroke-dashoffset" from="${circ.toFixed(1)}" to="${dash.toFixed(1)}" dur="1.4s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></circle><text x="22" y="26" text-anchor="middle" font-size="13">🛢</text></svg></div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:${color};margin-bottom:3px">${label}</div><div style="font-size:10px;color:var(--tx2)">${last.cleanNote||"Масло"} · каждые ${last.interval.toLocaleString()} км</div><div style="height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:6px;overflow:hidden"><div style="height:100%;width:0%;background:${color};border-radius:2px;transition:width 1.4s cubic-bezier(.34,1.2,.64,1)" data-target="${pct}%"></div></div></div><span style="font-size:16px;color:var(--tx3);flex-shrink:0">›</span></div>`;
+  requestAnimationFrame(()=>{const bar=el.querySelector("[data-target]");if(bar)bar.style.width=bar.dataset.target;});
+}
+
+function estimateNextDate(lds,lkm,ckm,interval){const ld=new Date(lds);const ds=(Date.now()-ld.getTime())/86400000;if(ds<=0||ckm<=lkm)return"";const kpd=(ckm-lkm)/ds;if(kpd<=0)return"";const dl=(lkm+interval-ckm)/kpd;return new Date(Date.now()+dl*86400000).toLocaleDateString("ru",{day:"numeric",month:"short"});}
+
+// ══════════════════════════════════════════════════════════════
+// ANALYTICS (simplified — full version kept as is)
+// ══════════════════════════════════════════════════════════════
+function renderTankWidget(car,fuels){
+  const tank=Number(car.tank)||0,last=fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+  if(!tank||!last)return"";
+  const lit=last.liters||0,pct=Math.min(100,Math.round(lit/tank*100));
+  const fc=pct>60?"#10b981":pct>25?"#f59e0b":"#ef4444";
+  const{fuelType}=parseNote(last.note||"");
+  return`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">⛽ Бензобак</div><div style="font-size:11px;color:var(--tx2);margin-top:2px">${fuelType||"Топливо"} · последняя заправка ${lit}л</div></div><div style="text-align:right"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${fc}">${pct}%</div><div style="font-size:10px;color:var(--tx2)">${lit}л / ${tank}л</div></div></div><div style="position:relative;height:56px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)"><div style="position:absolute;bottom:0;left:0;right:0;height:${pct}%;background:linear-gradient(180deg,${fc}cc,${fc}66);border-radius:0 0 9px 9px;transition:height 1.4s cubic-bezier(.34,1.2,.64,1);overflow:hidden"><svg viewBox="0 0 200 20" preserveAspectRatio="none" style="position:absolute;top:-12px;left:0;right:0;width:100%;height:20px"><path d="M0,10 C30,0 70,20 100,10 C130,0 170,20 200,10 L200,20 L0,20Z" fill="${fc}88"><animateTransform attributeName="transform" type="translate" from="-200,0" to="0,0" dur="2.5s" repeatCount="indefinite"/></path><path d="M0,12 C40,2 80,22 120,12 C160,2 200,22 240,12 L240,20 L0,20Z" fill="${fc}55"><animateTransform attributeName="transform" type="translate" from="0,0" to="-200,0" dur="3.5s" repeatCount="indefinite"/></path></svg></div>${[25,50,75].map(m=>`<div style="position:absolute;bottom:${m}%;left:0;right:0;height:1px;background:rgba(255,255,255,.08)"></div><div style="position:absolute;bottom:${m}%;right:8px;font-size:9px;color:rgba(255,255,255,.25);line-height:1;transform:translateY(50%)">${m}%</div>`).join("")}</div></div>`;
+}
+
+function summaryCard(label,value,color,full=false){return`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:12px;${full?"margin-bottom:8px":""}"><div style="font-size:10px;color:var(--tx2);margin-bottom:4px">${label}</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:${color}">${value}</div></div>`;}
+
+function lineChart(title,months,dataByMonth,color){
+  const vals=months.map(m=>dataByMonth[m]||null),valid=vals.filter(v=>v!==null);if(valid.length<2)return"";
+  const mn=Math.min(...valid)*.9,mx=Math.max(...valid)*1.1||1,W=280,H=60,pad=8;
+  const pts=months.map((m,i)=>{const v=dataByMonth[m];if(!v)return null;const x=pad+i/(months.length-1)*(W-pad*2),y=H-pad-(v-mn)/(mx-mn)*(H-pad*2);return[x,y,v];}).filter(Boolean);
+  const pD=pts.map((p,i)=>i===0?`M${p[0]},${p[1]}`:`L${p[0]},${p[1]}`).join(" ");
+  const aD=pD+` L${pts[pts.length-1][0]},${H} L${pts[0][0]},${H} Z`;
+  return`<div class="card" style="padding:14px;margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:12px">${title}</div><svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible"><defs><linearGradient id="lg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity=".25"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${aD}" fill="url(#lg1)"/><path d="${pD}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><animate attributeName="stroke-dashoffset" from="1000" to="0" dur="1.5s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/></path>${pts.map(([x,y,v])=>`<circle cx="${x}" cy="${y}" r="3" fill="${color}"/><text x="${x}" y="${y-6}" text-anchor="middle" fill="${color}" font-size="8" font-family="sans-serif">${v}</text>`).join("")}${months.map((m,i)=>{const x=pad+i/(months.length-1)*(W-pad*2),mn2=new Date(m+"-01").toLocaleDateString("ru",{month:"short"});return`<text x="${x}" y="${H+2}" text-anchor="middle" fill="#3d4a5e" font-size="8" font-family="sans-serif" dominant-baseline="hanging">${mn2}</text>`;}).join("")}</svg></div>`;
+}
+
+function renderAnalytics(){
+  const car=getAC(),el=g("analytics-body");if(!el)return;
+  if(!car){el.innerHTML=`<div class="empty"><div class="ei">📊</div><div class="etit">Выберите авто</div></div>`;return;}
+  const fuels=S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const svcs=S.services.filter(s=>s.carId===car.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(!fuels.length&&!svcs.length){el.innerHTML=`<div class="empty"><div class="ei">📊</div><div class="etit">Нет данных</div><div class="esub">Добавьте заправки и обслуживание</div></div>`;return;}
+  const byMonth={};
+  fuels.forEach(f=>{const k=f.date?.slice(0,7);if(!k)return;if(!byMonth[k])byMonth[k]={fuel:0,svc:0,liters:0};byMonth[k].fuel+=f.total||0;byMonth[k].liters+=f.liters||0;});
+  svcs.forEach(s=>{const k=s.date?.slice(0,7);if(!k)return;if(!byMonth[k])byMonth[k]={fuel:0,svc:0,liters:0};byMonth[k].svc+=s.cost||0;});
+  const months=Object.keys(byMonth).sort().slice(-6),maxVal=Math.max(...months.map(m=>byMonth[m].fuel+byMonth[m].svc),1);
+  const tF=fuels.reduce((s,f)=>s+(f.total||0),0),tS=svcs.reduce((s,f)=>s+(f.cost||0),0),tL=fuels.reduce((s,f)=>s+(f.liters||0),0);
+  const avgP=tL>0?tF/tL:0,cons=calcCons(car.id),cu=CUR[S.currency]||"₾";
+  const consByMonth={};months.forEach(m=>{const mF=fuels.filter(f=>f.date?.startsWith(m)).sort((a,b)=>a.mileage-b.mileage);if(mF.length>=2){const km=mF[mF.length-1].mileage-mF[0].mileage,lt=mF.slice(1).reduce((s,f)=>s+f.liters,0);if(km>0)consByMonth[m]=+(lt/km*100).toFixed(1);}});
+  const svcByType={};svcs.forEach(s=>{const k=s.serviceType||"Другое";if(!svcByType[k])svcByType[k]=0;svcByType[k]+=s.cost||0;});
+  const topSvc=Object.entries(svcByType).sort((a,b)=>b[1]-a[1]).slice(0,5),maxSvc=topSvc[0]?.[1]||1;
+  const byStation={};fuels.forEach(f=>{const{station}=parseNote(f.note||"");const k=station||"Другие";if(!byStation[k])byStation[k]={cnt:0,total:0,liters:0};byStation[k].cnt++;byStation[k].total+=f.total||0;byStation[k].liters+=f.liters||0;});
+  const topSt=Object.entries(byStation).sort((a,b)=>b[1].cnt-a[1].cnt).slice(0,4);
+  const byFT={};fuels.forEach(f=>{const{fuelType}=parseNote(f.note||"");const k=fuelType||"—";if(!byFT[k])byFT[k]=0;byFT[k]+=f.liters||0;});
+  const topFT=Object.entries(byFT).sort((a,b)=>b[1]-a[1]);
+  el.innerHTML=`
+  ${renderTankWidget(car,fuels)}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    ${summaryCard("💰 Всего потрачено",cu+(tF+tS).toFixed(0),"var(--ac2)")}
+    ${summaryCard("⛽ На топливо",cu+tF.toFixed(0),"var(--am2)")}
+    ${summaryCard("🔧 На сервис",cu+tS.toFixed(0),"#60a5fa")}
+    ${summaryCard("🛢 Всего залито",tL.toFixed(0)+"л","var(--gn2)")}
+  </div>
+  ${avgP?summaryCard("📊 Средняя цена топлива",cu+avgP.toFixed(2)+"/л","var(--pu2)",true):""}
+  ${cons?summaryCard("🔥 Средний расход",cons+" л/100км","var(--am2)",true):""}
+  ${months.length>=2?`<div class="card" style="padding:14px;margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:14px">📅 Расходы по месяцам</div><div style="display:flex;gap:6px;align-items:flex-end;height:90px;margin-bottom:8px">${months.map(m=>{const d=byMonth[m],hF=Math.round(d.fuel/maxVal*80)+4,hS=Math.round(d.svc/maxVal*80)+4,mn=new Date(m+"-01").toLocaleDateString("ru",{month:"short"});return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><div style="width:100%;display:flex;flex-direction:column;gap:2px;align-items:center">${d.svc>0?`<div style="width:70%;height:${hS}px;background:rgba(59,130,246,.6);border-radius:3px 3px 0 0;transition:height 1s"></div>`:""}<div style="width:100%;height:${hF}px;background:linear-gradient(180deg,var(--am2),rgba(245,158,11,.4));border-radius:3px 3px 0 0;transition:height 1s"></div></div><div style="font-size:9px;color:var(--tx3)">${mn}</div></div>`;}).join("")}</div><div style="display:flex;gap:12px;font-size:10px;color:var(--tx2)"><span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--am2);border-radius:2px;display:inline-block"></span>Топливо</span><span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:rgba(59,130,246,.7);border-radius:2px;display:inline-block"></span>Сервис</span></div></div>`:""}
+  ${Object.keys(consByMonth).length>=2?lineChart("🔥 Расход по месяцам (л/100км)",months,consByMonth,"var(--am2)"):""}
+  ${topSt.length?`<div class="card" style="padding:14px;margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:12px">📍 Любимые АЗС</div>${topSt.map(([name,d])=>{const col=stationColor(name),pct=Math.round(d.cnt/fuels.length*100);return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="display:flex;align-items:center;gap:7px"><div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div><span style="font-size:13px;font-weight:500">${name}</span></div><div style="font-size:11px;color:var(--tx2)">${d.cnt} раз · ${cu}${d.total.toFixed(0)}</div></div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:width 1.2s"></div></div></div>`;}).join("")}</div>`:""}
+  ${topFT.length>1?`<div class="card" style="padding:14px;margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:12px">⛽ Марки топлива</div><div style="display:flex;gap:6px;height:8px;border-radius:4px;overflow:hidden;margin-bottom:10px">${topFT.map(([t,l])=>`<div style="height:100%;width:${tL>0?l/tL*100:0}%;background:${stationColor(t)};min-width:4px"></div>`).join("")}</div>${topFT.map(([t,l])=>{const pct=tL>0?Math.round(l/tL*100):0,col=stationColor(t);return`<div style="display:flex;align-items:center;justify-content:space-between;padding:3px 0"><div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:${col}"></div><span style="font-size:12px">${t}</span></div><span style="font-size:12px;color:var(--tx2)">${l.toFixed(0)}л · ${pct}%</span></div>`;}).join("")}</div>`:""}
+  ${topSvc.length?`<div class="card" style="padding:14px;margin-bottom:10px"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;margin-bottom:12px">🔧 Траты на обслуживание</div>${topSvc.map(([type,cost])=>{const col=svcColor(type),pct=Math.round(cost/maxSvc*100);return`<div style="margin-bottom:10px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="display:flex;align-items:center;gap:7px"><div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div><span style="font-size:12px;font-weight:500">${type}</span></div><span style="font-size:12px;color:var(--tx2)">${cu}${cost.toFixed(0)}</span></div><div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:width 1.2s"></div></div></div>`;}).join("")}</div>`:""}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// BADGE
+// ══════════════════════════════════════════════════════════════
+async function updateBadge(){
+  if(!("setAppBadge" in navigator))return;
+  const car=getAC(),km=car?(Number(car.mileage)||0):0;
+  if("Notification" in window&&Notification.permission==="default"){try{await Notification.requestPermission();}catch(e){}}
+  try{km>0?await navigator.setAppBadge(km):await navigator.clearAppBadge();}catch(e){try{const reg=await navigator.serviceWorker.ready;if("setAppBadge" in reg){km>0?await reg.setAppBadge(km):await reg.clearAppBadge();}}catch(e2){}}
+}
+
+// ══════════════════════════════════════════════════════════════
+// SYNC BAR
+// ══════════════════════════════════════════════════════════════
+let sbarT;
+function setSbar(state,msg){const b=g("sbar");if(!b)return;b.className="sbar show "+state;g("smsg").textContent=msg;clearTimeout(sbarT);if(state==="ok"||state==="error")sbarT=setTimeout(()=>b.classList.remove("show"),3500);}
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+function clearF2(ids){ids.forEach(id=>{const e=g(id);if(e)e.value="";});}
+let toastT;
+function showToast(msg){const e=g("toast");if(!e)return;e.textContent=msg;e.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove("show"),2700);}
+function saveUrl(){testConnection();}
+function clearAll(){}
+function testConnection(){setSbar("syncing","Проверяем подключение...");loadFromSheets();}
+
+// ══════════════════════════════════════════════════════════════
+// START — инициализируем Google Auth
+// ══════════════════════════════════════════════════════════════
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+initGoogleAuth();
+</script>
+</body>
+</html>
