@@ -799,6 +799,15 @@ let S = {
 // ══════════════════════════════════════════════════════════════
 const g   = id => document.getElementById(id);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+
+// ── Безопасные числа для Sheets ────────────────────────────────
+// Парсим строку, убираем запятые (русская локаль), возвращаем число
+const n = (v, dec=2) => {
+  if (typeof v === "string") v = v.replace(",", ".");
+  const f = parseFloat(v);
+  return isNaN(f) ? 0 : (dec === 0 ? Math.round(f) : +f.toFixed(dec));
+};
+const coord = (v) => { const f = n(v, 6); return f || null; };
 const now = () => new Date().toISOString();
 const isTokenValid = () => S.accessToken && Date.now() < S.tokenExpiry - 60000;
 
@@ -855,6 +864,7 @@ async function handleAccessToken(tr) {
   S.accessToken=tr.access_token;
   S.tokenExpiry=Date.now()+(tr.expires_in||3600)*1000;
   saveLocal();
+  scheduleTokenRefresh();  // планируем авто-обновление токена
   setSbar("syncing","Подключаемся к Google Sheets...");
   await ensureSpreadsheet();
   showApp();
@@ -902,23 +912,58 @@ function updateUserUI() {
 // ══════════════════════════════════════════════════════════════
 // SHEETS API
 // ══════════════════════════════════════════════════════════════
-async function apiGet(url) {
-  if (!isTokenValid()){refreshToken();throw new Error("Token expired");}
-  const r=await fetch(url,{headers:{Authorization:"Bearer "+S.accessToken}});
-  if (!r.ok) throw new Error("GET "+r.status+" "+await r.text());
+// ── Ожидаем новый токен (после refreshToken) ──────────────────
+async function waitForToken(ms=8000) {
+  const start = Date.now();
+  while (!isTokenValid() && Date.now()-start < ms) {
+    await new Promise(r => setTimeout(r, 200));
+  }
+  return isTokenValid();
+}
+
+// ── Общий HTTP-запрос с авто-рефрешем при 401 ─────────────────
+async function apiFetch(method, url, body) {
+  // Если токен почти истёк — рефрешим заранее
+  if (!isTokenValid()) {
+    refreshToken();
+    const ok = await waitForToken();
+    if (!ok) throw new Error("Не удалось обновить сессию");
+  }
+  const opts = {
+    method,
+    headers: { Authorization: "Bearer " + S.accessToken }
+  };
+  if (body !== undefined) {
+    opts.headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(body);
+  }
+  let r = await fetch(url, opts);
+  // 401 — токен протух прямо сейчас, рефрешим и повторяем один раз
+  if (r.status === 401) {
+    refreshToken();
+    const ok = await waitForToken();
+    if (!ok) throw new Error("Сессия истекла — войдите снова");
+    opts.headers.Authorization = "Bearer " + S.accessToken;
+    r = await fetch(url, opts);
+  }
+  if (!r.ok) throw new Error(method + " " + r.status + " " + await r.text());
   return r.json();
 }
-async function apiPost(url,body) {
-  if (!isTokenValid()){refreshToken();throw new Error("Token expired");}
-  const r=await fetch(url,{method:"POST",headers:{Authorization:"Bearer "+S.accessToken,"Content-Type":"application/json"},body:JSON.stringify(body)});
-  if (!r.ok) throw new Error("POST "+r.status+" "+await r.text());
-  return r.json();
-}
-async function apiPut(url,body) {
-  if (!isTokenValid()){refreshToken();throw new Error("Token expired");}
-  const r=await fetch(url,{method:"PUT",headers:{Authorization:"Bearer "+S.accessToken,"Content-Type":"application/json"},body:JSON.stringify(body)});
-  if (!r.ok) throw new Error("PUT "+r.status+" "+await r.text());
-  return r.json();
+
+const apiGet  = (url)       => apiFetch("GET",  url);
+const apiPost = (url, body) => apiFetch("POST", url, body);
+const apiPut  = (url, body) => apiFetch("PUT",  url, body);
+
+// ── Авто-обновление токена за 5 минут до истечения ────────────
+function scheduleTokenRefresh() {
+  const msLeft = S.tokenExpiry - Date.now() - 5 * 60 * 1000;
+  if (msLeft <= 0) { refreshToken(); return; }
+  clearTimeout(S._refreshTimer);
+  S._refreshTimer = setTimeout(() => {
+    refreshToken();
+    // После рефреша планируем следующий
+    setTimeout(scheduleTokenRefresh, 500);
+  }, msLeft);
 }
 
 async function ensureSpreadsheet() {
@@ -1039,7 +1084,7 @@ function parseRow(sn,o) {
 
 // ── WRITE TO SHEETS ────────────────────────────────────────────
 async function appendRow(sn,row) {
-  await apiPost(`${BASE}/${S.spreadsheetId}/values/${sn}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,{values:[row]});
+  await apiPost(`${BASE}/${S.spreadsheetId}/values/${sn}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{values:[row]});
 }
 async function updateRow(sn,id,row) {
   const res=await apiGet(`${BASE}/${S.spreadsheetId}/values/${sn}!A:A`);
@@ -1047,7 +1092,7 @@ async function updateRow(sn,id,row) {
   const idx=rows.findIndex((r,i)=>i>0&&String(r[0])===String(id));
   if(idx<0){await appendRow(sn,row);return;}
   const cols=SCHEMA[sn].length;
-  await apiPut(`${BASE}/${S.spreadsheetId}/values/${sn}!A${idx+1}:${colL(cols)}${idx+1}?valueInputOption=USER_ENTERED`,{values:[row]});
+  await apiPut(`${BASE}/${S.spreadsheetId}/values/${sn}!A${idx+1}:${colL(cols)}${idx+1}?valueInputOption=RAW`,{values:[row]});
 }
 async function deleteRow(sn,id) {
   const sd=await apiGet(`${BASE}/${S.spreadsheetId}?fields=sheets.properties`);
@@ -1097,6 +1142,8 @@ function updatePendingUI(){
 // INIT
 // ══════════════════════════════════════════════════════════════
 function appInit() {
+  // Планируем авто-обновление токена если он уже есть
+  if (isTokenValid()) scheduleTokenRefresh();
   if(!Array.isArray(S.queue))S.queue=[];
   buildSwatches();setDates();updateOffline();
   renderDash();applySettings();updatePendingUI();
@@ -1270,14 +1317,14 @@ function saveCar(){
     if(car){
       Object.assign(car,{type,brand,model,year,mileage,vin,color,tank,fuelType,photo});
       saveLocal();
-      qSync({action:"update",sheet:"Cars",id:eid,row:[eid,type,brand,model,year,mileage,vin,color,tank,fuelType,car.createdAt]});
+      qSync({action:"update",sheet:"Cars",id:eid,row:[eid,type,brand,model,year,n(mileage,0),vin,color,n(tank,0),fuelType,car.createdAt]});
       showToast("✅ Авто обновлено");
     }
   } else {
     const car={id:uid(),type,brand,model,year,mileage,vin,color,tank,fuelType,photo,createdAt:now()};
     S.cars.push(car);if(!S.activeCar)S.activeCar=car.id;
     saveLocal();
-    qSync({action:"append",sheet:"Cars",row:[car.id,type,brand,model,year,mileage,vin,color,tank,fuelType,car.createdAt]});
+    qSync({action:"append",sheet:"Cars",row:[car.id,type,brand,model,year,n(mileage,0),vin,color,n(tank,0),fuelType,car.createdAt]});
     showToast("✅ Автомобиль добавлен");
   }
   closeModal("m-car");closeModal("m-carlist");renderDash();
@@ -1462,9 +1509,9 @@ function saveFuel(){
   const fuelType=g("f-ftype").value.trim()||ab?.textContent.trim()||"";
   const station=(g("f-note").value||"").trim();
   const note=encodeNote(fuelType,station);
-  const lit=parseFloat(g("f-lit").value)||0;
-  const price=parseFloat(g("f-price").value)||0;
-  const total=parseFloat(g("f-total").value)||0;
+  const lit=n(g("f-lit").value);
+  const price=n(g("f-price").value,3);
+  const total=n(g("f-total").value);
   const finalTotal=total||(lit*price);
   const lat=parseFloat(g("f-lat").value)||0;
   const lng=parseFloat(g("f-lng").value)||0;
@@ -1475,13 +1522,13 @@ function saveFuel(){
     if(rec){
       Object.assign(rec,{date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+finalTotal.toFixed(2),note,lat,lng});
       updKm(km,rec.carId);saveLocal();
-      qSync({action:"update",sheet:"Fuel",id:eid,row:[eid,rec.carId,date,km,lit,price,curr,+finalTotal.toFixed(2),note,lat,lng,rec.createdAt]});
+      qSync({action:"update",sheet:"Fuel",id:eid,row:[eid,rec.carId,date,n(km,0),n(lit),n(price,3),curr,n(finalTotal),note,coord(lat),coord(lng),rec.createdAt]});
       showToast("✅ Заправка обновлена");
     }
   } else {
     const rec={id:uid(),carId:S.activeCar,type:"fuel",date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+finalTotal.toFixed(2),note,lat,lng,createdAt:now()};
     S.fuels.push(rec);updKm(km,S.activeCar);saveLocal();
-    qSync({action:"append",sheet:"Fuel",row:[rec.id,rec.carId,date,km,lit,price,curr,rec.total,note,lat,lng,rec.createdAt]});
+    qSync({action:"append",sheet:"Fuel",row:[rec.id,rec.carId,date,n(km,0),n(lit),n(price,3),curr,n(rec.total),note,coord(lat),coord(lng),rec.createdAt]});
     showToast("✅ Заправка добавлена");
   }
   closeModal("m-fuel");clearF2(["f-km","f-lit","f-price","f-total","f-note","f-ftype","f-lat","f-lng"]);
@@ -1540,7 +1587,7 @@ function saveSvc(){
   const custom=g("s-custom").value.trim();
   if(custom)stype=custom;
   const km=parseInt(g("s-km").value)||0;
-  const cost=parseFloat(g("s-cost").value)||0;
+  const cost=n(g("s-cost").value);
   const curr=g("s-curr").value;
   const note=(g("s-note").value||"").trim();
   const interval=g("s-interval-group").style.display!=="none"?(parseInt(g("s-interval").value)||0):0;
@@ -1550,13 +1597,13 @@ function saveSvc(){
     if(rec){
       Object.assign(rec,{serviceType:stype,date,mileage:km,cost,currency:curr,note,interval});
       updKm(km,rec.carId);saveLocal();
-      qSync({action:"update",sheet:"Service",id:eid,row:[eid,rec.carId,date,stype,km,cost,curr,note,interval,rec.createdAt]});
+      qSync({action:"update",sheet:"Service",id:eid,row:[eid,rec.carId,date,stype,n(km,0),n(cost),curr,note,n(interval,0),rec.createdAt]});
       showToast("✅ Обновлено");
     }
   } else {
     const rec={id:uid(),carId:S.activeCar,type:"service",serviceType:stype,date,mileage:km,cost,currency:curr,note,interval,createdAt:now()};
     S.services.push(rec);updKm(km,S.activeCar);saveLocal();
-    qSync({action:"append",sheet:"Service",row:[rec.id,rec.carId,date,stype,km,cost,curr,note,interval,rec.createdAt]});
+    qSync({action:"append",sheet:"Service",row:[rec.id,rec.carId,date,stype,n(km,0),n(cost),curr,note,n(interval,0),rec.createdAt]});
     showToast("✅ Запись добавлена");
   }
   closeModal("m-svc");clearF2(["s-km","s-cost","s-note","s-custom"]);
@@ -1611,13 +1658,13 @@ function saveFine(){
     const rec=S.fines.find(f=>f.id===eid);
     if(rec){
       Object.assign(rec,{reason,date,amount,currency:curr,mileage:km,status,note});
-      saveLocal();qSync({action:"update",sheet:"Fines",id:eid,row:[eid,rec.carId,date,reason,amount,curr,km,status,note,rec.createdAt]});
+      saveLocal();qSync({action:"update",sheet:"Fines",id:eid,row:[eid,rec.carId,date,reason,n(amount),curr,n(km,0),status,note,rec.createdAt]});
       showToast("✅ Штраф обновлён");
     }
   } else {
     const rec={id:uid(),carId:S.activeCar,type:"fine",date,reason,amount,currency:curr,mileage:km,status,note,createdAt:now()};
     S.fines.push(rec);saveLocal();
-    qSync({action:"append",sheet:"Fines",row:[rec.id,rec.carId,date,reason,amount,curr,km,status,note,rec.createdAt]});
+    qSync({action:"append",sheet:"Fines",row:[rec.id,rec.carId,date,reason,n(amount),curr,n(km,0),status,note,rec.createdAt]});
     showToast("✅ Штраф добавлен");
   }
   closeModal("m-fine");clearF2(["fi-reason","fi-amount","fi-km","fi-note"]);g("fi-eid").value="";
