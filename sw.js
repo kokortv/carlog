@@ -1,53 +1,77 @@
-// CarLog Service Worker v2
-const CACHE = "carlog-v12";
-const SHELL = ["./", "./index.html", "./manifest.json"];
+// CarLog Service Worker v3
+const CACHE = "carlog-v3";
+const SHELL = ["./index.html", "./manifest.json"];
 
-// Установка: кешируем оболочку приложения
+// ── Установка ────────────────────────────────────────────────────
 self.addEventListener("install", e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(c => Promise.allSettled(SHELL.map(url => c.add(url))))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Активация: удаляем старые кеши
+// ── Активация: чистим старые кеши ────────────────────────────────
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
   );
 });
 
-// Fetch стратегия:
-// - Google Apps Script → только сеть (не кешируем POST-запросы к API)
-// - Google Fonts → network-first, fallback cache
-// - Всё остальное → cache-first, fallback network
+// ── Fetch ─────────────────────────────────────────────────────────
 self.addEventListener("fetch", e => {
   const url = e.request.url;
 
-  // Apps Script и Google APIs — только сеть
-  if (url.includes("script.google.com") || url.includes("googleapis.com")) {
-    e.respondWith(fetch(e.request).catch(() => new Response(
-      JSON.stringify({ok: false, msg: "offline"}),
-      {headers: {"Content-Type": "application/json"}}
-    )));
+  // Пропускаем всё что не http/https
+  // (chrome-extension://, data:, blob: и т.д.)
+  if (!url.startsWith("http://") && !url.startsWith("https://")) return;
+
+  // Google APIs и OAuth — только сеть, не кешируем
+  if (
+    url.includes("googleapis.com") ||
+    url.includes("accounts.google.com") ||
+    url.includes("openstreetmap.org") ||
+    url.includes("tile.openstreetmap") ||
+    e.request.method !== "GET"
+  ) {
+    e.respondWith(
+      fetch(e.request).catch(() =>
+        new Response(JSON.stringify({ ok: false, msg: "offline" }), {
+          headers: { "Content-Type": "application/json" }
+        })
+      )
+    );
     return;
   }
 
-  // Для GET-запросов — cache-first
-  if (e.request.method === "GET") {
-    e.respondWith(
-      caches.match(e.request).then(cached => {
-        if (cached) return cached;
-        return fetch(e.request).then(resp => {
-          // Кешируем только успешные ответы из нашего origin + шрифты
-          if (resp && resp.status === 200) {
-            const clone = resp.clone();
-            caches.open(CACHE).then(c => c.put(e.request, clone));
-          }
-          return resp;
-        }).catch(() => caches.match("./index.html")); // fallback на главную
-      })
-    );
-  }
+  // Остальные GET — cache-first, fallback network → index.html
+  e.respondWith(
+    caches.match(e.request).then(cached => {
+      if (cached) return cached;
+
+      return fetch(e.request).then(resp => {
+        // Кешируем только валидные ответы с нашего origin
+        if (
+          resp &&
+          resp.status === 200 &&
+          (resp.type === "basic" || resp.type === "cors")
+        ) {
+          const clone = resp.clone();
+          caches.open(CACHE).then(c => {
+            // Дополнительная проверка — только http(s) URL
+            if (e.request.url.startsWith("http")) {
+              c.put(e.request, clone).catch(() => {});
+            }
+          });
+        }
+        return resp;
+      }).catch(() =>
+        caches.match("./index.html").then(r => r || new Response("Offline"))
+      );
+    })
+  );
 });
