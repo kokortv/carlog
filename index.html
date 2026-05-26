@@ -1,0 +1,2665 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0f1e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CarLog">
+<link rel="manifest" href="manifest.json">
+<title>CarLog</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0f1e'/%3E%3Ctext y='24' x='4' font-size='22'%3E🚗%3C/text%3E%3C/svg%3E">
+<link rel="shortcut icon" href="favicon.png" onerror="this.remove()">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
+<style>
+/* ══════════════════════════════════════════════════════
+   CARLOG — Design System
+   Layout:    GaragePulse (white mockup)
+   Colors:    Amber/Dark (dark mockup)
+   ══════════════════════════════════════════════════════ */
+:root{
+  /* Dark amber palette */
+  --bg:#0d1117;
+  --sf:#161b22;
+  --sf2:#1c2330;
+  --sf3:#242e3d;
+  --bd:rgba(255,255,255,.06);
+  --bd2:rgba(255,255,255,.11);
+  --tx:#f0f2f5;
+  --tx2:#8b96a7;
+  --tx3:#3d4a5e;
+  /* Amber accent */
+  --am:#e8a020;
+  --am2:#f5b942;
+  --am3:rgba(232,160,32,.15);
+  /* Status */
+  --gn:#22c55e;
+  --gn2:#4ade80;
+  --rd:#ef4444;
+  --rd2:#f87171;
+  --bl:#3b82f6;
+  --bl2:#60a5fa;
+  --pu:#8b5cf6;
+  /* Radii */
+  --r:16px;--rs:10px;--rl:22px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx)}
+h1,h2,h3,h4{font-family:'Syne',sans-serif}
+
+/* ── LOGIN ─────────────────────────────────────────────────────── */
+#login-screen{
+  position:fixed;inset:0;z-index:1000;
+  background:linear-gradient(160deg,#0d1117 0%,#161b22 60%,#1a1200 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 32px;text-align:center}
+#login-screen.hidden{display:none!important}
+.login-logo{
+  width:88px;height:88px;border-radius:26px;
+  background:linear-gradient(135deg,#e8a020,#c17318);
+  display:flex;align-items:center;justify-content:center;
+  font-size:44px;margin-bottom:28px;
+  box-shadow:0 16px 48px rgba(232,160,32,.35)}
+.login-title{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;
+  background:linear-gradient(135deg,#f5b942,#e8a020);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:10px}
+.login-sub{font-size:14px;color:var(--tx2);margin-bottom:44px;line-height:1.8}
+.login-hint{margin-top:20px;font-size:11px;color:var(--tx3);line-height:1.9}
+#login-error{color:var(--rd2);font-size:12px;margin-top:14px;display:none}
+
+/* ── APP SHELL ──────────────────────────────────────────────────── */
+#app{display:none;flex-direction:column;height:100%;overflow:hidden}
+#app.visible{display:flex}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth}
+.pp{padding:0 0 32px}
+
+/* ── OFFLINE BAR ────────────────────────────────────────────────── */
+.ofbar{background:rgba(232,160,32,.1);border-bottom:1px solid rgba(232,160,32,.2);
+  color:var(--am2);font-size:12px;font-weight:500;text-align:center;
+  padding:7px 16px;display:none;flex-shrink:0}
+.ofbar.on{display:block}
+
+/* ── SYNC BAR ───────────────────────────────────────────────────── */
+.sbar{display:flex;align-items:center;gap:8px;padding:7px 16px;
+  font-size:12px;font-weight:500;max-height:0;opacity:0;overflow:hidden;
+  transition:all .3s;flex-shrink:0}
+.sbar.show{max-height:36px;opacity:1}
+.sbar.syncing{background:rgba(59,130,246,.07);color:var(--bl2)}
+.sbar.pending{background:rgba(232,160,32,.07);color:var(--am2)}
+.sbar.ok{background:rgba(34,197,94,.07);color:var(--gn2)}
+.sbar.error{background:rgba(239,68,68,.07);color:var(--rd2)}
+.sdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sbar.syncing .sdot{animation:pulse 1.2s infinite}
+
+/* ── HEADER ─────────────────────────────────────────────────────── */
+.hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;flex-shrink:0}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-avatar{
+  width:38px;height:38px;border-radius:50%;
+  object-fit:cover;border:2px solid var(--am);
+  background:var(--sf2)}
+.hdr-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;
+  color:var(--am2)}
+.ib{width:38px;height:38px;border-radius:11px;
+  background:var(--sf2);border:1px solid var(--bd2);
+  color:var(--tx2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all .2s}
+.ib:active{background:var(--sf3)}
+
+/* ── PULL TO REFRESH ────────────────────────────────────────────── */
+.ptr-indicator{
+  height:0;overflow:hidden;display:flex;align-items:center;
+  justify-content:center;transition:height .2s;
+  background:var(--bg);flex-shrink:0}
+.ptr-indicator.pulling{height:48px}
+.ptr-indicator.refreshing{height:48px}
+.ptr-spin{
+  width:22px;height:22px;border:2px solid var(--bd2);
+  border-top-color:var(--am2);border-radius:50%;
+  animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ptr-text{font-size:12px;color:var(--tx2);margin-left:8px}
+
+/* ── BOTTOM NAV ─────────────────────────────────────────────────── */
+.bnav{
+  background:rgba(13,17,23,.97);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-top:1px solid var(--bd);
+  display:flex;
+  padding:10px 6px max(12px,env(safe-area-inset-bottom));
+  flex-shrink:0;gap:0}
+.ni{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:8px 4px 6px;cursor:pointer;
+  color:var(--tx3);background:none;border:none;
+  font-family:inherit;border-radius:14px;
+  transition:color .2s,background .15s;position:relative}
+.ni:active{background:rgba(255,255,255,.04);transform:scale(.95)}
+.ni.active{color:var(--am2)}
+.ni.active::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:32px;height:3px;
+  background:linear-gradient(90deg,var(--am),var(--am2));
+  border-radius:0 0 4px 4px}
+.ni-ic{font-size:24px;transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.ni.active .ni-ic{transform:scale(1.15) translateY(-1px)}
+.ni span{font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  transition:opacity .2s}
+.ni:not(.active) span{opacity:.4}
+
+/* ── SCREENS ────────────────────────────────────────────────────── */
+.scr{display:none}
+.scr.active{display:block;animation:scrIn .25s cubic-bezier(.4,0,.2,1)}
+@keyframes scrIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ════════════════════════════════════════════════
+   DASHBOARD  — GaragePulse layout
+   ════════════════════════════════════════════════ */
+
+/* Hero: full-bleed photo with gradient overlay + car name overlay */
+.dash-hero{
+  position:relative;width:100%;height:220px;overflow:hidden;
+  background:linear-gradient(135deg,#1a1200,#0d1117)}
+.dash-hero-bg{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;opacity:.7}
+.dash-hero-gradient{
+  position:absolute;inset:0;
+  background:linear-gradient(
+    to bottom,
+    rgba(13,17,23,0) 0%,
+    rgba(13,17,23,.3) 40%,
+    rgba(13,17,23,.85) 75%,
+    rgba(13,17,23,1) 100%)}
+.dash-hero-content{
+  position:absolute;bottom:0;left:0;right:0;padding:16px 18px 20px}
+.dash-active-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);
+  color:var(--gn2);border-radius:20px;
+  padding:3px 10px;font-size:11px;font-weight:600;
+  letter-spacing:.5px;margin-bottom:8px}
+.dash-active-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--gn2)}
+.dash-car-name{
+  font-family:'Syne',sans-serif;font-size:28px;font-weight:800;
+  line-height:1.1;color:#fff;
+  text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.dash-car-sub{
+  font-size:13px;color:rgba(255,255,255,.6);
+  margin-top:5px;display:flex;align-items:center;gap:6px}
+.dash-car-sub-dot{
+  width:4px;height:4px;border-radius:50%;
+  background:rgba(255,255,255,.4)}
+.dash-hero-icon{
+  position:absolute;top:16px;right:16px;
+  width:52px;height:52px;border-radius:16px;
+  background:rgba(0,0,0,.3);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center}
+.dash-hero-switch{
+  position:absolute;bottom:16px;right:18px;
+  background:rgba(232,160,32,.15);border:1px solid rgba(232,160,32,.25);
+  color:var(--am2);border-radius:8px;padding:5px 10px;
+  font-size:11px;font-weight:600;cursor:pointer;
+  backdrop-filter:blur(8px)}
+
+/* Stats row — 2 cards top, 1 wide below */
+.dash-stats{padding:0 14px;margin-top:-8px;position:relative;z-index:2}
+.dash-stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.dash-stat-card{
+  background:var(--sf);border:1px solid var(--bd2);
+  border-radius:var(--r);padding:16px;
+  transition:transform .2s}
+.dash-stat-card:active{transform:scale(.97)}
+.dash-stat-card.wide{grid-column:1/-1}
+.dash-stat-icon{
+  width:40px;height:40px;border-radius:11px;
+  background:var(--am3);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:10px;font-size:18px}
+.dash-stat-icon.pink{background:rgba(239,68,68,.12)}
+.dash-stat-icon.blue{background:rgba(59,130,246,.12)}
+.dash-stat-label{
+  font-size:10px;font-weight:700;color:var(--tx2);
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.dash-stat-value{
+  font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
+  color:var(--tx);line-height:1}
+.dash-stat-unit{
+  font-family:'DM Sans',sans-serif;font-size:11px;
+  color:var(--tx2);font-weight:400;margin-left:3px}
+.dash-vin{font-size:11px;color:var(--tx3);font-family:monospace;
+  margin-top:4px;letter-spacing:.5px}
+
+/* Next service block */
+.dash-section{padding:0 14px;margin-top:6px}
+.dash-section-title{
+  font-family:'Syne',sans-serif;font-size:20px;font-weight:800;
+  color:var(--tx);margin-bottom:12px}
+.next-service-card{
+  background:var(--sf);border:1px solid var(--bd2);
+  border-radius:var(--r);padding:16px;position:relative;overflow:hidden}
+.next-service-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--am),var(--am2))}
+.nsc-label{
+  font-size:10px;font-weight:700;color:var(--am2);
+  text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.nsc-name{
+  font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
+  color:var(--tx);margin-bottom:2px}
+.nsc-km{
+  font-size:15px;font-weight:500;color:var(--tx2);margin-bottom:12px;
+  display:flex;align-items:center;justify-content:space-between}
+.nsc-badge{
+  font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;
+  letter-spacing:.5px}
+.nsc-badge.ok{background:rgba(34,197,94,.13);color:var(--gn2)}
+.nsc-badge.warn{background:rgba(232,160,32,.15);color:var(--am2)}
+.nsc-badge.danger{background:rgba(239,68,68,.13);color:var(--rd2)}
+.nsc-bar{height:6px;background:var(--sf3);border-radius:3px;overflow:hidden;margin-bottom:10px}
+.nsc-fill{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.34,1.2,.64,1)}
+.nsc-footer{
+  display:flex;justify-content:space-between;
+  font-size:11px;color:var(--tx3)}
+.nsc-icon{
+  position:absolute;top:14px;right:14px;
+  width:38px;height:38px;border-radius:11px;
+  background:var(--sf3);display:flex;align-items:center;justify-content:center;
+  font-size:18px}
+.nsc-action{
+  margin-top:12px;width:100%;padding:10px;
+  border-radius:var(--rs);
+  border:1px solid var(--bd2);
+  background:var(--sf2);
+  color:var(--tx2);font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:500;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:all .2s}
+.nsc-action:active{background:var(--sf3)}
+
+/* Recent activity */
+.dash-recent-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:12px}
+.dash-recent-title{
+  font-family:'Syne',sans-serif;font-size:20px;font-weight:800}
+.dash-recent-all{
+  font-size:13px;color:var(--am2);font-weight:500;
+  background:none;border:none;font-family:inherit;cursor:pointer}
+
+/* Activity rows */
+.act-list{display:flex;flex-direction:column;gap:1px}
+.act-row{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  background:var(--sf);
+  transition:background .15s;cursor:pointer}
+.act-row:first-child{border-radius:var(--r) var(--r) 0 0}
+.act-row:last-child{border-radius:0 0 var(--r) var(--r)}
+.act-row:only-child{border-radius:var(--r)}
+.act-row:not(:last-child){border-bottom:1px solid var(--bd)}
+.act-row:active{background:var(--sf2)}
+.act-icon{
+  width:42px;height:42px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0}
+.act-icon.fuel{background:rgba(232,160,32,.15);border:1px solid rgba(232,160,32,.2)}
+.act-icon.svc{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.2)}
+.act-icon.fine{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2)}
+.act-body{flex:1;min-width:0}
+.act-type{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.8px;margin-bottom:2px}
+.act-type.fuel{color:var(--am2)}
+.act-type.svc{color:var(--bl2)}
+.act-type.fine{color:var(--rd2)}
+.act-title{font-size:14px;font-weight:500;color:var(--tx);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act-sub{font-size:11px;color:var(--tx2);margin-top:1px}
+.act-right{text-align:right;flex-shrink:0}
+.act-amount{
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.act-amount.fuel{color:var(--am2)}
+.act-amount.svc{color:var(--bl2)}
+.act-amount.fine{color:var(--rd2)}
+.act-detail{font-size:11px;color:var(--tx2);margin-top:2px}
+
+/* ── OTHER SCREENS HEADER ───────────────────────────────────────── */
+.scr-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 18px;flex-shrink:0;
+  background:rgba(13,17,23,.92);
+  backdrop-filter:blur(20px);position:sticky;top:0;z-index:10}
+.scr-hdr-icon{
+  width:34px;height:34px;border-radius:10px;
+  background:var(--am3);
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.scr-hdr h1{font-size:18px;font-weight:700;color:var(--tx)}
+.scr-hdr .ha{margin-left:auto;display:flex;gap:7px}
+
+/* ── CARDS ──────────────────────────────────────────────────────── */
+.card{background:var(--sf);border:1px solid var(--bd);
+  border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.crow{display:flex;align-items:center;gap:11px;padding:13px 15px;
+  transition:background .15s;cursor:pointer}
+.crow:active{background:rgba(255,255,255,.02)}
+.crow+.crow{border-top:1px solid var(--bd)}
+.ri{width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.rif{background:rgba(232,160,32,.13);border:1px solid rgba(232,160,32,.2)}
+.ris{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.15)}
+.rb{flex:1;min-width:0}
+.rt{font-weight:500;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rs2{font-size:11px;color:var(--tx2);margin-top:2px}
+.rr{text-align:right;flex-shrink:0;display:flex;align-items:center;gap:8px}
+.ra{font-family:'Syne',sans-serif;font-weight:700;font-size:14px}
+.raf{color:var(--am2)}.ras{color:var(--bl2)}
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;
+  font-size:9px;font-weight:700;letter-spacing:.5px}
+.bf{background:rgba(232,160,32,.13);color:var(--am2)}
+.bs{background:rgba(59,130,246,.12);color:var(--bl2)}
+
+/* ── SECTION ────────────────────────────────────────────────────── */
+.sec{padding:16px 14px 0}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.st{font-size:10px;font-weight:700;color:var(--tx2);
+  text-transform:uppercase;letter-spacing:.9px}
+.sa{font-size:13px;color:var(--am2);cursor:pointer;
+  background:none;border:none;font-family:inherit;padding:0;font-weight:500}
+
+/* ── FAB ────────────────────────────────────────────────────────── */
+.fab{
+  position:fixed;bottom:90px;right:16px;z-index:99;
+  width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,var(--am),#c17318);
+  border:none;color:#1a0f00;font-size:22px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 6px 20px rgba(232,160,32,.4);
+  transition:transform .2s;
+  animation:fabIn .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes fabIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.fab:active{transform:scale(.94)}
+
+/* ── MODAL ──────────────────────────────────────────────────────── */
+.mo{position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  display:none;align-items:flex-end;justify-content:center}
+.mo.open{display:flex}
+.mdl{
+  background:var(--sf);border:1px solid var(--bd2);
+  border-radius:var(--rl) var(--rl) 0 0;
+  width:100%;max-width:600px;max-height:93vh;overflow-y:auto;
+  animation:mdlUp .32s cubic-bezier(.34,1.4,.64,1);
+  box-shadow:0 -8px 40px rgba(0,0,0,.5)}
+@keyframes mdlUp{from{transform:translateY(100%);opacity:.4}to{transform:none;opacity:1}}
+.mh{width:36px;height:4px;border-radius:2px;
+  background:rgba(255,255,255,.15);margin:12px auto 0}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 0}
+.mt2{font-family:'Syne',sans-serif;font-weight:700;font-size:18px}
+.mc2{width:30px;height:30px;border-radius:8px;
+  background:var(--sf2);border:1px solid var(--bd);
+  color:var(--tx2);cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center}
+.mb{padding:16px 18px 28px}
+
+/* ── FORM ───────────────────────────────────────────────────────── */
+.fg{margin-bottom:14px}
+.fl{font-size:11px;font-weight:600;color:var(--tx2);
+  text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px;display:block}
+.fi,.fs{
+  width:100%;padding:11px 14px;
+  background:var(--sf2);border:1px solid var(--bd2);
+  border-radius:var(--rs);color:var(--tx);
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  transition:border-color .2s,box-shadow .2s;outline:none;
+  -webkit-appearance:none;appearance:none}
+.fi:focus,.fs:focus{
+  border-color:var(--am);box-shadow:0 0 0 3px rgba(232,160,32,.12);
+  background:var(--sf3)}
+.fs{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%238b96a7' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;
+  padding-right:32px;cursor:pointer}
+.fr2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;padding:13px;border-radius:var(--rs);
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  border:none;cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:6px}
+.bp{
+  background:linear-gradient(135deg,var(--am),#c17318);
+  color:#1a0f00;box-shadow:0 4px 16px rgba(232,160,32,.3)}
+.bp:active{transform:scale(.97);opacity:.9}
+.bd3{background:rgba(239,68,68,.1);color:var(--rd2);
+  border:1px solid rgba(239,68,68,.2);margin-top:7px}
+.bg2{background:var(--sf2);color:var(--tx2);
+  border:1px solid var(--bd);margin-top:7px}
+.bg2:active{transform:scale(.97)}
+
+/* ── TABS ───────────────────────────────────────────────────────── */
+.tabs{display:flex;background:var(--sf2);border-radius:var(--rs);
+  padding:3px;margin-bottom:14px}
+.tb{flex:1;padding:7px 4px;border-radius:7px;border:none;
+  background:none;color:var(--tx2);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.tb.active{background:var(--sf3);color:var(--tx)}
+
+/* ── CAR TYPE BUTTONS ───────────────────────────────────────────── */
+.car-type-row{display:flex;gap:8px;flex-wrap:wrap}
+.car-type-btn{
+  flex:1;min-width:70px;padding:10px 8px;
+  border-radius:var(--rs);border:1px solid var(--bd2);
+  background:var(--sf2);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  transition:all .2s;color:var(--tx2);font-family:'DM Sans',sans-serif;font-size:12px}
+.car-type-btn.active{
+  background:var(--am3);border-color:var(--am);color:var(--am2)}
+.cti{font-size:22px}
+
+/* ── FUEL TYPE BUTTONS ──────────────────────────────────────────── */
+.pbtn{padding:7px 13px;border-radius:8px;border:1px solid var(--bd2);
+  background:var(--sf2);color:var(--tx2);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.pbtn:active{transform:scale(.95)}
+.pbtn.active{background:var(--am3);border-color:var(--am);color:var(--am2)}
+.fuel-type-btn{padding:6px 13px;border-radius:8px;border:1px solid var(--bd2);
+  background:var(--sf2);color:var(--tx2);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.fuel-type-btn:active{transform:scale(.95)}
+.fuel-type-btn.active{
+  background:rgba(232,160,32,.15);border-color:var(--am);
+  color:var(--am2);font-weight:700}
+
+/* ── COLOR SWATCHES ─────────────────────────────────────────────── */
+.cpr{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
+.csw{width:27px;height:27px;border-radius:50%;cursor:pointer;
+  transition:transform .2s;border:2px solid transparent;flex-shrink:0}
+.csw:hover{transform:scale(1.18)}.csw.sel{border-color:white;transform:scale(1.1)}
+.cprev{
+  display:flex;justify-content:center;padding:14px;
+  background:var(--sf2);border-radius:var(--rs);
+  border:1px solid var(--bd);margin:10px 0 5px}
+
+/* ── OIL / TO ───────────────────────────────────────────────────── */
+.oil-card{border-radius:var(--r);padding:14px;margin-bottom:10px;position:relative}
+.oil-card.ok{
+  background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(34,197,94,.03));
+  border:1px solid rgba(34,197,94,.18)}
+.oil-card.warn{
+  background:linear-gradient(135deg,rgba(232,160,32,.1),rgba(232,160,32,.03));
+  border:1px solid rgba(232,160,32,.22)}
+.oil-card.danger{
+  background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(239,68,68,.04));
+  border:1px solid rgba(239,68,68,.25)}
+.oil-card.none{background:var(--sf);border:1px solid var(--bd)}
+.oil-progress{height:5px;border-radius:3px;background:rgba(255,255,255,.07);
+  margin:9px 0 6px;overflow:hidden}
+.oil-bar{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1)}
+
+/* ── ANALYTICS ──────────────────────────────────────────────────── */
+.chbox{background:var(--sf);border:1px solid var(--bd);
+  border-radius:var(--r);padding:14px;margin-bottom:10px}
+.chtit{font-size:12px;color:var(--tx2);margin-bottom:9px;font-weight:500}
+.chbars{display:flex;gap:5px;align-items:flex-end;height:72px}
+.cbw{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.cb{width:100%;border-radius:3px 3px 0 0;
+  background:linear-gradient(180deg,var(--am),rgba(232,160,32,.3));
+  transition:height .5s cubic-bezier(.34,1.56,.64,1)}
+.cbl{font-size:9px;color:var(--tx3)}.cbv{font-size:9px;color:var(--tx2);font-weight:500}
+.ccard{
+  background:linear-gradient(135deg,rgba(232,160,32,.08),rgba(239,68,68,.04));
+  border:1px solid rgba(232,160,32,.18);border-radius:var(--r);
+  padding:14px;margin-bottom:10px;display:flex;gap:14px;align-items:stretch}
+.cbig{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;
+  color:var(--am2);line-height:1}
+.cunit{font-size:13px;color:var(--tx2);margin-top:3px}
+.cstats{flex:1;border-left:1px solid rgba(255,255,255,.07);
+  padding-left:13px;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
+.csr{font-size:12px}.csl{color:var(--tx2)}.csv{font-weight:500}
+
+/* ── SETTINGS ───────────────────────────────────────────────────── */
+.setc{background:var(--sf);border:1px solid var(--bd);
+  border-radius:var(--r);padding:14px;margin-bottom:11px}
+.settit{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.pill{display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.pok{background:rgba(34,197,94,.12);color:var(--gn2)}
+.pno{background:rgba(239,68,68,.12);color:var(--rd2)}
+.pwarn{background:rgba(232,160,32,.12);color:var(--am2)}
+.hint{font-size:11px;color:var(--tx2);margin-top:5px;line-height:1.7}
+.hint code{background:var(--sf2);padding:1px 5px;border-radius:3px;font-family:monospace}
+#profile-card{
+  background:var(--sf);border:1px solid var(--bd2);
+  border-radius:var(--r);padding:14px;
+  display:none;align-items:center;gap:12px;margin-bottom:11px}
+#profile-card.show{display:flex}
+#profile-pic{width:44px;height:44px;border-radius:50%;
+  border:2px solid var(--am);background:var(--sf2)}
+.profile-info{flex:1}
+.profile-name{font-weight:600;font-size:14px}
+.profile-email{font-size:11px;color:var(--tx2);margin-top:2px}
+.sheet-link-wrap{display:flex;align-items:center;gap:8px;margin-top:7px}
+#sheet-link{font-size:11px;color:var(--am2);text-decoration:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+
+/* ── MAP ────────────────────────────────────────────────────────── */
+#leaflet-map{height:320px;border-radius:var(--rs);overflow:hidden}
+.leaflet-tile-pane{filter:brightness(.85) saturate(.9)}
+.map-pick-btn{
+  display:flex;align-items:center;gap:7px;
+  width:100%;padding:11px 14px;
+  background:var(--sf2);border:1px solid var(--bd2);
+  border-radius:var(--rs);color:var(--tx2);
+  font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;
+  transition:background .2s}
+.map-pick-btn:active{background:var(--sf3)}
+.map-coords{font-size:11px;color:var(--am2);margin-top:5px;font-family:monospace}
+
+/* ── FINES STATUS ───────────────────────────────────────────────── */
+.fine-status-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:5px}
+.fstatus-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--bd2);
+  background:var(--sf2);color:var(--tx2);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.fstatus-btn.active{background:rgba(239,68,68,.12);border-color:var(--rd2);color:var(--rd2)}
+.fstatus-btn[data-s="paid"].active{
+  background:rgba(34,197,94,.1);border-color:var(--gn2);color:var(--gn2)}
+
+/* ── INTERVAL BUTTONS ───────────────────────────────────────────── */
+.interval-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--bd2);
+  background:var(--sf2);color:var(--tx2);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.interval-btn:active{transform:scale(.95)}
+.interval-btn.active{background:var(--am3);border-color:var(--am);color:var(--am2)}
+
+/* ── EMPTY STATE ────────────────────────────────────────────────── */
+.empty{text-align:center;padding:40px 16px}
+.ei{font-size:38px;margin-bottom:10px;opacity:.3}
+.etit{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:7px}
+.esub{font-size:12px;color:var(--tx2);line-height:1.6}
+
+/* ── TOAST ──────────────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:90px;left:50%;
+  transform:translateX(-50%) translateY(14px);
+  background:rgba(22,27,34,.98);backdrop-filter:blur(12px);
+  border:1px solid var(--bd2);border-radius:12px;
+  padding:10px 18px;font-size:12px;font-weight:500;
+  white-space:nowrap;z-index:999;
+  opacity:0;transition:all .28s;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── SCRIPT-URL DISPLAY ─────────────────────────────────────────── */
+.script-url-display{
+  background:var(--sf2);border:1px solid var(--bd2);
+  border-radius:var(--rs);padding:9px 12px;
+  font-size:11px;font-family:monospace;color:var(--tx2);
+  word-break:break-all;margin-bottom:8px}
+.codebox{
+  background:var(--sf2);border-radius:8px;padding:10px;margin:7px 0;
+  font-family:monospace;font-size:10px;color:var(--tx2);
+  white-space:pre;border:1px solid var(--bd);line-height:1.7;overflow-x:auto}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ LOGIN SCREEN ════════════════════ -->
+<div id="login-screen">
+  <div class="login-logo">🚗</div>
+  <div class="login-title">CarLog</div>
+  <div class="login-sub">Личный журнал автовладельца<br>Заправки, обслуживание, штрафы</div>
+  <div id="g-signin-btn"></div>
+  <div class="login-hint">
+    Войдите через Google — CarLog автоматически<br>создаст таблицу в вашем Google Drive.<br>
+    Ваши данные доступны с любого устройства.
+  </div>
+  <div id="login-error"></div>
+</div>
+
+<!-- ════════════════════ MAIN APP ════════════════════ -->
+<div id="app">
+
+  <div class="main">
+    <div class="ofbar" id="ofbar">📡 Офлайн — данные сохраняются локально</div>
+    <div class="sbar" id="sbar"><div class="sdot"></div><span id="smsg"></span></div>
+
+    <!-- DASHBOARD -->
+    <div class="scr active" id="scr-dashboard">
+      <!-- Header: avatar + name + settings -->
+      <div class="hdr">
+        <div class="hdr-left">
+          <img id="hdr-avatar" class="hdr-avatar" src="" alt="" style="display:none">
+          <div class="hdr-name" id="hdr-uname">CarLog</div>
+        </div>
+        <div class="ha">
+          <button class="ib" onclick="goScr('settings')" title="Настройки">⚙</button>
+        </div>
+      </div>
+      <div class="sbar" id="sbar"><div class="sdot"></div><span id="smsg">...</span></div>
+
+      <!-- Pull-to-refresh indicator -->
+      <div class="ptr-indicator" id="ptr-indicator">
+        <div class="ptr-spin" id="ptr-spin"></div>
+        <span class="ptr-text" id="ptr-text">Потяните чтобы обновить</span>
+      </div>
+
+      <div id="no-car" style="display:none"></div>
+
+      <div id="car-dash" style="display:none" class="pp">
+
+        <!-- HERO: full-bleed photo + car name overlay -->
+        <div class="dash-hero" onclick="openModal('m-carlist')" style="cursor:pointer">
+          <img id="d-hero-photo" class="dash-hero-bg" src="" alt="" style="display:none">
+          <div id="d-hero-svg" class="dash-hero-bg" style="display:flex;align-items:center;justify-content:center;font-size:80px;opacity:.15"></div>
+          <div class="dash-hero-gradient"></div>
+          <!-- car type icon top-right -->
+          <div class="dash-hero-icon"><div id="d-hero-icon" style="font-size:24px">🚗</div></div>
+          <!-- switch car button -->
+          <div class="dash-hero-switch">⇄ Сменить</div>
+          <!-- car name bottom-left -->
+          <div class="dash-hero-content">
+            <div class="dash-active-pill">
+              <div class="dash-active-dot"></div>
+              АКТИВЕН
+            </div>
+            <div class="dash-car-name" id="d-nm">—</div>
+            <div class="dash-car-sub" id="d-sub">—</div>
+          </div>
+        </div>
+
+        <!-- STATS: карточка с пробегом + VIN -->
+        <div class="dash-stats">
+          <div class="dash-stat-card" style="margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-end">
+            <div>
+              <div class="dash-stat-label">ПРОБЕГ</div>
+              <div style="display:flex;align-items:baseline;gap:4px">
+                <div class="dash-stat-value" id="d-km">—</div>
+                <div class="dash-stat-unit">км</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div class="dash-stat-label">VIN</div>
+              <div class="dash-vin" id="d-vin">—</div>
+            </div>
+          </div>
+          <div class="dash-stats-row">
+            <div class="dash-stat-card">
+              <div class="dash-stat-icon">⛽</div>
+              <div class="dash-stat-label">СРЕДНИЙ РАСХОД</div>
+              <div style="display:flex;align-items:baseline;gap:3px">
+                <div class="dash-stat-value" id="d-con">—</div>
+                <div class="dash-stat-unit">л/100км</div>
+              </div>
+            </div>
+            <div class="dash-stat-card">
+              <div class="dash-stat-icon pink">💰</div>
+              <div class="dash-stat-label">РАСХОДЫ ЗА МЕСЯЦ</div>
+              <div style="display:flex;align-items:baseline;gap:3px">
+                <div class="dash-stat-value" id="d-month">—</div>
+                <div class="dash-stat-unit" id="d-curr">₾</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEXT SERVICE -->
+        <div class="dash-section">
+          <div class="dash-section-title">Ближайшее ТО</div>
+          <div id="d-next-service"></div>
+        </div>
+
+        <!-- RECENT ACTIVITY -->
+        <div class="dash-section" style="margin-top:8px;padding-bottom:8px">
+          <div class="dash-recent-header">
+            <div class="dash-recent-title">Последние записи</div>
+            <button class="dash-recent-all" onclick="goScr('history')">Показать все</button>
+          </div>
+          <div id="d-recent" class="act-list"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FUEL -->
+    <div class="scr" id="scr-fuel">
+      <div class="hdr"><div class="logo">⛽</div><h1>Заправки</h1></div>
+      <div class="sec pp">
+        <div id="fuel-cblock"></div>
+        <div class="sh"><span class="st">История заправок</span></div>
+        <div id="fuel-list"></div>
+      </div>
+      <button class="fab" onclick="openFuelModal()">＋</button>
+    </div>
+
+    <!-- SERVICE / ТО -->
+    <div class="scr" id="scr-service">
+      <div class="hdr"><div class="logo">🔧</div><h1>Сервис и ТО</h1></div>
+      <div class="sec pp">
+        <div id="to-reminders"></div>
+        <div class="sh"><span class="st">История</span></div>
+        <div id="svc-list"></div>
+      </div>
+      <button class="fab" onclick="openSvcModal()">＋</button>
+    </div>
+
+    <!-- FINES -->
+    <div class="scr" id="scr-fines">
+      <div class="hdr"><div class="logo">🚔</div><h1>Штрафы</h1></div>
+      <div class="sec pp">
+        <div id="fines-summary"></div>
+        <div class="sh"><span class="st">История штрафов</span></div>
+        <div id="fines-list"></div>
+      </div>
+      <button class="fab" onclick="openFineModal()">＋</button>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="scr" id="scr-history">
+      <div class="hdr"><div class="logo">📋</div><h1>История</h1></div>
+      <div class="sec pp">
+        <div class="tabs">
+          <button class="tb active" onclick="fHist('all',this)">Все</button>
+          <button class="tb" onclick="fHist('fuel',this)">Заправки</button>
+          <button class="tb" onclick="fHist('service',this)">Сервис</button>
+          <button class="tb" onclick="fHist('fine',this)">Штрафы</button>
+        </div>
+        <div id="hist-list"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS (with Analytics inside) -->
+    <div class="scr" id="scr-settings">
+      <div class="hdr"><div class="logo">⚙</div><h1>Настройки</h1></div>
+      <div class="sec pp">
+        <!-- Profile -->
+        <div class="setc" id="profile-card" style="display:none">
+          <div class="profile-row">
+            <img id="profile-avatar" src="" class="profile-avatar" alt="">
+            <div style="flex:1">
+              <div id="profile-name" style="font-weight:600;font-size:14px"></div>
+              <div id="profile-email" style="font-size:12px;color:var(--tx2);margin-top:2px"></div>
+            </div>
+            <button class="btn bd3" onclick="signOut()" style="width:auto;padding:7px 14px;margin:0;font-size:12px">Выйти</button>
+          </div>
+          <div id="sheet-link-wrap" style="font-size:11px;color:var(--tx2)"></div>
+        </div>
+
+        <!-- Sync -->
+        <div class="setc">
+          <div class="settit">Синхронизация <span class="pill pno" id="shpill">● Не подключено</span></div>
+          <button class="btn bp" onclick="loadFromSheets()" style="margin-bottom:7px">🔄 Обновить из таблицы</button>
+          <div id="pinfo" style="display:none;margin-top:9px;font-size:12px;color:var(--am2)">
+            ⏳ Ожидает: <b id="pcnt">0</b> записей
+            <button class="btn bg2" id="btn-sync" onclick="syncNow()" style="margin-top:6px">📤 Отправить</button>
+          </div>
+        </div>
+
+        <!-- Currency -->
+        <div class="setc">
+          <div class="settit">Валюта</div>
+          <div class="tabs">
+            <button class="tb active" id="c-GEL" onclick="setCurr('GEL',this)">₾ Лари</button>
+            <button class="tb" id="c-USD" onclick="setCurr('USD',this)">$ Доллар</button>
+            <button class="tb" id="c-TRY" onclick="setCurr('TRY',this)">₺ Лира</button>
+          </div>
+        </div>
+
+        <!-- Analytics -->
+        <div class="setc">
+          <div class="settit">📊 Аналитика</div>
+          <div id="analytics-body"></div>
+        </div>
+
+        <div class="setc">
+          <div class="settit">Аналитика</div>
+          <button class="btn bp" onclick="goScr('analytics')" style="margin-bottom:0">📊 Открыть аналитику</button>
+        </div>
+        <div style="text-align:center;padding:14px 0;color:var(--tx3);font-size:11px">CarLog v5.0 · PWA · Google OAuth</div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <nav class="bnav">
+    <button class="ni active" onclick="goScr('dashboard')"><span class="ni-ic">🏠</span><span>Главная</span></button>
+    <button class="ni" onclick="goScr('fuel')"><span class="ni-ic">⛽</span><span>Заправки</span></button>
+    <button class="ni" onclick="goScr('service')"><span class="ni-ic">🔧</span><span>Сервис</span></button>
+    <button class="ni" onclick="goScr('fines')"><span class="ni-ic">🚔</span><span>Штрафы</span></button>
+    <button class="ni" onclick="goScr('settings')"><span class="ni-ic">⚙</span><span>Настройки</span></button>
+  </nav>
+</div><!-- /app -->
+
+<!-- ════════════════════ MODALS ════════════════════ -->
+
+<!-- ADD/EDIT CAR -->
+<div class="mo" id="m-car">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="car-mt">Добавить авто</div><button class="mc2" onclick="closeModal('m-car')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="car-eid">
+      <!-- Тип кузова -->
+      <div class="fg">
+        <label class="fl">Тип автомобиля</label>
+        <div class="car-type-row">
+          <div class="car-type-btn active" id="ct-sedan" onclick="setCarType('sedan',this)">
+            <span class="cti">🚗</span><span>Легковая</span>
+          </div>
+          <div class="car-type-btn" id="ct-suv" onclick="setCarType('suv',this)">
+            <span class="cti">🚙</span><span>Джип/SUV</span>
+          </div>
+          <div class="car-type-btn" id="ct-truck" onclick="setCarType('truck',this)">
+            <span class="cti">🚛</span><span>Грузовая</span>
+          </div>
+          <div class="car-type-btn" id="ct-van" onclick="setCarType('van',this)">
+            <span class="cti">🚐</span><span>Минивэн</span>
+          </div>
+        </div>
+        <input type="hidden" id="c-type" value="sedan">
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Марка</label><input class="fi" id="c-brand" placeholder="Toyota"></div>
+        <div class="fg"><label class="fl">Модель</label><input class="fi" id="c-model" placeholder="Camry"></div>
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Год</label><input class="fi" id="c-year" type="number" placeholder="2020" min="1950" max="2030"></div>
+        <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="c-km" type="number" placeholder="50000" min="0"></div>
+      </div>
+      <div class="fg"><label class="fl">VIN</label><input class="fi" id="c-vin" placeholder="1HGBH41JXMN109186" maxlength="17" style="text-transform:uppercase;font-family:monospace;letter-spacing:1px"></div>
+      <!-- Тип топлива -->
+      <div class="fg">
+        <label class="fl">Тип топлива</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <button type="button" class="pbtn active" id="ft-petrol" onclick="setFuelDef('petrol',this)">⛽ Бензин</button>
+          <button type="button" class="pbtn" id="ft-diesel" onclick="setFuelDef('diesel',this)">🛢 Дизель</button>
+          <button type="button" class="pbtn" id="ft-gas" onclick="setFuelDef('gas',this)">💨 Газ</button>
+          <button type="button" class="pbtn" id="ft-electric" onclick="setFuelDef('electric',this)">⚡ Электро</button>
+          <button type="button" class="pbtn" id="ft-hybrid" onclick="setFuelDef('hybrid',this)">🔋 Гибрид</button>
+        </div>
+        <input type="hidden" id="c-fueltype" value="petrol">
+      </div>
+      <!-- Объём бака / заряд (скрывается для электро) -->
+      <div class="fg" id="tank-field">
+        <label class="fl">Объём бака (л)</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px">
+          <button type="button" class="pbtn" onclick="setTankSize(40,this)">40</button>
+          <button type="button" class="pbtn" onclick="setTankSize(45,this)">45</button>
+          <button type="button" class="pbtn" onclick="setTankSize(50,this)">50</button>
+          <button type="button" class="pbtn" onclick="setTankSize(55,this)">55</button>
+          <button type="button" class="pbtn" onclick="setTankSize(60,this)">60</button>
+          <button type="button" class="pbtn" onclick="setTankSize(70,this)">70</button>
+        </div>
+        <input class="fi" id="c-tank" type="number" placeholder="50" min="10" max="200" step="1">
+      </div>
+      <!-- Цвет -->
+      <div class="fg">
+        <label class="fl">Цвет</label>
+        <div class="cpr" id="cswatches"></div>
+        <input type="hidden" id="c-color" value="#c0392b">
+      </div>
+      <div class="cprev" id="car-svg-prev">
+        <svg id="cpreview" viewBox="0 0 120 60" width="160" height="80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="8" y="28" width="104" height="22" rx="5" fill="#c0392b" id="cp-body"/>
+          <path d="M30 28 Q35 12 50 11 L70 11 Q85 12 90 28Z" fill="#922b21" id="cp-roof"/>
+          <path d="M68 28 Q78 14 88 28Z" fill="rgba(160,225,255,.55)"/>
+          <path d="M32 28 Q42 14 52 28Z" fill="rgba(160,225,255,.55)"/>
+          <path d="M52 28 L54 13 L68 13 L68 28Z" fill="rgba(160,225,255,.55)"/>
+          <circle cx="30" cy="50" r="9" fill="#111"/><circle cx="30" cy="50" r="5" fill="#444"/>
+          <circle cx="90" cy="50" r="9" fill="#111"/><circle cx="90" cy="50" r="5" fill="#444"/>
+          <rect x="9" y="31" width="10" height="5" rx="2" fill="rgba(255,245,150,.9)"/>
+          <rect x="101" y="31" width="10" height="5" rx="2" fill="rgba(255,90,70,.9)"/>
+        </svg>
+      </div>
+      <!-- Фото -->
+      <div class="fg">
+        <label class="fl">Фото (необязательно)</label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div id="car-photo-preview" style="width:70px;height:45px;border-radius:7px;background:var(--sf2);border:1px solid var(--bd2);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0">🚗</div>
+          <label style="display:inline-flex;align-items:center;gap:6px;background:var(--sf2);border:1px solid var(--bd2);border-radius:var(--rs);padding:8px 12px;cursor:pointer;font-size:12px;color:var(--tx2)">
+            📷 Загрузить
+            <input type="file" id="c-photo-input" accept="image/*" style="display:none" onchange="handleCarPhoto(this)">
+          </label>
+          <button onclick="clearCarPhoto()" id="c-photo-clear" style="display:none;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.2);color:var(--rd2);border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">✕</button>
+        </div>
+        <input type="hidden" id="c-photo" value="">
+      </div>
+      <button class="btn bp" onclick="saveCar()">✅ Сохранить</button>
+      <button class="btn bd3" id="del-car-btn" style="display:none" onclick="deleteCar()">🗑 Удалить автомобиль</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAR LIST -->
+<div class="mo" id="m-carlist">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2">Мои автомобили</div><button class="mc2" onclick="closeModal('m-carlist')">✕</button></div>
+    <div class="mb">
+      <div id="carlist"></div>
+      <button class="btn bg2" onclick="closeModal('m-carlist');openCarModal()">＋ Добавить автомобиль</button>
+    </div>
+  </div>
+</div>
+
+<!-- FUEL -->
+<div class="mo" id="m-fuel">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="fuel-modal-title">⛽ Заправка</div><button class="mc2" onclick="closeModal('m-fuel')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="f-eid">
+      <div class="fr2">
+        <div class="fg"><label class="fl">Дата</label><input class="fi" id="f-date" type="date"></div>
+        <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="f-km" type="number" placeholder="52000" min="0"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">Марка топлива</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px" id="fuel-type-btns">
+          <button type="button" class="pbtn active-amber active" onclick="setFuelType('АИ-92',this)">АИ-92</button>
+          <button type="button" class="pbtn" onclick="setFuelType('АИ-95',this)">АИ-95</button>
+          <button type="button" class="pbtn" onclick="setFuelType('АИ-98',this)">АИ-98</button>
+          <button type="button" class="pbtn" onclick="setFuelType('ДТ',this)">ДТ</button>
+          <button type="button" class="pbtn" onclick="setFuelType('Газ',this)">Газ</button>
+        </div>
+        <input class="fi" id="f-ftype" placeholder="Или введите вручную..." style="font-size:13px">
+      </div>
+      <div style="background:var(--sf2);border-radius:10px;padding:12px;border:1px solid var(--bd)">
+        <div style="font-size:10px;color:var(--tx2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;font-weight:600">
+          💡 Заполните любые два поля — третье посчитается само
+        </div>
+        <div class="fr2" style="margin-bottom:10px">
+          <div class="fg" style="margin:0"><label class="fl">Литры</label><input class="fi" id="f-lit" type="number" placeholder="40.0" min="0" step="0.01" oninput="calcFuel3('lit')"></div>
+          <div class="fg" style="margin:0"><label class="fl">Цена за литр</label><input class="fi" id="f-price" type="number" placeholder="2.90" min="0" step="0.001" oninput="calcFuel3('price')"></div>
+        </div>
+        <div class="fr2">
+          <div class="fg" style="margin:0"><label class="fl">Итого</label><input class="fi" id="f-total" type="number" placeholder="116.00" min="0" step="0.01" oninput="calcFuel3('total')"></div>
+          <div class="fg" style="margin:0"><label class="fl">Валюта</label>
+            <select class="fs" id="f-curr">
+              <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="TRY">₺ Лира</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- АЗС и место -->
+      <div class="fg" style="margin-top:10px">
+        <label class="fl">АЗС / Станция</label>
+        <input class="fi" id="f-note" placeholder="Lukoil, BP, Wissol...">
+      </div>
+      <div class="fg">
+        <label class="fl">Место заправки</label>
+        <button type="button" class="map-pick-btn" onclick="pickFuelLocation()">
+          📍 <span id="fuel-loc-text">Выбрать на карте</span>
+        </button>
+        <input type="hidden" id="f-lat" value="">
+        <input type="hidden" id="f-lng" value="">
+        <div class="map-coords" id="fuel-coords-display"></div>
+      </div>
+      <button class="btn bp" onclick="saveFuel()">✅ Сохранить заправку</button>
+      <button class="btn bd3" id="f-del-btn" style="display:none" onclick="deleteFuel()">🗑 Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- SERVICE / ТО -->
+<div class="mo" id="m-svc">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="svc-modal-title">🔧 Техобслуживание</div><button class="mc2" onclick="closeModal('m-svc')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="s-eid">
+      <div class="fg"><label class="fl">Дата</label><input class="fi" id="s-date" type="date"></div>
+      <div class="fg">
+        <label class="fl">Вид работ</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px" id="to-type-grid">
+          <button type="button" class="pbtn" onclick="setToType('🛢 Замена масла',this)">🛢 Масло</button>
+          <button type="button" class="pbtn" onclick="setToType('⚡ Замена свечей',this)">⚡ Свечи</button>
+          <button type="button" class="pbtn" onclick="setToType('💨 Воздушный фильтр',this)">💨 Воздушный фильтр</button>
+          <button type="button" class="pbtn" onclick="setToType('🌬 Салонный фильтр',this)">🌬 Салонный фильтр</button>
+          <button type="button" class="pbtn" onclick="setToType('⛽ Топливный фильтр',this)">⛽ Топливный фильтр</button>
+          <button type="button" class="pbtn" onclick="setToType('🔄 Масляный фильтр',this)">🔄 Масляный фильтр</button>
+          <button type="button" class="pbtn" onclick="setToType('🛑 Тормозные колодки',this)">🛑 Тормоза</button>
+          <button type="button" class="pbtn" onclick="setToType('🚗 Замена шин',this)">🚗 Шины</button>
+          <button type="button" class="pbtn" onclick="setToType('⚙ Ремень ГРМ',this)">⚙ Ремень ГРМ</button>
+          <button type="button" class="pbtn" onclick="setToType('🔋 Аккумулятор',this)">🔋 АКБ</button>
+          <button type="button" class="pbtn" onclick="setToType('📐 Развал-схождение',this)">📐 Развал</button>
+          <button type="button" class="pbtn" onclick="setToType('🔍 Диагностика',this)">🔍 Диагностика</button>
+        </div>
+        <input class="fi" id="s-custom" placeholder="Другой вид работ..." style="font-size:13px">
+        <input type="hidden" id="s-type" value="">
+      </div>
+      <!-- Интервал (для масла и фильтров) -->
+      <div class="fg" id="s-interval-group" style="display:none">
+        <label class="fl">Напомнить через (км)</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px">
+          <button type="button" class="pbtn" onclick="setSvcInterval(5000,this)">5 000</button>
+          <button type="button" class="pbtn active" onclick="setSvcInterval(10000,this)">10 000</button>
+          <button type="button" class="pbtn" onclick="setSvcInterval(15000,this)">15 000</button>
+          <button type="button" class="pbtn" onclick="setSvcInterval(20000,this)">20 000</button>
+        </div>
+        <input class="fi" id="s-interval" type="number" placeholder="10000" min="1000" step="500" value="10000">
+      </div>
+      <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="s-km" type="number" placeholder="52000" min="0"></div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Стоимость</label><input class="fi" id="s-cost" type="number" placeholder="120.00" step="0.01"></div>
+        <div class="fg"><label class="fl">Валюта</label>
+          <select class="fs" id="s-curr">
+            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="TRY">₺ Лира</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">СТО / Заметка</label><input class="fi" id="s-note" placeholder="Автосервис Авто+"></div>
+      <button class="btn bp" onclick="saveSvc()">✅ Сохранить</button>
+      <button class="btn bd3" id="s-del-btn" style="display:none" onclick="deleteSvc()">🗑 Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- FINE -->
+<div class="mo" id="m-fine">
+  <div class="mdl">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2" id="fine-modal-title">🚔 Штраф</div><button class="mc2" onclick="closeModal('m-fine')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="fi-eid">
+      <div class="fg"><label class="fl">Дата</label><input class="fi" id="fi-date" type="date"></div>
+      <div class="fg">
+        <label class="fl">Причина</label>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px">
+          <button type="button" class="pbtn" onclick="setFineType('🚦 Проезд на красный',this)">🚦 Красный</button>
+          <button type="button" class="pbtn" onclick="setFineType('🚗 Превышение скорости',this)">💨 Скорость</button>
+          <button type="button" class="pbtn" onclick="setFineType('🅿 Неправильная парковка',this)">🅿 Парковка</button>
+          <button type="button" class="pbtn" onclick="setFineType('📱 Телефон за рулём',this)">📱 Телефон</button>
+          <button type="button" class="pbtn" onclick="setFineType('🔤 Другое',this)">Другое</button>
+        </div>
+        <input class="fi" id="fi-reason" placeholder="Причина штрафа...">
+      </div>
+      <div class="fr2">
+        <div class="fg"><label class="fl">Сумма</label><input class="fi" id="fi-amount" type="number" placeholder="100.00" step="0.01"></div>
+        <div class="fg"><label class="fl">Валюта</label>
+          <select class="fs" id="fi-curr">
+            <option value="GEL">₾ Лари</option><option value="USD">$ Доллар</option><option value="TRY">₺ Лира</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Пробег (км)</label><input class="fi" id="fi-km" type="number" placeholder="52000" min="0"></div>
+      <div class="fg">
+        <label class="fl">Статус</label>
+        <div class="tabs" style="margin:0">
+          <button class="tb active" id="fi-unpaid" onclick="setFineStatus('unpaid',this)">⏳ Не оплачен</button>
+          <button class="tb" id="fi-paid" onclick="setFineStatus('paid',this)">✅ Оплачен</button>
+        </div>
+        <input type="hidden" id="fi-status" value="unpaid">
+      </div>
+      <div class="fg"><label class="fl">Заметка</label><input class="fi" id="fi-note" placeholder="Номер постановления, место..."></div>
+      <button class="btn bp" onclick="saveFine()">✅ Сохранить штраф</button>
+      <button class="btn bd3" id="fi-del-btn" style="display:none" onclick="deleteFine()">🗑 Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAP PICKER -->
+<div class="mo" id="m-map" style="align-items:stretch">
+  <div class="mdl" style="border-radius:var(--rl) var(--rl) 0 0;display:flex;flex-direction:column;max-height:95vh">
+    <div class="mh"></div>
+    <div class="mhdr"><div class="mt2">📍 Место заправки</div><button class="mc2" onclick="closeModal('m-map')">✕</button></div>
+    <div style="padding:10px 16px 6px;font-size:12px;color:var(--tx2)">
+      Нажмите на карту чтобы отметить место. Или нажмите 🎯 для текущего местоположения.
+    </div>
+    <!-- Leaflet map -->
+    <div id="leaflet-map" style="flex:1;min-height:300px;background:var(--sf2);z-index:1"></div>
+    <div class="mb" style="padding-top:10px">
+      <div id="map-selected-display" style="font-size:12px;color:var(--gn2);margin-bottom:10px;min-height:18px;text-align:center"></div>
+      <input type="hidden" id="map-lat" value="">
+      <input type="hidden" id="map-lng" value="">
+      <div style="display:flex;gap:8px">
+        <button class="btn bg2" onclick="useCurrentLocation()" style="flex:1;margin:0">🎯 Моё место</button>
+        <button class="btn bp" onclick="confirmLocation()" style="flex:1;margin:0">✅ Подтвердить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// 🔑 ВСТАВЬТЕ CLIENT ID из Google Cloud Console
+// ══════════════════════════════════════════════════════════════
+const CLIENT_ID = "414490794017-ovoh8sq7um851g1245jsmbhmou04cg2p.apps.googleusercontent.com";
+
+// ══════════════════════════════════════════════════════════════
+// КОНСТАНТЫ
+// ══════════════════════════════════════════════════════════════
+const SCOPES    = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file";
+const SHEET_NM  = "CarLog";
+const CUR       = {GEL:"₾", USD:"$", TRY:"₺"};
+const BASE      = "https://sheets.googleapis.com/v4/spreadsheets";
+const DRIVE     = "https://www.googleapis.com/drive/v3/files";
+const SCHEMA    = {
+  Cars:    ["ID","Type","Brand","Model","Year","Mileage","VIN","Color","Tank","FuelType","CreatedAt"],
+  Fuel:    ["ID","CarID","Date","Mileage","Liters","PricePerLiter","Currency","Total","Note","Lat","Lng","CreatedAt"],
+  Service: ["ID","CarID","Date","ServiceType","Mileage","Cost","Currency","Note","Interval","CreatedAt"],
+  Fines:   ["ID","CarID","Date","Reason","Amount","Currency","Mileage","Status","Note","CreatedAt"]
+};
+
+// Автомобильные цвета (реальные)
+const CAR_COLORS = [
+  "#1a1a1a","#2c2c2c","#f0f0f0","#e8e8e8","#c0c0c0", // Черный, графит, белый, жемчуг, серебро
+  "#8b0000","#c0392b","#e74c3c","#ff6b6b",            // Красные
+  "#1a3a6b","#2980b9","#3498db","#5dade2",            // Синие
+  "#1e5631","#27ae60","#2ecc71",                       // Зелёные
+  "#7d6608","#d4a017","#f1c40f",                       // Золотые/жёлтые
+  "#6e2f1a","#a0522d","#cd853f",                       // Коричневые/бронзовые
+  "#4a235a","#8e44ad","#9b59b6",                       // Фиолетовые
+  "#f39c12","#e67e22","#d35400",                       // Оранжевые
+  "#5d6d7e","#85929e","#aab7b8",                       // Серые
+  "#0e6655","#1abc9c","#48c9b0"                        // Бирюзовые
+];
+
+const SVC_COLORS = {
+  "🛢 Замена масла":"#f59e0b","⚡ Замена свечей":"#a78bfa",
+  "💨 Воздушный фильтр":"#34d399","🌬 Салонный фильтр":"#60a5fa",
+  "⛽ Топливный фильтр":"#fb923c","🔄 Масляный фильтр":"#fbbf24",
+  "🛑 Тормозные колодки":"#f87171","🚗 Замена шин":"#4ade80",
+  "⚙ Ремень ГРМ":"#f97316","🔋 Аккумулятор":"#22d3ee",
+  "📐 Развал-схождение":"#e879f9","🔍 Диагностика":"#94a3b8"
+};
+
+// Типы работ с интервалами
+const INTERVAL_TYPES = ["🛢 Замена масла","🔄 Масляный фильтр","💨 Воздушный фильтр","🌬 Салонный фильтр","⛽ Топливный фильтр","⚙ Ремень ГРМ"];
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let S = {
+  cars:[], fuels:[], services:[], fines:[],
+  activeCar:null, currency:"GEL",
+  queue:[],
+  accessToken:null, tokenExpiry:0,
+  spreadsheetId:null, userInfo:null
+};
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+const g   = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+
+// ── Безопасные числа для Sheets ────────────────────────────────
+// Парсим строку, убираем запятые (русская локаль), возвращаем число
+const n = (v, dec=2) => {
+  if (typeof v === "string") v = v.replace(",", ".");
+  const f = parseFloat(v);
+  return isNaN(f) ? 0 : (dec === 0 ? Math.round(f) : +f.toFixed(dec));
+};
+const coord = (v) => { const f = n(v, 6); return f || null; };
+const now = () => new Date().toISOString();
+const isTokenValid = () => S.accessToken && Date.now() < S.tokenExpiry - 60000;
+
+function saveLocal() {
+  try {
+    localStorage.setItem("cl5", JSON.stringify({
+      accessToken:S.accessToken, tokenExpiry:S.tokenExpiry,
+      spreadsheetId:S.spreadsheetId, userInfo:S.userInfo,
+      currency:S.currency, activeCar:S.activeCar, queue:S.queue,
+      carPhotos:Object.fromEntries(S.cars.filter(c=>c.photo).map(c=>[c.id,c.photo]))
+    }));
+  } catch(e){}
+}
+
+function loadLocal() {
+  try {
+    const d = JSON.parse(localStorage.getItem("cl5")||"{}");
+    S.accessToken=d.accessToken||null; S.tokenExpiry=d.tokenExpiry||0;
+    S.spreadsheetId=d.spreadsheetId||null; S.userInfo=d.userInfo||null;
+    S.currency=d.currency||"GEL"; S.activeCar=d.activeCar||null;
+    S.queue=d.queue||[]; S._carPhotos=d.carPhotos||{};
+  } catch(e){}
+}
+
+function setDates() {
+  const t=new Date().toISOString().split("T")[0];
+  ["f-date","s-date","fi-date"].forEach(id=>{const e=g(id);if(e&&!e.value)e.value=t;});
+}
+function updateOffline(){g("ofbar")?.classList.toggle("on",!navigator.onLine)}
+
+// ══════════════════════════════════════════════════════════════
+// GOOGLE OAUTH
+// ══════════════════════════════════════════════════════════════
+let tokenClient;
+
+function initGoogleAuth() {
+  if (typeof google === "undefined") { setTimeout(initGoogleAuth, 200); return; }
+
+  // Один OAuth flow — только tokenClient с нужными scopes
+  // User info получаем через /oauth2/v3/userinfo после получения токена
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: handleAccessToken,
+    error_callback: (e) => showLoginError("Ошибка входа: " + e.type)
+  });
+
+  // Рисуем кастомную кнопку (не renderButton — он требует id flow)
+  const btn = g("g-signin-btn");
+  if (btn) {
+    btn.innerHTML = `<button onclick="startSignIn()" style="
+      display:inline-flex;align-items:center;gap:10px;
+      padding:12px 24px;border-radius:10px;border:none;cursor:pointer;
+      background:white;color:#1f1f1f;font-family:'DM Sans',sans-serif;
+      font-size:15px;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,.3);
+      transition:box-shadow .2s;width:280px;justify-content:center">
+      <svg width="20" height="20" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.6 2.5 30.1 0 24 0 14.7 0 6.7 5.4 2.7 13.4l7.8 6C12.4 13.2 17.8 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17z"/>
+        <path fill="#FBBC05" d="M10.5 28.6A14.8 14.8 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.8-6A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.5 10.8l8-6.2z"/>
+        <path fill="#34A853" d="M24 48c6.1 0 11.2-2 14.9-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.4 2.2-6.2 0-11.5-4.2-13.4-9.8l-8 6.2C6.6 42.5 14.7 48 24 48z"/>
+      </svg>
+      Войти через Google
+    </button>`;
+  }
+
+  // Восстанавливаем сессию из localStorage
+  loadLocal();
+  if (isTokenValid() && S.spreadsheetId) {
+    scheduleTokenRefresh();
+    showApp();
+  }
+}
+
+function startSignIn() {
+  // prompt:"select_account" показывает один экран выбора аккаунта
+  // после чего сразу даём доступ к Sheets — одно окно вместо двух
+  tokenClient.requestAccessToken({ prompt: "select_account" });
+}
+
+async function handleAccessToken(tr) {
+  if (tr.error) { showLoginError("Ошибка: " + tr.error); return; }
+  S.accessToken  = tr.access_token;
+  S.tokenExpiry  = Date.now() + (tr.expires_in || 3600) * 1000;
+  scheduleTokenRefresh();
+
+  // Получаем user info одним запросом (не нужен отдельный ID token flow)
+  try {
+    const info = await fetch("https://www.googleapis.com/oauth2/v3/userinfo",
+      { headers: { Authorization: "Bearer " + S.accessToken } }).then(r => r.json());
+    S.userInfo = { name: info.name, email: info.email, picture: info.picture };
+  } catch(e) { S.userInfo = { name: "Пользователь", email: "", picture: "" }; }
+
+  saveLocal();
+  setSbar("syncing", "Подключаемся к Google Sheets...");
+
+  // Показываем приложение немедленно
+  showApp();
+
+  // Параллельно в фоне: создаём/проверяем таблицу и грузим данные
+  try {
+    await ensureSpreadsheet();
+    await loadFromSheets();
+  } catch(e) {
+    setSbar("error", "⚠ Ошибка: " + e.message);
+  }
+}
+
+function showApp() {
+  g("login-screen").classList.add("hidden");
+  g("app").classList.add("visible");
+  g("app").style.display = "flex";  // force show in case class doesn't work
+  updateUserUI();
+  // Small delay to let DOM render before init
+  setTimeout(appInit, 50);
+}
+
+async function signOut() {
+  if (typeof google!=="undefined"){
+    google.accounts.id.disableAutoSelect();
+    if (S.accessToken) google.accounts.oauth2.revoke(S.accessToken,()=>{});
+  }
+  localStorage.removeItem("cl5");
+  Object.assign(S,{accessToken:null,spreadsheetId:null,userInfo:null,cars:[],fuels:[],services:[],fines:[],queue:[]});
+  g("app").classList.remove("visible");
+  g("login-screen").classList.remove("hidden");
+}
+
+function showLoginError(msg){const e=g("login-error");e.textContent=msg;e.style.display="block";}
+
+function refreshToken(){if(tokenClient)tokenClient.requestAccessToken({prompt:""});}
+
+function updateUserUI() {
+  if (!S.userInfo)return;
+  const pc=g("profile-card"); if(pc) pc.style.display="block";
+  const pn=g("profile-name"); if(pn) pn.textContent=S.userInfo.name||"";
+  const pe=g("profile-email"); if(pe) pe.textContent=S.userInfo.email||"";
+  const pa=g("profile-avatar");
+  if(pa&&S.userInfo.picture){pa.src=S.userInfo.picture;pa.style.display="block";}
+  const sl=g("sheet-link-wrap");
+  if(sl&&S.spreadsheetId){
+    sl.innerHTML=`<a href="https://docs.google.com/spreadsheets/d/${S.spreadsheetId}" target="_blank" style="color:var(--ac2)">📊 Открыть таблицу →</a>`;
+  }
+  const pill=g("shpill");
+  if(pill){pill.className=isTokenValid()?"pill pok":"pill pno";pill.textContent=isTokenValid()?"● Подключено":"● Не подключено";}
+}
+
+// ══════════════════════════════════════════════════════════════
+// SHEETS API
+// ══════════════════════════════════════════════════════════════
+// ── Ожидаем новый токен (после refreshToken) ──────────────────
+async function waitForToken(ms=8000) {
+  const start = Date.now();
+  while (!isTokenValid() && Date.now()-start < ms) {
+    await new Promise(r => setTimeout(r, 200));
+  }
+  return isTokenValid();
+}
+
+// ── Общий HTTP-запрос с авто-рефрешем при 401 ─────────────────
+async function apiFetch(method, url, body) {
+  // Если токен почти истёк — рефрешим заранее
+  if (!isTokenValid()) {
+    refreshToken();
+    const ok = await waitForToken();
+    if (!ok) throw new Error("Не удалось обновить сессию");
+  }
+  const opts = {
+    method,
+    headers: { Authorization: "Bearer " + S.accessToken }
+  };
+  if (body !== undefined) {
+    opts.headers["Content-Type"] = "application/json";
+    opts.body = JSON.stringify(body);
+  }
+  let r = await fetch(url, opts);
+  // 401 — токен протух прямо сейчас, рефрешим и повторяем один раз
+  if (r.status === 401) {
+    refreshToken();
+    const ok = await waitForToken();
+    if (!ok) throw new Error("Сессия истекла — войдите снова");
+    opts.headers.Authorization = "Bearer " + S.accessToken;
+    r = await fetch(url, opts);
+  }
+  if (!r.ok) throw new Error(method + " " + r.status + " " + await r.text());
+  return r.json();
+}
+
+const apiGet  = (url)       => apiFetch("GET",  url);
+const apiPost = (url, body) => apiFetch("POST", url, body);
+const apiPut  = (url, body) => apiFetch("PUT",  url, body);
+
+// ── Авто-обновление токена за 5 минут до истечения ────────────
+function scheduleTokenRefresh() {
+  const msLeft = S.tokenExpiry - Date.now() - 5 * 60 * 1000;
+  if (msLeft <= 0) { refreshToken(); return; }
+  clearTimeout(S._refreshTimer);
+  S._refreshTimer = setTimeout(() => {
+    refreshToken();
+    // После рефреша планируем следующий
+    setTimeout(scheduleTokenRefresh, 500);
+  }, msLeft);
+}
+
+async function ensureSpreadsheet() {
+  if (S.spreadsheetId) {
+    try{await apiGet(`${BASE}/${S.spreadsheetId}?fields=spreadsheetId`);await ensureSheets();return;}
+    catch(e){S.spreadsheetId=null;}
+  }
+  try {
+    const res=await apiGet(`${DRIVE}?q=name='${SHEET_NM}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false&fields=files(id)`);
+    if (res.files?.length>0){S.spreadsheetId=res.files[0].id;saveLocal();await ensureSheets();return;}
+  } catch(e){}
+  const cr=await apiPost(BASE,{properties:{title:SHEET_NM,locale:"ru_RU"},sheets:Object.keys(SCHEMA).map(n=>({properties:{title:n}}))});
+  S.spreadsheetId=cr.spreadsheetId;
+  saveLocal();
+  await ensureSheets(true);
+}
+
+async function ensureSheets(isNew=false) {
+  const data=await apiGet(`${BASE}/${S.spreadsheetId}?fields=sheets.properties`);
+  const existing=data.sheets.map(s=>s.properties.title);
+  const adds=[];
+  for (const n of Object.keys(SCHEMA)) if (!existing.includes(n)) adds.push({addSheet:{properties:{title:n}}});
+  if (adds.length) await apiPost(`${BASE}/${S.spreadsheetId}:batchUpdate`,{requests:adds});
+  for (const [sn,hdr] of Object.entries(SCHEMA)) {
+    try {
+      const r=await apiGet(`${BASE}/${S.spreadsheetId}/values/${sn}!A1:A1`);
+      if (!r.values) await writeHeaders(sn,hdr);
+      else await migrateHeaders(sn,hdr);
+    } catch(e){await writeHeaders(sn,hdr);}
+  }
+}
+
+async function writeHeaders(sn,headers) {
+  await apiPut(`${BASE}/${S.spreadsheetId}/values/${sn}!A1?valueInputOption=RAW`,{values:[headers]});
+  const sd=await apiGet(`${BASE}/${S.spreadsheetId}?fields=sheets.properties`);
+  const sh=sd.sheets.find(s=>s.properties.title===sn);
+  if (sh) await apiPost(`${BASE}/${S.spreadsheetId}:batchUpdate`,{requests:[{repeatCell:{
+    range:{sheetId:sh.properties.sheetId,startRowIndex:0,endRowIndex:1,startColumnIndex:0,endColumnIndex:headers.length},
+    cell:{userEnteredFormat:{backgroundColor:{red:.1,green:.45,blue:.93},textFormat:{foregroundColor:{red:1,green:1,blue:1},bold:true}}},
+    fields:"userEnteredFormat(backgroundColor,textFormat)"
+  }}]});
+}
+
+async function migrateHeaders(sn,expected) {
+  const res=await apiGet(`${BASE}/${S.spreadsheetId}/values/${sn}!1:1`);
+  const cur=res.values?.[0]||[];
+  const missing=expected.filter(h=>!cur.includes(h));
+  if (!missing.length) return;
+  const all=[...new Set([...expected,...cur.filter(h=>!expected.includes(h))])];
+  await apiPut(`${BASE}/${S.spreadsheetId}/values/${sn}!A1?valueInputOption=RAW`,{values:[all]});
+}
+
+async function loadFromSheets() {
+  if (!isTokenValid()){refreshToken();return;}
+  setSbar("syncing","Загрузка данных...");
+  try {
+    const [cR,fR,sR,fiR]=await Promise.all([readSheet("Cars"),readSheet("Fuel"),readSheet("Service"),readSheet("Fines")]);
+    const prev=S.activeCar, prevC=S.currency, photos=S._carPhotos||{};
+    S.cars=cR.filter(c=>c.id).map(c=>({...c,photo:photos[c.id]||""}));
+    S.fuels=fR.filter(f=>f.id&&f.carId);
+    S.services=sR.filter(s=>s.id&&s.carId);
+    S.fines=fiR.filter(f=>f.id&&f.carId);
+    S.cars.forEach(car=>{
+      const fM=S.fuels.filter(f=>f.carId===car.id).reduce((m,f)=>Math.max(m,+f.mileage||0),0);
+      const sM=S.services.filter(s=>s.carId===car.id).reduce((m,s)=>Math.max(m,+s.mileage||0),0);
+      car.mileage=Math.max(+car.mileage||0,fM,sM);
+    });
+    S.activeCar=S.cars.find(c=>c.id===prev)?prev:(S.cars[0]?.id||null);
+    S.currency=prevC;
+    saveLocal();
+    renderDash();
+    const scr=document.querySelector(".scr.active")?.id?.replace("scr-","");
+    if(scr==="fuel")renderFuel();
+    if(scr==="service")renderSvc();
+    if(scr==="fines")renderFines();
+    if(scr==="history")renderHist("all");
+    if(scr==="settings")renderAnalytics();
+    updateUserUI();
+    updateBadge();
+    setSbar("ok",`✅ ${S.cars.length} авто · ${S.fuels.length} заправок · ${S.services.length} сервисов · ${S.fines.length} штрафов`);
+  } catch(e){console.error(e);setSbar("error","⚠ Ошибка: "+e.message);}
+}
+
+async function readSheet(sn) {
+  const res=await apiGet(`${BASE}/${S.spreadsheetId}/values/${sn}`);
+  if (!res.values||res.values.length<2) return [];
+  const hdr=res.values[0];
+  return res.values.slice(1).map(row=>{
+    const o={}; hdr.forEach((h,i)=>{o[h]=row[i]!==undefined?row[i]:"";});
+    return parseRow(sn,o);
+  }).filter(r=>r.id);
+}
+
+function parseRow(sn,o) {
+  if (sn==="Cars") return {
+    id:o.ID||"",type:o.Type||"sedan",brand:o.Brand||"",model:o.Model||"",year:o.Year||"",
+    mileage:+o.Mileage||0,vin:o.VIN||"",color:o.Color||"#1a1a1a",
+    tank:+o.Tank||0,fuelType:o.FuelType||"petrol",createdAt:o.CreatedAt||""
+  };
+  if (sn==="Fuel") return {
+    id:o.ID||"",carId:o.CarID||"",type:"fuel",date:o.Date||"",
+    mileage:+o.Mileage||0,liters:+o.Liters||0,pricePerLiter:+o.PricePerLiter||0,
+    currency:o.Currency||"GEL",total:+o.Total||0,note:o.Note||"",
+    lat:+o.Lat||0,lng:+o.Lng||0,createdAt:o.CreatedAt||""
+  };
+  if (sn==="Service") return {
+    id:o.ID||"",carId:o.CarID||"",type:"service",serviceType:o.ServiceType||"",
+    date:o.Date||"",mileage:+o.Mileage||0,cost:+o.Cost||0,
+    currency:o.Currency||"GEL",note:o.Note||"",interval:+o.Interval||0,createdAt:o.CreatedAt||""
+  };
+  if (sn==="Fines") return {
+    id:o.ID||"",carId:o.CarID||"",type:"fine",date:o.Date||"",
+    reason:o.Reason||"",amount:+o.Amount||0,currency:o.Currency||"GEL",
+    mileage:+o.Mileage||0,status:o.Status||"unpaid",note:o.Note||"",createdAt:o.CreatedAt||""
+  };
+  return o;
+}
+
+// ── WRITE TO SHEETS ────────────────────────────────────────────
+async function appendRow(sn,row) {
+  await apiPost(`${BASE}/${S.spreadsheetId}/values/${sn}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{values:[row]});
+}
+async function updateRow(sn,id,row) {
+  const res=await apiGet(`${BASE}/${S.spreadsheetId}/values/${sn}!A:A`);
+  const rows=res.values||[];
+  const idx=rows.findIndex((r,i)=>i>0&&String(r[0])===String(id));
+  if(idx<0){await appendRow(sn,row);return;}
+  const cols=SCHEMA[sn].length;
+  await apiPut(`${BASE}/${S.spreadsheetId}/values/${sn}!A${idx+1}:${colL(cols)}${idx+1}?valueInputOption=RAW`,{values:[row]});
+}
+async function deleteRow(sn,id) {
+  const sd=await apiGet(`${BASE}/${S.spreadsheetId}?fields=sheets.properties`);
+  const sh=sd.sheets.find(s=>s.properties.title===sn);
+  if(!sh)return;
+  const res=await apiGet(`${BASE}/${S.spreadsheetId}/values/${sn}!A:A`);
+  const rows=res.values||[];
+  const idx=rows.findIndex((r,i)=>i>0&&String(r[0])===String(id));
+  if(idx<0)return;
+  await apiPost(`${BASE}/${S.spreadsheetId}:batchUpdate`,{requests:[{deleteDimension:{range:{sheetId:sh.properties.sheetId,dimension:"ROWS",startIndex:idx,endIndex:idx+1}}}]});
+}
+function colL(n){let s="";while(n>0){s=String.fromCharCode(65+(n-1)%26)+s;n=Math.floor((n-1)/26);}return s;}
+
+// ── OFFLINE QUEUE ──────────────────────────────────────────────
+function qSync(op) {
+  S.queue.push({...op,_qid:uid()});
+  saveLocal();updatePendingUI();
+  if(navigator.onLine&&isTokenValid())setTimeout(syncNow,300);
+  else setSbar("pending",`📡 Офлайн — ${S.queue.length} записей ждут`);
+}
+let syncing=false;
+async function syncNow() {
+  if(syncing||!S.queue.length||!navigator.onLine||!isTokenValid())return;
+  syncing=true;
+  setSbar("syncing",`📤 Отправка ${S.queue.length}...`);
+  const failed=[];
+  for(const op of [...S.queue]){
+    try{
+      if(op.action==="append")await appendRow(op.sheet,op.row);
+      else if(op.action==="update")await updateRow(op.sheet,op.id,op.row);
+      else if(op.action==="delete")await deleteRow(op.sheet,op.id);
+    }catch(e){failed.push(op);}
+  }
+  S.queue=failed;saveLocal();updatePendingUI();syncing=false;
+  if(!failed.length)setSbar("ok","☁ Синхронизировано");
+  else setSbar("error",`⚠ ${failed.length} не отправлено`);
+}
+async function syncThenLoad(){if(S.queue.length>0)await syncNow();await loadFromSheets();}
+function updatePendingUI(){
+  const n=S.queue?.length||0;
+  const pi=g("pinfo");if(pi)pi.style.display=n?"block":"none";
+  const pc=g("pcnt");if(pc)pc.textContent=n;
+  const bs=g("btn-sync");if(bs)bs.style.display=n?"flex":"none";
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+function appInit() {
+  // Планируем авто-обновление токена если он уже есть
+  if (isTokenValid()) scheduleTokenRefresh();
+  setupPTR();
+  setupOfflineHandlers();
+  if(!Array.isArray(S.queue))S.queue=[];
+  buildSwatches();setDates();updateOffline();
+  renderDash();applySettings();updatePendingUI();
+  // online/offline handled by setupOfflineHandlers()
+  if(navigator.onLine&&isTokenValid())syncThenLoad();
+  const action=new URLSearchParams(location.search).get("action");
+  if(action)setTimeout(()=>{
+    if(action==="fuel"){goScr("fuel");setTimeout(()=>openFuelModal(),200);}
+    if(action==="service"){goScr("service");setTimeout(()=>openSvcModal(),200);}
+  },600);
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════════
+function goScr(name) {
+  document.querySelectorAll(".scr").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));
+  g("scr-"+name)?.classList.add("active");
+  const idx=["dashboard","fuel","service","fines","settings"].indexOf(name);
+  // analytics is accessible from settings but also as a screen
+  if(idx>=0)document.querySelectorAll(".ni")[idx]?.classList.add("active");
+  if(name==="dashboard")renderDash();
+  if(name==="fuel")renderFuel();
+  if(name==="service")renderSvc();
+  if(name==="fines")renderFines();
+  if(name==="history")renderHist("all");
+  if(name==="settings"){applySettings();renderAnalytics();}
+}
+function openModal(id){g(id)?.classList.add("open");setDates();if(id==="m-carlist")renderCarList();}
+function closeModal(id){g(id)?.classList.remove("open");}
+document.querySelectorAll(".mo").forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("open");}));
+
+function applySettings(){
+  ["GEL","USD","TRY"].forEach(c=>{const e=g("c-"+c);if(e)e.classList.remove("active");});
+  const ce=g("c-"+S.currency);if(ce)ce.classList.add("active");
+  updatePendingUI();updateUserUI();
+}
+function setCurr(c,btn){
+  S.currency=c;saveLocal();
+  document.querySelectorAll("#c-GEL,#c-USD,#c-TRY").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  ["f-curr","s-curr","fi-curr"].forEach(id=>{const e=g(id);if(e)e.value=c;});
+}
+
+// ══════════════════════════════════════════════════════════════
+// COLORS & CAR SVG
+// ══════════════════════════════════════════════════════════════
+const STATION_COLORS=["#f59e0b","#3b82f6","#10b981","#8b5cf6","#ef4444","#06b6d4","#f97316","#84cc16","#ec4899","#6366f1"];
+const _scMap={};let _scIdx=0;
+function stationColor(n){if(!n)return"rgba(255,255,255,.12)";const k=n.toLowerCase().trim();if(!_scMap[k]){_scMap[k]=STATION_COLORS[_scIdx%STATION_COLORS.length];_scIdx++;}return _scMap[k];}
+function svcColor(t){return SVC_COLORS[t]||"#8892a4";}
+
+function buildSwatches(sel="#1a1a1a") {
+  const wrap=g("cswatches");if(!wrap)return;
+  wrap.innerHTML=CAR_COLORS.map(c=>`
+    <div class="csw${c===sel?" sel":""}" style="background:${c};position:relative" onclick="pickColor('${c}',this)" title="${c}">
+      ${c==="#f0f0f0"||c==="#e8e8e8"?`<div style="position:absolute;inset:0;border-radius:50%;border:1px solid rgba(0,0,0,.15)"></div>`:""}
+    </div>`).join("");
+}
+function pickColor(c,el){
+  document.querySelectorAll(".csw").forEach(s=>s.classList.remove("sel"));
+  el.classList.add("sel");g("c-color").value=c;previewCar(c);
+}
+function previewCar(c){
+  if(g("c-photo").value)return;
+  g("cp-body").setAttribute("fill",c);
+  g("cp-roof").setAttribute("fill",darken(c,30));
+}
+function darken(hex,a){
+  const n=parseInt(hex.replace("#",""),16)||0;
+  const r=Math.max(0,(n>>16)-a),gv=Math.max(0,((n>>8)&0xff)-a),b=Math.max(0,(n&0xff)-a);
+  return"#"+[r,gv,b].map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+
+const CAR_ICONS={sedan:"🚗",suv:"🚙",truck:"🚛",van:"🚐"};
+function carSVG(color, w=50, h=28, type="sedan") {
+  const col  = color || "#1a1a1a";
+  const roof = darken(col, 28);
+  const glass= "rgba(160,225,255,.55)";
+  const tyre = "#111";
+  const rim  = "#555";
+  const hl   = "rgba(255,248,150,.9)";
+  const tl   = "rgba(255,90,70,.9)";
+
+  // ── SEDAN (легковая) ─────────────────────────────────────────
+  if (type === "sedan") return `<svg viewBox="0 0 120 60" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="6" y="30" width="108" height="20" rx="5" fill="${col}"/>
+    <path d="M28 30 Q34 14 48 13 L72 13 Q86 14 92 30Z" fill="${roof}"/>
+    <path d="M68 30 Q77 16 90 30Z" fill="${glass}"/>
+    <path d="M30 30 Q43 16 52 30Z" fill="${glass}"/>
+    <path d="M52 30 L54 14 L68 14 L68 30Z" fill="${glass}"/>
+    <circle cx="28" cy="50" r="8" fill="${tyre}"/><circle cx="28" cy="50" r="4" fill="${rim}"/>
+    <circle cx="92" cy="50" r="8" fill="${tyre}"/><circle cx="92" cy="50" r="4" fill="${rim}"/>
+    <rect x="7"   y="32" width="9" height="5" rx="2" fill="${hl}"/>
+    <rect x="104" y="32" width="9" height="5" rx="2" fill="${tl}"/>
+  </svg>`;
+
+  // ── SUV (джип/кроссовер) ─────────────────────────────────────
+  if (type === "suv") return `<svg viewBox="0 0 120 60" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5" y="26" width="110" height="24" rx="6" fill="${col}"/>
+    <path d="M22 26 L26 9 L94 9 L98 26Z" fill="${roof}"/>
+    <rect x="27" y="10" width="28" height="15" rx="2" fill="${glass}"/>
+    <rect x="62" y="10" width="28" height="15" rx="2" fill="${glass}"/>
+    <line x1="57" y1="10" x2="57" y2="25" stroke="${col}" stroke-width="3"/>
+    <circle cx="26" cy="50" r="9" fill="${tyre}"/><circle cx="26" cy="50" r="5" fill="${rim}"/>
+    <circle cx="94" cy="50" r="9" fill="${tyre}"/><circle cx="94" cy="50" r="5" fill="${rim}"/>
+    <rect x="5"   y="30" width="12" height="6" rx="2" fill="${hl}"/>
+    <rect x="103" y="30" width="12" height="6" rx="2" fill="${tl}"/>
+    <rect x="5"   y="24" width="110" height="3" rx="1" fill="${darken(col,15)}"/>
+  </svg>`;
+
+  // ── TRUCK (грузовик/пикап) ────────────────────────────────────
+  if (type === "truck") return `<svg viewBox="0 0 130 60" width="${w}" height="${Math.round(h*130/120)}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5"  y="28" width="120" height="22" rx="4" fill="${col}"/>
+    <path d="M70 28 L72 11 L110 11 L112 28Z" fill="${roof}"/>
+    <rect x="73" y="12" width="36" height="15" rx="2" fill="${glass}"/>
+    <line x1="70" y1="11" x2="70" y2="28" stroke="${darken(col,20)}" stroke-width="3"/>
+    <rect x="6"  y="10" width="60" height="19" rx="3" fill="${darken(col,10)}" stroke="${darken(col,25)}" stroke-width="1"/>
+    <circle cx="28"  cy="50" r="9"  fill="${tyre}"/><circle cx="28"  cy="50" r="5" fill="${rim}"/>
+    <circle cx="100" cy="50" r="9"  fill="${tyre}"/><circle cx="100" cy="50" r="5" fill="${rim}"/>
+    <circle cx="114" cy="50" r="9"  fill="${tyre}"/><circle cx="114" cy="50" r="5" fill="${rim}"/>
+    <rect x="113" y="30" width="11" height="6" rx="2" fill="${tl}"/>
+    <rect x="6"   y="30" width="11" height="6" rx="2" fill="${hl}"/>
+  </svg>`;
+
+  // ── VAN (минивэн) ────────────────────────────────────────────
+  if (type === "van") return `<svg viewBox="0 0 130 60" width="${w}" height="${Math.round(h*130/120)}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="5"  y="22" width="120" height="28" rx="6" fill="${col}"/>
+    <path d="M8 22 L10 10 L118 10 L120 22Z" fill="${roof}"/>
+    <rect x="10"  y="11" width="30" height="10" rx="2" fill="${glass}"/>
+    <rect x="45"  y="11" width="30" height="10" rx="2" fill="${glass}"/>
+    <rect x="80"  y="11" width="30" height="10" rx="2" fill="${glass}"/>
+    <line x1="42"  y1="10" x2="42"  y2="22" stroke="${darken(col,15)}" stroke-width="2"/>
+    <line x1="77"  y1="10" x2="77"  y2="22" stroke="${darken(col,15)}" stroke-width="2"/>
+    <circle cx="26"  cy="50" r="9" fill="${tyre}"/><circle cx="26"  cy="50" r="5" fill="${rim}"/>
+    <circle cx="98"  cy="50" r="9" fill="${tyre}"/><circle cx="98"  cy="50" r="5" fill="${rim}"/>
+    <rect x="5"   y="28" width="14" height="6" rx="2" fill="${hl}"/>
+    <rect x="111" y="28" width="14" height="6" rx="2" fill="${tl}"/>
+  </svg>`;
+
+  return carSVG(color, w, h, "sedan"); // fallback
+}
+
+
+function carAvatar(car, w=50, h=28) {
+  if (car.photo) return `<img src="${car.photo}" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:6px">`;
+  return carSVG(car.color, w, h, car.type || "sedan");
+}
+
+// ══════════════════════════════════════════════════════════════
+// CAR MODAL HELPERS
+// ══════════════════════════════════════════════════════════════
+function setCarType(type,el){
+  document.querySelectorAll(".car-type-btn").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");g("c-type").value=type;
+}
+function setFuelDef(type,el){
+  document.querySelectorAll("#ft-petrol,#ft-diesel,#ft-gas,#ft-electric,#ft-hybrid").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");g("c-fueltype").value=type;
+  g("tank-field").style.display=type==="electric"?"none":"block";
+}
+function setTankSize(v,el){
+  document.querySelectorAll(".car-type-btn").forEach(b=>b.classList.remove("active"));
+  g("c-tank").value=v;
+}
+function handleCarPhoto(input){
+  const file=input.files[0];if(!file)return;
+  if(file.size>2*1024*1024){showToast("⚠ Фото > 2МБ");return;}
+  const rd=new FileReader();
+  rd.onload=e=>{
+    const d=e.target.result;g("c-photo").value=d;
+    g("car-photo-preview").innerHTML=`<img src="${d}" style="width:70px;height:45px;object-fit:cover;border-radius:7px">`;
+    g("c-photo-clear").style.display="block";g("car-svg-prev").style.display="none";
+  };rd.readAsDataURL(file);
+}
+function clearCarPhoto(){
+  g("c-photo").value="";g("car-photo-preview").innerHTML="🚗";
+  g("c-photo-clear").style.display="none";g("car-svg-prev").style.display="flex";
+  const ci=g("c-photo-input");if(ci)ci.value="";
+}
+
+// ══════════════════════════════════════════════════════════════
+// CARS CRUD
+// ══════════════════════════════════════════════════════════════
+function openCarModal(carId=null){
+  const car=carId?S.cars.find(c=>c.id===carId):null;
+  g("car-mt").textContent=car?"Редактировать авто":"Добавить авто";
+  g("car-eid").value=car?.id||"";
+  g("c-brand").value=car?.brand||""; g("c-model").value=car?.model||"";
+  g("c-year").value=car?.year||""; g("c-km").value=car?.mileage||"";
+  g("c-vin").value=car?.vin||""; g("c-tank").value=car?.tank||"";
+  g("del-car-btn").style.display=car?"flex":"none";
+  // Type
+  const ct=car?.type||"sedan";g("c-type").value=ct;
+  document.querySelectorAll(".car-type-btn").forEach(b=>b.classList.toggle("active",b.id==="ct-"+ct));
+  // Fuel type
+  const ft=car?.fuelType||"petrol";g("c-fueltype").value=ft;
+  document.querySelectorAll("#ft-petrol,#ft-diesel,#ft-gas,#ft-electric,#ft-hybrid").forEach(b=>b.classList.toggle("active",b.id==="ft-"+ft));
+  g("tank-field").style.display=ft==="electric"?"none":"block";
+  // Color
+  const col=car?.color||"#1a1a1a";g("c-color").value=col;buildSwatches(col);previewCar(col);
+  // Photo
+  g("c-photo").value=car?.photo||"";
+  if(car?.photo){g("car-photo-preview").innerHTML=`<img src="${car.photo}" style="width:70px;height:45px;object-fit:cover;border-radius:7px">`;g("c-photo-clear").style.display="block";g("car-svg-prev").style.display="none";}
+  else{g("car-photo-preview").innerHTML="🚗";g("c-photo-clear").style.display="none";g("car-svg-prev").style.display="flex";}
+  openModal("m-car");
+}
+
+function saveCar(){
+  const brand=(g("c-brand").value||"").trim(),model=(g("c-model").value||"").trim();
+  if(!brand||!model){showToast("⚠ Укажите марку и модель");return;}
+  const type=g("c-type").value||"sedan";
+  const year=g("c-year").value||"";
+  const mileage=parseInt(g("c-km").value)||0;
+  const vin=(g("c-vin").value||"").trim().toUpperCase();
+  const color=g("c-color").value||"#1a1a1a";
+  const tank=parseInt(g("c-tank").value)||0;
+  const fuelType=g("c-fueltype").value||"petrol";
+  const photo=g("c-photo").value||"";
+  const eid=g("car-eid").value;
+
+  if(eid){
+    const car=S.cars.find(c=>c.id===eid);
+    if(car){
+      Object.assign(car,{type,brand,model,year,mileage,vin,color,tank,fuelType,photo});
+      saveLocal();
+      qSync({action:"update",sheet:"Cars",id:eid,row:[eid,type,brand,model,year,n(mileage,0),vin,color,n(tank,0),fuelType,car.createdAt]});
+      showToast("✅ Авто обновлено");
+    }
+  } else {
+    const car={id:uid(),type,brand,model,year,mileage,vin,color,tank,fuelType,photo,createdAt:now()};
+    S.cars.push(car);if(!S.activeCar)S.activeCar=car.id;
+    saveLocal();
+    qSync({action:"append",sheet:"Cars",row:[car.id,type,brand,model,year,n(mileage,0),vin,color,n(tank,0),fuelType,car.createdAt]});
+    showToast("✅ Автомобиль добавлен");
+  }
+  closeModal("m-car");closeModal("m-carlist");renderDash();
+}
+
+function deleteCar(){
+  const id=g("car-eid").value;
+  if(!id||!confirm("Удалить авто и все его записи?"))return;
+  S.cars=S.cars.filter(c=>c.id!==id);
+  S.fuels=S.fuels.filter(f=>f.carId!==id);
+  S.services=S.services.filter(s=>s.carId!==id);
+  S.fines=S.fines.filter(f=>f.carId!==id);
+  if(S.activeCar===id)S.activeCar=S.cars[0]?.id||null;
+  saveLocal();qSync({action:"delete",sheet:"Cars",id});
+  closeModal("m-car");renderDash();showToast("🗑 Удалено");
+}
+
+function renderCarList(){
+  const el=g("carlist");if(!el)return;
+  if(!S.cars.length){el.innerHTML=`<div class="empty" style="padding:14px 0"><div class="esub">Нет автомобилей</div></div>`;return;}
+  el.innerHTML=S.cars.map(car=>`
+    <div style="display:flex;align-items:center;gap:9px;background:var(--sf2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;border:1px solid ${car.id===S.activeCar?"var(--ac)":"var(--bd)"}">
+      <div style="flex-shrink:0;overflow:hidden;border-radius:6px">${carAvatar(car,56,32)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${CAR_ICONS[car.type]||"🚗"} ${car.brand} ${car.model}</div>
+        <div style="font-size:11px;color:var(--tx2)">${[car.year,car.mileage?car.mileage.toLocaleString()+" км":"",car.vin].filter(Boolean).join(" · ")}</div>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button onclick="selCar('${car.id}')" style="padding:5px 9px;border-radius:6px;background:var(--ac);color:white;border:none;font-size:11px;cursor:pointer">Выбрать</button>
+        <button onclick="closeModal('m-carlist');openCarModal('${car.id}')" style="padding:5px 8px;border-radius:6px;background:var(--sf3);color:var(--tx2);border:1px solid var(--bd);font-size:12px;cursor:pointer">✏</button>
+      </div>
+    </div>`).join("");
+}
+
+function selCar(id){S.activeCar=id;saveLocal();closeModal("m-carlist");renderDash();showToast("🚗 Выбрано");}
+function getAC(){return S.cars.find(c=>c.id===S.activeCar)||null;}
+function updKm(km,carId){
+  const c=carId?S.cars.find(x=>x.id===carId):getAC();
+  if(c&&km>+(c.mileage||0)){
+    c.mileage=km;saveLocal();
+    qSync({action:"update",sheet:"Cars",id:c.id,row:[c.id,c.type,c.brand,c.model,c.year,km,c.vin,c.color,c.tank,c.fuelType,c.createdAt]});
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// MAP / LOCATION
+// ══════════════════════════════════════════════════════════════
+// ── LEAFLET MAP ──────────────────────────────────────────────────
+let _leafMap=null, _leafMarker=null;
+
+function pickFuelLocation(){
+  openModal("m-map");
+  // Init map after modal opens so container has size
+  setTimeout(()=>{
+    const lat=parseFloat(g("f-lat").value)||41.7151;
+    const lng=parseFloat(g("f-lng").value)||44.8271;
+    initLeafletMap(lat,lng,!!g("f-lat").value);
+  },200);
+}
+
+function initLeafletMap(lat,lng,hasPin=false){
+  if(typeof L==="undefined"){
+    // Leaflet not loaded yet
+    showToast("⏳ Загружаем карту...");
+    setTimeout(()=>initLeafletMap(lat,lng,hasPin),500);
+    return;
+  }
+  const el=g("leaflet-map");
+  if(!el)return;
+  // Destroy previous map instance
+  if(_leafMap){_leafMap.remove();_leafMap=null;_leafMarker=null;}
+  _leafMap=L.map("leaflet-map").setView([lat,lng],14);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+    attribution:"© OpenStreetMap",maxZoom:19
+  }).addTo(_leafMap);
+  if(hasPin){
+    _leafMarker=L.marker([lat,lng]).addTo(_leafMap);
+    updateMapDisplay(lat,lng);
+  }
+  // Click to place marker
+  _leafMap.on("click",e=>{
+    const {lat:la,lng:lo}=e.latlng;
+    if(_leafMarker){_leafMarker.setLatLng([la,lo]);}
+    else{_leafMarker=L.marker([la,lo]).addTo(_leafMap);}
+    g("map-lat").value=la.toFixed(6);
+    g("map-lng").value=lo.toFixed(6);
+    updateMapDisplay(la,lo);
+  });
+}
+
+function updateMapDisplay(lat,lng){
+  const el=g("map-selected-display");
+  if(el)el.textContent=`📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
+function useCurrentLocation(){
+  if(!navigator.geolocation){showToast("⚠ Геолокация недоступна");return;}
+  showToast("⏳ Определяем местоположение...");
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const la=pos.coords.latitude,lo=pos.coords.longitude;
+    g("map-lat").value=la.toFixed(6);
+    g("map-lng").value=lo.toFixed(6);
+    if(_leafMap){
+      _leafMap.setView([la,lo],16);
+      if(_leafMarker){_leafMarker.setLatLng([la,lo]);}
+      else{_leafMarker=L.marker([la,lo]).addTo(_leafMap);}
+      updateMapDisplay(la,lo);
+    }
+    showToast("📍 Местоположение определено");
+  },()=>showToast("⚠ Не удалось определить местоположение"),{timeout:8000});
+}
+
+function confirmLocation(){
+  const lat=parseFloat(g("map-lat").value)||0,lng=parseFloat(g("map-lng").value)||0;
+  if(!lat||!lng){showToast("⚠ Сначала выберите точку на карте");return;}
+  g("f-lat").value=lat;g("f-lng").value=lng;
+  g("fuel-loc-text").textContent=`${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  g("fuel-coords-display").textContent=`📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  closeModal("m-map");showToast("✅ Место сохранено");
+}
+
+// ══════════════════════════════════════════════════════════════
+// FUEL CRUD
+// ══════════════════════════════════════════════════════════════
+function setFuelType(type,el){
+  document.querySelectorAll("#fuel-type-btns .pbtn").forEach(b=>b.classList.remove("active","active-amber"));
+  el.classList.add("active","active-amber");g("f-ftype").value="";
+}
+function calcFuel3(last){
+  const l=parseFloat(g("f-lit").value),p=parseFloat(g("f-price").value),t=parseFloat(g("f-total").value);
+  if(last==="lit"&&l>0&&p>0)g("f-total").value=(l*p).toFixed(2);
+  else if(last==="price"&&l>0&&p>0)g("f-total").value=(l*p).toFixed(2);
+  else if(last==="total"&&t>0){
+    if(l>0&&!p)g("f-price").value=(t/l).toFixed(3);
+    else if(p>0&&!l)g("f-lit").value=(t/p).toFixed(2);
+    else if(l>0&&p>0)g("f-price").value=(t/l).toFixed(3);
+  }else if(last==="lit"&&t>0&&l>0)g("f-price").value=(t/l).toFixed(3);
+  else if(last==="price"&&t>0&&p>0)g("f-lit").value=(t/p).toFixed(2);
+}
+
+function encodeNote(ft,st){if(ft&&st)return ft+"|"+st;return ft||st||"";}
+function parseNote(raw){
+  if(!raw)return{fuelType:"",station:""};
+  const i=raw.indexOf("|");
+  if(i===-1){const k=["АИ-92","АИ-95","АИ-98","ДТ","Газ"];return k.includes(raw.trim())?{fuelType:raw.trim(),station:""}:{fuelType:"",station:raw};}
+  return{fuelType:raw.slice(0,i),station:raw.slice(i+1)};
+}
+
+function openFuelModal(recId=null){
+  const rec=recId?S.fuels.find(f=>f.id===recId):null;
+  g("fuel-modal-title").textContent=rec?"✏ Редактировать заправку":"⛽ Заправка";
+  g("f-eid").value=rec?.id||"";
+  g("f-date").value=rec?.date||new Date().toISOString().split("T")[0];
+  g("f-km").value=rec?.mileage||"";
+  g("f-lit").value=rec?.liters||"";g("f-price").value=rec?.pricePerLiter||"";
+  g("f-curr").value=rec?.currency||S.currency;g("f-total").value=rec?.total||"";
+  g("f-lat").value=rec?.lat||"";g("f-lng").value=rec?.lng||"";
+  g("f-del-btn").style.display=rec?"flex":"none";
+  const {fuelType,station}=parseNote(rec?.note||"");
+  g("f-note").value=station;g("f-ftype").value="";
+  document.querySelectorAll("#fuel-type-btns .pbtn").forEach(b=>{
+    b.classList.toggle("active",b.textContent.trim()===fuelType);
+    b.classList.toggle("active-amber",b.textContent.trim()===fuelType);
+  });
+  if(rec?.lat&&rec?.lng){
+    g("fuel-loc-text").textContent=`${(+rec.lat).toFixed(4)}, ${(+rec.lng).toFixed(4)}`;
+    g("fuel-coords-display").textContent=`📍 ${(+rec.lat).toFixed(5)}, ${(+rec.lng).toFixed(5)}`;
+  }else{g("fuel-loc-text").textContent="Выбрать на карте";g("fuel-coords-display").textContent="";}
+  if(!rec){
+    const last=S.fuels.filter(f=>f.carId===S.activeCar).sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    if(last?.pricePerLiter)g("f-price").value=last.pricePerLiter;
+  }
+  openModal("m-fuel");
+}
+
+function saveFuel(){
+  if(!S.activeCar){showToast("⚠ Выберите авто");return;}
+  const date=g("f-date").value;if(!date){showToast("⚠ Укажите дату");return;}
+  const km=parseInt(g("f-km").value)||0;
+  const curr=g("f-curr").value;
+  const ab=document.querySelector("#fuel-type-btns .pbtn.active");
+  const fuelType=g("f-ftype").value.trim()||ab?.textContent.trim()||"";
+  const station=(g("f-note").value||"").trim();
+  const note=encodeNote(fuelType,station);
+  const lit=n(g("f-lit").value);
+  const price=n(g("f-price").value,3);
+  const total=n(g("f-total").value);
+  const finalTotal=total||(lit*price);
+  const lat=parseFloat(g("f-lat").value)||0;
+  const lng=parseFloat(g("f-lng").value)||0;
+  if(!lit&&!total){showToast("⚠ Укажите литры или сумму");return;}
+  const eid=g("f-eid").value;
+  if(eid){
+    const rec=S.fuels.find(f=>f.id===eid);
+    if(rec){
+      Object.assign(rec,{date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+finalTotal.toFixed(2),note,lat,lng});
+      updKm(km,rec.carId);saveLocal();
+      qSync({action:"update",sheet:"Fuel",id:eid,row:[eid,rec.carId,date,n(km,0),n(lit),n(price,3),curr,n(finalTotal),note,coord(lat),coord(lng),rec.createdAt]});
+      showToast("✅ Заправка обновлена");
+    }
+  } else {
+    const rec={id:uid(),carId:S.activeCar,type:"fuel",date,mileage:km,liters:lit,pricePerLiter:price,currency:curr,total:+finalTotal.toFixed(2),note,lat,lng,createdAt:now()};
+    S.fuels.push(rec);updKm(km,S.activeCar);saveLocal();
+    qSync({action:"append",sheet:"Fuel",row:[rec.id,rec.carId,date,n(km,0),n(lit),n(price,3),curr,n(rec.total),note,coord(lat),coord(lng),rec.createdAt]});
+    showToast("✅ Заправка добавлена");
+  }
+  closeModal("m-fuel");clearF2(["f-km","f-lit","f-price","f-total","f-note","f-ftype","f-lat","f-lng"]);
+  g("f-eid").value="";g("fuel-loc-text").textContent="Выбрать на карте";g("fuel-coords-display").textContent="";
+  document.querySelectorAll("#fuel-type-btns .pbtn").forEach((b,i)=>{b.classList.toggle("active",i===0);b.classList.toggle("active-amber",i===0);});
+  renderDash();if(g("scr-fuel").classList.contains("active"))renderFuel();
+}
+
+function deleteFuel(){
+  const id=g("f-eid").value;if(!id||!confirm("Удалить заправку?"))return;
+  S.fuels=S.fuels.filter(f=>f.id!==id);saveLocal();qSync({action:"delete",sheet:"Fuel",id});
+  closeModal("m-fuel");renderDash();renderFuel();showToast("🗑 Удалено");
+}
+
+function calcCons(carId){
+  const fs=S.fuels.filter(x=>x.carId===carId&&x.mileage>0&&x.liters>0).sort((a,b)=>a.mileage-b.mileage);
+  if(fs.length<2)return null;
+  const km=fs[fs.length-1].mileage-fs[0].mileage;if(km<=0)return null;
+  return(fs.slice(1).reduce((s,x)=>s+x.liters,0)/km*100).toFixed(1);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SERVICE / ТО CRUD
+// ══════════════════════════════════════════════════════════════
+function setToType(type,el){
+  document.querySelectorAll("#to-type-grid .pbtn").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");g("s-type").value=type;
+  const needInterval=INTERVAL_TYPES.some(t=>type.startsWith(t.split(" ")[0]));
+  g("s-interval-group").style.display=needInterval?"block":"none";
+}
+function setSvcInterval(v,el){
+  document.querySelectorAll("#s-interval-group .pbtn").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");g("s-interval").value=v;
+}
+
+function openSvcModal(recId=null){
+  const rec=recId?S.services.find(s=>s.id===recId):null;
+  g("svc-modal-title").textContent=rec?"✏ Редактировать запись":"🔧 Техобслуживание";
+  g("s-eid").value=rec?.id||"";
+  g("s-date").value=rec?.date||new Date().toISOString().split("T")[0];
+  g("s-km").value=rec?.mileage||"";g("s-cost").value=rec?.cost||"";
+  g("s-curr").value=rec?.currency||S.currency;g("s-note").value=rec?.note||"";
+  g("s-interval").value=rec?.interval||10000;
+  g("s-del-btn").style.display=rec?"flex":"none";
+  g("s-type").value=rec?.serviceType||"";
+  document.querySelectorAll("#to-type-grid .pbtn").forEach(b=>b.classList.toggle("active",b.textContent.trim()===rec?.serviceType?.split(" ").slice(1).join(" ")||false));
+  const ni=rec?.interval>0;g("s-interval-group").style.display=ni?"block":"none";
+  openModal("m-svc");
+}
+
+function saveSvc(){
+  if(!S.activeCar){showToast("⚠ Выберите авто");return;}
+  const date=g("s-date").value;
+  let stype=g("s-type").value||g("s-custom").value.trim();
+  if(!stype||!date){showToast("⚠ Укажите дату и вид работ");return;}
+  const custom=g("s-custom").value.trim();
+  if(custom)stype=custom;
+  const km=parseInt(g("s-km").value)||0;
+  const cost=n(g("s-cost").value);
+  const curr=g("s-curr").value;
+  const note=(g("s-note").value||"").trim();
+  const interval=g("s-interval-group").style.display!=="none"?(parseInt(g("s-interval").value)||0):0;
+  const eid=g("s-eid").value;
+  if(eid){
+    const rec=S.services.find(s=>s.id===eid);
+    if(rec){
+      Object.assign(rec,{serviceType:stype,date,mileage:km,cost,currency:curr,note,interval});
+      updKm(km,rec.carId);saveLocal();
+      qSync({action:"update",sheet:"Service",id:eid,row:[eid,rec.carId,date,stype,n(km,0),n(cost),curr,note,n(interval,0),rec.createdAt]});
+      showToast("✅ Обновлено");
+    }
+  } else {
+    const rec={id:uid(),carId:S.activeCar,type:"service",serviceType:stype,date,mileage:km,cost,currency:curr,note,interval,createdAt:now()};
+    S.services.push(rec);updKm(km,S.activeCar);saveLocal();
+    qSync({action:"append",sheet:"Service",row:[rec.id,rec.carId,date,stype,n(km,0),n(cost),curr,note,n(interval,0),rec.createdAt]});
+    showToast("✅ Запись добавлена");
+  }
+  closeModal("m-svc");clearF2(["s-km","s-cost","s-note","s-custom"]);
+  g("s-eid").value="";g("s-type").value="";
+  document.querySelectorAll("#to-type-grid .pbtn").forEach(b=>b.classList.remove("active"));
+  g("s-interval-group").style.display="none";
+  renderDash();if(g("scr-service").classList.contains("active"))renderSvc();
+}
+
+function deleteSvc(){
+  const id=g("s-eid").value;if(!id||!confirm("Удалить запись?"))return;
+  S.services=S.services.filter(s=>s.id!==id);saveLocal();qSync({action:"delete",sheet:"Service",id});
+  closeModal("m-svc");renderDash();renderSvc();showToast("🗑 Удалено");
+}
+
+// ══════════════════════════════════════════════════════════════
+// FINES CRUD
+// ══════════════════════════════════════════════════════════════
+function setFineType(type,el){
+  document.querySelectorAll("#m-fine .pbtn").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");g("fi-reason").value="";
+}
+function setFineStatus(st,el){
+  document.querySelectorAll("#fi-unpaid,#fi-paid").forEach(b=>b.classList.remove("active"));
+  el.classList.add("active");g("fi-status").value=st;
+}
+
+function openFineModal(recId=null){
+  const rec=recId?S.fines.find(f=>f.id===recId):null;
+  g("fine-modal-title").textContent=rec?"✏ Редактировать штраф":"🚔 Штраф";
+  g("fi-eid").value=rec?.id||"";
+  g("fi-date").value=rec?.date||new Date().toISOString().split("T")[0];
+  g("fi-reason").value=rec?.reason||"";g("fi-amount").value=rec?.amount||"";
+  g("fi-curr").value=rec?.currency||S.currency;g("fi-km").value=rec?.mileage||"";
+  g("fi-note").value=rec?.note||"";g("fi-status").value=rec?.status||"unpaid";
+  g("fi-del-btn").style.display=rec?"flex":"none";
+  document.querySelectorAll("#fi-unpaid,#fi-paid").forEach(b=>b.classList.toggle("active",b.id==="fi-"+(rec?.status||"unpaid")));
+  openModal("m-fine");
+}
+
+function saveFine(){
+  if(!S.activeCar){showToast("⚠ Выберите авто");return;}
+  const date=g("fi-date").value;if(!date){showToast("⚠ Укажите дату");return;}
+  const reason=(g("fi-reason").value||"").trim();if(!reason){showToast("⚠ Укажите причину");return;}
+  const amount=parseFloat(g("fi-amount").value)||0;
+  const curr=g("fi-curr").value;
+  const km=parseInt(g("fi-km").value)||0;
+  const status=g("fi-status").value||"unpaid";
+  const note=(g("fi-note").value||"").trim();
+  const eid=g("fi-eid").value;
+  if(eid){
+    const rec=S.fines.find(f=>f.id===eid);
+    if(rec){
+      Object.assign(rec,{reason,date,amount,currency:curr,mileage:km,status,note});
+      saveLocal();qSync({action:"update",sheet:"Fines",id:eid,row:[eid,rec.carId,date,reason,n(amount),curr,n(km,0),status,note,rec.createdAt]});
+      showToast("✅ Штраф обновлён");
+    }
+  } else {
+    const rec={id:uid(),carId:S.activeCar,type:"fine",date,reason,amount,currency:curr,mileage:km,status,note,createdAt:now()};
+    S.fines.push(rec);saveLocal();
+    qSync({action:"append",sheet:"Fines",row:[rec.id,rec.carId,date,reason,n(amount),curr,n(km,0),status,note,rec.createdAt]});
+    showToast("✅ Штраф добавлен");
+  }
+  closeModal("m-fine");clearF2(["fi-reason","fi-amount","fi-km","fi-note"]);g("fi-eid").value="";
+  if(g("scr-fines").classList.contains("active"))renderFines();renderDash();
+}
+
+function deleteFine(){
+  const id=g("fi-eid").value;if(!id||!confirm("Удалить штраф?"))return;
+  S.fines=S.fines.filter(f=>f.id!==id);saveLocal();qSync({action:"delete",sheet:"Fines",id});
+  closeModal("m-fine");renderFines();renderDash();showToast("🗑 Удалено");
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════
+function renderDash(){
+  if(!S.cars.length){
+    g("no-car").innerHTML = isTokenValid()
+      ? `<div class="empty" style="padding-top:60px"><div style="font-size:44px;margin-bottom:14px;opacity:.35">⏳</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px">Загружаем данные...</div><div style="font-size:13px;color:var(--tx2)">Подключаемся к Google Sheets</div></div>`
+      : `<div class="empty" style="padding-top:60px"><div style="font-size:44px;margin-bottom:14px;opacity:.3">🚗</div><div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px">Нет автомобилей</div><div style="font-size:13px;color:var(--tx2);margin-bottom:18px">Добавьте первый автомобиль</div><button class="btn bp" style="max-width:180px;margin:0 auto" onclick="openCarModal()">+ Добавить авто</button></div>`;
+    g("no-car").style.display="block"; g("car-dash").style.display="none"; return;
+  }
+  g("no-car").style.display="none"; g("car-dash").style.display="block";
+  if(!S.activeCar||!S.cars.find(c=>c.id===S.activeCar)){S.activeCar=S.cars[0].id;saveLocal();}
+  const car=getAC(); if(!car) return;
+
+  // ── HERO ──────────────────────────────────────────────────────
+  const icon = CAR_ICONS[car.type]||"🚗";
+  g("d-hero-icon").textContent = icon;
+  if(car.photo){
+    g("d-hero-photo").src=car.photo; g("d-hero-photo").style.display="block";
+    g("d-hero-svg").style.display="none";
+  } else {
+    g("d-hero-photo").style.display="none";
+    g("d-hero-svg").style.display="flex";
+    g("d-hero-svg").textContent = icon;
+  }
+  g("d-nm").textContent = car.brand+" "+car.model;
+  // sub: year • trim style
+  const subParts=[car.year,car.fuelType==="electric"?"⚡ Электро":car.fuelType==="hybrid"?"🔋 Гибрид":null].filter(Boolean);
+  const subEl=g("d-sub"); subEl.innerHTML="";
+  subParts.forEach((p,i)=>{
+    if(i>0){const dot=document.createElement("div");dot.className="dash-car-sub-dot";subEl.appendChild(dot);}
+    const span=document.createElement("span");span.textContent=p;subEl.appendChild(span);
+  });
+
+  // ── STATS ─────────────────────────────────────────────────────
+  const realKm=Math.max(
+    Number(car.mileage)||0,
+    ...(S.fuels.filter(f=>f.carId===car.id).map(f=>f.mileage||0)),
+    ...(S.services.filter(s=>s.carId===car.id).map(s=>s.mileage||0))
+  );
+  g("d-km").textContent  = realKm ? realKm.toLocaleString() : "—";
+  g("d-vin").textContent = car.vin || "—";
+  g("d-con").textContent = calcCons(car.id)||"—";
+  g("d-curr").textContent= CUR[S.currency]||"₾";
+
+  // Monthly spend (current month)
+  const nowYM = new Date().toISOString().slice(0,7);
+  const fs  = S.fuels.filter(f=>f.carId===car.id);
+  const ss  = S.services.filter(s=>s.carId===car.id);
+  const fins= S.fines.filter(f=>f.carId===car.id);
+  const monthSpend=[
+    ...fs.filter(f=>f.date?.startsWith(nowYM)).map(f=>f.total||0),
+    ...ss.filter(s=>s.date?.startsWith(nowYM)).map(s=>s.cost||0),
+    ...fins.filter(f=>f.date?.startsWith(nowYM)).map(f=>f.amount||0)
+  ].reduce((a,b)=>a+b,0);
+  g("d-month").textContent = monthSpend ? monthSpend.toFixed(0) : "0";
+
+  // ── NEXT SERVICE ──────────────────────────────────────────────
+  const nsEl = g("d-next-service");
+  const curKm = realKm;
+  const withInt = ss.filter(s=>s.interval>0);
+  if(withInt.length){
+    // latest of each type
+    const latest={};
+    withInt.forEach(s=>{if(!latest[s.serviceType]||s.mileage>latest[s.serviceType].mileage)latest[s.serviceType]=s;});
+    const entries=Object.values(latest).map(s=>{
+      const left=(s.mileage+s.interval)-curKm;
+      const pct=Math.min(100,Math.max(0,(curKm-s.mileage)/s.interval*100));
+      return{s,left,pct};
+    }).sort((a,b)=>a.left-b.left);
+    const worst=entries[0];
+    const done=worst.left<=0, warn=!done&&worst.left<=worst.s.interval*.2;
+    const col=done?"#ef4444":warn?"var(--am2)":"var(--gn2)";
+    const badge=done?"ПРОСРОЧЕНО":warn?"СКОРО":"В НОРМЕ";
+    const badgeCls=done?"danger":warn?"warn":"ok";
+    const fillCol=done?"linear-gradient(90deg,#ef4444,#c0392b)":warn?"linear-gradient(90deg,var(--am),var(--am2))":"linear-gradient(90deg,var(--gn),var(--gn2))";
+    nsEl.innerHTML=`
+    <div class="next-service-card" onclick="goScr('service')" style="cursor:pointer">
+      <div class="nsc-icon">🔧</div>
+      <div class="nsc-label">СЛЕДУЮЩЕЕ ТО</div>
+      <div class="nsc-name">${worst.s.serviceType.replace(/^[^\s]+ /,"")}</div>
+      <div class="nsc-km">
+        <span style="color:${col};font-weight:700">${done?"+":""}${Math.abs(worst.left).toLocaleString()} км ${done?"просрочено":"осталось"}</span>
+        <span class="nsc-badge ${badgeCls}">${badge}</span>
+      </div>
+      <div class="nsc-bar"><div class="nsc-fill" style="width:0%;background:${fillCol}" data-w="${worst.pct}%"></div></div>
+      <div class="nsc-footer">
+        <span>Последнее: ${worst.s.mileage.toLocaleString()} км</span>
+        <span>Следующее: ${(worst.s.mileage+worst.s.interval).toLocaleString()} км</span>
+      </div>
+      <button class="nsc-action" onclick="event.stopPropagation();openSvcModal()">
+        <span>Записаться на ТО</span><span>→</span>
+      </button>
+    </div>
+    ${entries.length>1?`<div style="font-size:11px;color:var(--tx2);margin-top:6px;text-align:center">+${entries.length-1} других интервалов</div>`:""}`;
+    // animate bar
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      nsEl.querySelectorAll("[data-w]").forEach(el=>el.style.width=el.dataset.w);
+    }));
+  } else {
+    nsEl.innerHTML=`<div class="next-service-card" style="cursor:pointer;text-align:center" onclick="openSvcModal()">
+      <div style="font-size:13px;color:var(--tx2);padding:8px 0">
+        Добавьте запись ТО с интервалом — и мы будем напоминать когда пора
+      </div>
+      <button class="nsc-action" style="justify-content:center">+ Добавить ТО</button>
+    </div>`;
+  }
+
+  // ── RECENT ACTIVITY (GaragePulse style) ──────────────────────
+  const all=[...fs.map(f=>({...f,_t:"fuel"})),...ss.map(s=>({...s,_t:"service"})),...fins.map(f=>({...f,_t:"fine"}))].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,5);
+  const recEl=g("d-recent");
+  if(!all.length){
+    recEl.innerHTML=`<div class="empty" style="padding:20px 0"><div class="esub">Нет записей</div></div>`;
+  } else {
+    recEl.innerHTML=all.map(r=>actRow(r)).join("");
+  }
+  updateBadge();
+  updateUserUI();
+}
+
+// GaragePulse style activity row (for dashboard only)
+function actRow(r){
+  const iF=r._t==="fuel", iS=r._t==="service", iFn=r._t==="fine";
+  const cu=CUR[r.currency]||"₾";
+  const am=iF?r.total:iS?r.cost:r.amount;
+  const ds=r.date?relativeDate(r.date):"";
+  const editFn=iF?`openFuelModal('${r.id}')`:iS?`openSvcModal('${r.id}')`:`openFineModal('${r.id}')`;
+  const type=iF?"fuel":iS?"svc":"fine";
+  const typeLabel=iF?"ТОПЛИВО":iS?"СЕРВИС":"ШТРАФ";
+  const icon=iF?"⛽":iS?"🔧":"🚔";
+  const title=iF?(()=>{const nn=parseNote(r.note||"");return[nn.fuelType,nn.station].filter(Boolean).join(", ")||"Заправка";})():iS?r.serviceType:r.reason;
+  const detail=iF?r.liters+"л":iFn?(r.status==="paid"?"Оплачен":"Не оплачен"):"";
+  return`<div class="act-row" onclick="${editFn}">
+    <div class="act-icon ${type}">${icon}</div>
+    <div class="act-body">
+      <div class="act-type ${type}">${typeLabel}</div>
+      <div class="act-title">${title}</div>
+      <div class="act-sub">${ds}${r.mileage?" · "+r.mileage.toLocaleString()+" км":""}</div>
+    </div>
+    <div class="act-right">
+      <div class="act-amount ${type}">${am?"-"+cu+am.toFixed(0):"—"}</div>
+      ${detail?`<div class="act-detail">${detail}</div>`:""}
+    </div>
+  </div>`;
+}
+
+function relativeDate(dateStr){
+  if(!dateStr) return "";
+  const d=new Date(dateStr), now=new Date();
+  const diffDays=Math.floor((now-d)/86400000);
+  if(diffDays===0) return "Сегодня";
+  if(diffDays===1) return "Вчера";
+  if(diffDays<7)   return diffDays+" дн. назад";
+  return d.toLocaleDateString("ru",{day:"numeric",month:"short"});
+}
+
+function renderFuel(){
+  const car=getAC();if(!car){g("fuel-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;g("fuel-cblock").innerHTML="";return;}
+  const fs=S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const cons=calcCons(car.id),cel=g("fuel-cblock");
+  if(cons&&fs.length>=2){
+    const tL=fs.reduce((s,f)=>s+f.liters,0),tC=fs.reduce((s,f)=>s+(f.total||0),0),cu=CUR[fs[0]?.currency]||"₾";
+    cel.innerHTML=`<div class="ccard"><div><div style="font-size:10px;color:var(--tx2);margin-bottom:3px">Средний расход</div><div class="cbig">${cons}</div><div class="cunit">л/100км</div></div><div class="cstats"><div class="csr"><span class="csl">Топлива: </span><span class="csv">${tL.toFixed(1)}л</span></div><div class="csr"><span class="csl">Потрачено: </span><span class="csv">${cu}${tC.toFixed(0)}</span></div><div class="csr"><span class="csl">Заправок: </span><span class="csv">${fs.length}</span></div></div></div>`;
+  } else cel.innerHTML="";
+  g("fuel-list").innerHTML=fs.length?`<div class="card">${fs.map(f=>rRow({...f,_t:"fuel"})).join("")}</div>`:`<div class="empty"><div class="ei">⛽</div><div class="etit">Нет заправок</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+}
+
+function renderSvc(){
+  const car=getAC();if(!car){g("svc-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;return;}
+  const ss=S.services.filter(s=>s.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  // ТО reminders with intervals
+  const remEl=g("to-reminders");
+  const withInterval=ss.filter(s=>s.interval>0);
+  const curKm=car.mileage||0;
+  if(withInterval.length){
+    // Group by serviceType — take latest
+    const latest={};
+    withInterval.forEach(s=>{if(!latest[s.serviceType]||s.mileage>latest[s.serviceType].mileage)latest[s.serviceType]=s;});
+    remEl.innerHTML=Object.values(latest).map(s=>{
+      const left=(s.mileage+s.interval)-curKm;
+      const pct=Math.min(100,Math.max(0,(curKm-s.mileage)/s.interval*100));
+      const done=left<=0,warn=!done&&left<=s.interval*.2;
+      const col=done?"#ef4444":warn?"#f59e0b":"#10b981";
+      return`<div class="oil-card ${done?"danger":warn?"warn":"ok"}" onclick="openSvcModal('${s.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-size:13px;font-weight:600">${s.serviceType}</div>
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${col}">${done?"+":""} ${Math.abs(left).toLocaleString()} км</div>
+        </div>
+        <div class="oil-progress"><div class="oil-bar" style="width:${pct}%;background:${col}"></div></div>
+        <div style="font-size:10px;color:var(--tx2)">Выполнено: ${s.mileage.toLocaleString()} км · каждые ${s.interval.toLocaleString()} км</div>
+      </div>`;
+    }).join("");
+  } else remEl.innerHTML="";
+  g("svc-list").innerHTML=ss.length?`<div class="card">${ss.map(s=>rRow({...s,_t:"service"})).join("")}</div>`:`<div class="empty"><div class="ei">🔧</div><div class="etit">Нет записей</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+}
+
+function renderFines(){
+  const car=getAC();if(!car){g("fines-list").innerHTML=`<div class="empty"><div class="ei">🚗</div><div class="etit">Выберите авто</div></div>`;return;}
+  const fins=S.fines.filter(f=>f.carId===car.id).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const sumEl=g("fines-summary");
+  if(fins.length){
+    const total=fins.reduce((s,f)=>s+(f.amount||0),0);
+    const unpaid=fins.filter(f=>f.status==="unpaid").reduce((s,f)=>s+(f.amount||0),0);
+    const cu=CUR[fins[0]?.currency]||"₾";
+    sumEl.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div class="sc" style="padding:12px"><div class="sl">Всего штрафов</div><div class="sv sv-b">${fins.length}</div></div>
+      <div class="sc" style="padding:12px"><div class="sl">Сумма</div><div class="sv" style="color:var(--rd2)">${cu}${total.toFixed(0)}</div></div>
+      ${unpaid>0?`<div class="sc" style="padding:12px;border:1px solid rgba(239,68,68,.3)"><div class="sl">Не оплачено</div><div class="sv" style="color:var(--rd2)">${cu}${unpaid.toFixed(0)}</div></div>`:"<div class='sc' style='padding:12px'><div class='sl'>Не оплачено</div><div class='sv sv-g'>0</div></div>"}
+      <div class="sc" style="padding:12px"><div class="sl">Оплачено</div><div class="sv sv-g">${cu}${(total-unpaid).toFixed(0)}</div></div>
+    </div>`;
+  } else sumEl.innerHTML="";
+  g("fines-list").innerHTML=fins.length?`<div class="card">${fins.map(f=>rRow({...f,_t:"fine"})).join("")}</div>`:`<div class="empty"><div class="ei">🚔</div><div class="etit">Нет штрафов</div><div class="esub">Нажмите + чтобы добавить</div></div>`;
+}
+
+function rRow(r){
+  const iF=r._t==="fuel",iS=r._t==="service",iFn=r._t==="fine";
+  const cu=CUR[r.currency]||"₾";
+  const am=iF?r.total:iS?r.cost:r.amount;
+  const ds=r.date?new Date(r.date).toLocaleDateString("ru",{day:"numeric",month:"short",year:"numeric"}):"";
+  const editFn=iF?`openFuelModal('${r.id}')`:iS?`openSvcModal('${r.id}')`:`openFineModal('${r.id}')`;
+  const dotCol=iF?stationColor(parseNote(r.note||"").station||parseNote(r.note||"").fuelType):iS?svcColor(r.serviceType):"#ef4444";
+  const icon=iF?"⛽":iS?"🔧":"🚔";
+  const iconCls=iF?"rif":iS?"ris":"rift";
+  const title=iF?(()=>{const n=parseNote(r.note||"");return[n.fuelType,n.station].filter(Boolean).join(" · ")||"Заправка";})():iS?r.serviceType:r.reason;
+  const sub=`${ds}${r.mileage?" · "+r.mileage.toLocaleString()+" км":""}${iF?" · "+r.liters+"л":""}${iFn?" · "+(r.status==="paid"?"✅ Оплачен":"⏳ Не оплачен"):""}`;
+  const badgeCls=iF?"bf":iS?"bs":"bfine";
+  const badgeTxt=iF?"ТОПЛИВО":iS?"СЕРВИС":"ШТРАФ";
+  return`<div class="crow" style="border-left:3px solid ${dotCol}22">
+    <div class="ri ${iconCls}" style="border-left:3px solid ${dotCol}">${icon}</div>
+    <div class="rb" onclick="${editFn}" style="cursor:pointer">
+      <div class="rt">${title}</div><div class="rs2">${sub}</div>
+    </div>
+    <div class="rr">
+      <div><div class="ra ${iF?"raf":iS?"ras":"rard"}">${am?cu+am.toFixed(0):"—"}</div>
+      <span class="badge ${badgeCls}">${badgeTxt}</span></div>
+      <button onclick="${editFn}" style="background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer">✏</button>
+    </div>
+  </div>`;
+}
+
+function renderHist(f){
+  const car=getAC();if(!car){g("hist-list").innerHTML=`<div class="empty"><div class="esub">Выберите авто</div></div>`;return;}
+  let all=[
+    ...S.fuels.filter(x=>x.carId===car.id).map(x=>({...x,_t:"fuel"})),
+    ...S.services.filter(x=>x.carId===car.id).map(x=>({...x,_t:"service"})),
+    ...S.fines.filter(x=>x.carId===car.id).map(x=>({...x,_t:"fine"}))
+  ];
+  if(f==="fuel")all=all.filter(r=>r._t==="fuel");
+  if(f==="service")all=all.filter(r=>r._t==="service");
+  if(f==="fine")all=all.filter(r=>r._t==="fine");
+  all.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  g("hist-list").innerHTML=all.length?`<div class="card">${all.map(rRow).join("")}</div>`:`<div class="empty"><div class="ei">📋</div><div class="etit">Нет записей</div></div>`;
+}
+function fHist(f,btn){document.querySelectorAll(".tabs .tb").forEach(b=>b.classList.remove("active"));btn.classList.add("active");renderHist(f);}
+
+// ══════════════════════════════════════════════════════════════
+// OIL / ТО MINI (dashboard widget)
+// ══════════════════════════════════════════════════════════════
+function renderOilMini(car){
+  const el=g("d-oil-mini");if(!el)return;
+  const cur=+car.mileage||0;
+  const items=S.services.filter(s=>s.carId===car.id&&s.interval>0);
+  if(!items.length){el.innerHTML="";return;}
+  // Latest of each type
+  const latest={};
+  items.forEach(s=>{if(!latest[s.serviceType]||s.mileage>latest[s.serviceType].mileage)latest[s.serviceType]=s;});
+  const entries=Object.values(latest).map(s=>{
+    const left=(s.mileage+s.interval)-cur;
+    const pct=Math.min(100,Math.max(0,(cur-s.mileage)/s.interval*100));
+    const done=left<=0,warn=!done&&left<=s.interval*.2;
+    const col=done?"#ef4444":warn?"#f59e0b":"#10b981";
+    const icon=done?"🔴":warn?"🟡":"🟢";
+    return{s,left,pct,col,icon,done,warn};
+  }).sort((a,b)=>a.left-b.left);
+  const worst=entries[0];
+  // Show worst item + count of others
+  const R=16,circ=2*Math.PI*R;
+  const dash=circ*(1-worst.pct/100);
+  el.innerHTML=`<div onclick="goScr('service')" style="cursor:pointer;background:rgba(0,0,0,.18);border:1px solid ${worst.col}33;border-radius:12px;padding:10px 13px;display:flex;align-items:center;gap:12px">
+    <div style="flex-shrink:0;position:relative;width:40px;height:40px">
+      <svg width="40" height="40" viewBox="0 0 40 40">
+        <circle cx="20" cy="20" r="${R}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="4"/>
+        <circle cx="20" cy="20" r="${R}" fill="none" stroke="${worst.col}" stroke-width="4" stroke-linecap="round"
+          stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${circ.toFixed(1)}" transform="rotate(-90 20 20)">
+          <animate attributeName="stroke-dashoffset" from="${circ.toFixed(1)}" to="${dash.toFixed(1)}"
+            dur="1.2s" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.4 0 0.2 1"/>
+        </circle>
+        <text x="20" y="24" text-anchor="middle" font-size="12">🔧</text>
+      </svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:11px;font-weight:600;color:${worst.col};margin-bottom:2px">${worst.icon} ${worst.s.serviceType.replace(/^[^\s]+ /,"")}: ${worst.done?"+":""} ${Math.abs(worst.left).toLocaleString()} км ${worst.done?"просрочено":"осталось"}</div>
+      ${entries.length>1?`<div style="font-size:10px;color:var(--tx3)">${entries.length} интервалов отслеживается</div>`:""}
+      <div style="height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:5px;overflow:hidden">
+        <div style="height:100%;width:0%;background:${worst.col};border-radius:2px;transition:width 1.2s cubic-bezier(.34,1.2,.64,1)" data-w="${worst.pct}%"></div>
+      </div>
+    </div>
+    <span style="font-size:16px;color:var(--tx3);flex-shrink:0">›</span>
+  </div>`;
+  requestAnimationFrame(()=>{const b=el.querySelector("[data-w]");if(b)b.style.width=b.dataset.w;});
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANALYTICS
+// ══════════════════════════════════════════════════════════════
+function renderAnalytics(){
+  const car=getAC();const el=g("analytics-body");if(!el)return;
+  if(!car){el.innerHTML=`<div class="empty" style="padding:20px 0"><div class="esub">Выберите авто на главной</div></div>`;return;}
+  const fs=S.fuels.filter(f=>f.carId===car.id).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const ss=S.services.filter(s=>s.carId===car.id);
+  const fins=S.fines.filter(f=>f.carId===car.id);
+  const all=[...fs,...ss,...fins];
+  if(!all.length){el.innerHTML=`<div class="empty" style="padding:20px 0"><div class="esub">Нет данных для анализа</div></div>`;return;}
+  const tF=fs.reduce((s,f)=>s+(f.total||0),0);
+  const tS=ss.reduce((s,f)=>s+(f.cost||0),0);
+  const tFn=fins.reduce((s,f)=>s+(f.amount||0),0);
+  const tL=fs.reduce((s,f)=>s+f.liters,0);
+  const cu=CUR[S.currency]||"₾";
+  const cons=calcCons(car.id);
+  const avgP=tL>0?tF/tL:0;
+  // Monthly
+  const byMonth={};
+  fs.forEach(f=>{const k=f.date?.slice(0,7);if(!k)return;if(!byMonth[k])byMonth[k]={fuel:0,svc:0,fine:0};byMonth[k].fuel+=f.total||0;});
+  ss.forEach(s=>{const k=s.date?.slice(0,7);if(!k)return;if(!byMonth[k])byMonth[k]={fuel:0,svc:0,fine:0};byMonth[k].svc+=s.cost||0;});
+  fins.forEach(f=>{const k=f.date?.slice(0,7);if(!k)return;if(!byMonth[k])byMonth[k]={fuel:0,svc:0,fine:0};byMonth[k].fine+=f.amount||0;});
+  const months=Object.keys(byMonth).sort().slice(-6);
+  const maxV=Math.max(...months.map(m=>byMonth[m].fuel+byMonth[m].svc+byMonth[m].fine),1);
+  // Stations
+  const byStation={};
+  fs.forEach(f=>{const{station}=parseNote(f.note||"");const k=station||"Другие";if(!byStation[k])byStation[k]={cnt:0,total:0};byStation[k].cnt++;byStation[k].total+=f.total||0;});
+  const topSt=Object.entries(byStation).sort((a,b)=>b[1].cnt-a[1].cnt).slice(0,4);
+  const maxSt=topSt[0]?.[1].cnt||1;
+  // Svc by type
+  const bySvc={};ss.forEach(s=>{const k=s.serviceType||"Другое";if(!bySvc[k])bySvc[k]=0;bySvc[k]+=s.cost||0;});
+  const topSvc=Object.entries(bySvc).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxSvc=topSvc[0]?.[1]||1;
+
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <div style="background:var(--sf2);border-radius:10px;padding:11px"><div style="font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Все расходы</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--ac2)">${cu}${(tF+tS+tFn).toFixed(0)}</div></div>
+    <div style="background:var(--sf2);border-radius:10px;padding:11px"><div style="font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Топливо</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--am2)">${cu}${tF.toFixed(0)}</div></div>
+    <div style="background:var(--sf2);border-radius:10px;padding:11px"><div style="font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Сервис</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--ac2)">${cu}${tS.toFixed(0)}</div></div>
+    <div style="background:var(--sf2);border-radius:10px;padding:11px"><div style="font-size:9px;color:var(--tx2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:3px">Штрафы</div><div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--rd2)">${cu}${tFn.toFixed(0)}</div></div>
+  </div>
+  ${avgP?`<div style="background:var(--sf2);border-radius:10px;padding:11px;margin-bottom:10px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--tx2)">Средняя цена топлива</span><span style="font-weight:600;color:var(--am2)">${cu}${avgP.toFixed(2)}/л</span></div>`:""}
+  ${cons?`<div style="background:var(--sf2);border-radius:10px;padding:11px;margin-bottom:10px;display:flex;justify-content:space-between"><span style="font-size:12px;color:var(--tx2)">Средний расход</span><span style="font-weight:600;color:var(--am2)">${cons} л/100км</span></div>`:""}
+  ${months.length>=2?`<div class="chbox"><div class="chtit">📅 Расходы по месяцам</div>
+    <div style="display:flex;gap:5px;align-items:flex-end;height:80px;margin-bottom:8px">
+      ${months.map(m=>{const d=byMonth[m];const hF=Math.round(d.fuel/maxV*70)+4;const hS=Math.round(d.svc/maxV*70)+4;const hFn=Math.round(d.fine/maxV*70)+4;const mn=new Date(m+"-01").toLocaleDateString("ru",{month:"short"});
+        return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+          <div style="width:100%;display:flex;flex-direction:column;gap:1px;align-items:center">
+            ${d.fine>0?`<div style="width:70%;height:${hFn}px;background:rgba(239,68,68,.6);border-radius:2px 2px 0 0"></div>`:""}
+            ${d.svc>0?`<div style="width:70%;height:${hS}px;background:rgba(59,130,246,.6);border-radius:${d.fine?0:2}px ${d.fine?0:2}px 0 0"></div>`:""}
+            <div style="width:100%;height:${hF}px;background:linear-gradient(180deg,var(--am2),rgba(245,158,11,.4));border-radius:${d.svc||d.fine?0:3}px ${d.svc||d.fine?0:3}px 0 0"></div>
+          </div>
+          <div style="font-size:9px;color:var(--tx3)">${mn}</div>
+        </div>`;}).join("")}
+    </div>
+    <div style="display:flex;gap:10px;font-size:10px;color:var(--tx2)">
+      <span>🟡 Топливо</span><span>🔵 Сервис</span><span>🔴 Штрафы</span>
+    </div>
+  </div>`:""}
+  ${topSt.length?`<div class="chbox"><div class="chtit">📍 Любимые АЗС</div>
+    ${topSt.map(([name,d])=>{const col=stationColor(name);const pct=Math.round(d.cnt/maxSt*100);
+      return`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:7px"><div style="width:9px;height:9px;border-radius:50%;background:${col}"></div><span style="font-size:12px;font-weight:500">${name}</span></div>
+        <span style="font-size:11px;color:var(--tx2)">${d.cnt} раз · ${cu}${d.total.toFixed(0)}</span></div>
+        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:width 1.2s"></div></div>
+      </div>`;}).join("")}
+  </div>`:""}
+  ${topSvc.length?`<div class="chbox"><div class="chtit">🔧 Траты на сервис</div>
+    ${topSvc.map(([type,cost])=>{const col=svcColor(type);const pct=Math.round(cost/maxSvc*100);
+      return`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <div style="display:flex;align-items:center;gap:7px"><div style="width:9px;height:9px;border-radius:50%;background:${col}"></div><span style="font-size:12px;font-weight:500">${type}</span></div>
+        <span style="font-size:11px;color:var(--tx2)">${cu}${cost.toFixed(0)}</span></div>
+        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:2px;transition:width 1.2s"></div></div>
+      </div>`;}).join("")}
+  </div>`:""}`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// BADGE
+// ══════════════════════════════════════════════════════════════
+async function updateBadge(){
+  if(!("setAppBadge" in navigator))return;
+  if("Notification" in window&&Notification.permission==="default"){try{await Notification.requestPermission();}catch(e){}}
+  const car=getAC();const km=car?+car.mileage||0:0;
+  try{km>0?await navigator.setAppBadge(km):await navigator.clearAppBadge();}catch(e){
+    try{const reg=await navigator.serviceWorker.ready;if("setAppBadge" in reg){km>0?await reg.setAppBadge(km):await reg.clearAppBadge();}}catch(e2){}
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════════════════
+function setSbar(state,msg){
+  const b=g("sbar");b.className="sbar show "+state;g("smsg").textContent=msg;
+  if(state==="ok"||state==="error")setTimeout(()=>b?.classList.remove("show"),3500);
+}
+let toastT;
+function showToast(msg){const e=g("toast");e.textContent=msg;e.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove("show"),2600);}
+function clearF2(ids){ids.forEach(id=>{const e=g(id);if(e)e.value="";});}
+
+// ══════════════════════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════════════════════
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+window.addEventListener("load",()=>initGoogleAuth());
+// ══════════════════════════════════════════════════════
+// PULL-TO-REFRESH
+// ══════════════════════════════════════════════════════
+function setupPTR() {
+  const el   = g("scr-dashboard");
+  const main = el?.closest(".main");
+  if (!main) return;
+
+  let startY = 0, pulling = false, triggered = false;
+  const ind  = g("ptr-indicator");
+  const txt  = g("ptr-text");
+
+  main.addEventListener("touchstart", e => {
+    if (main.scrollTop === 0) {
+      startY  = e.touches[0].clientY;
+      pulling = true;
+      triggered = false;
+    }
+  }, { passive: true });
+
+  main.addEventListener("touchmove", e => {
+    if (!pulling) return;
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 0 && main.scrollTop === 0) {
+      ind.classList.add("pulling");
+      if (dy > 64 && !triggered) {
+        triggered = true;
+        txt.textContent = "Отпустите для обновления";
+      } else if (dy <= 64) {
+        txt.textContent = "Потяните чтобы обновить";
+      }
+    }
+  }, { passive: true });
+
+  main.addEventListener("touchend", async () => {
+    if (!pulling) return;
+    pulling = false;
+    if (triggered) {
+      ind.classList.remove("pulling");
+      ind.classList.add("refreshing");
+      txt.textContent = "Обновляем...";
+      try {
+        if (S.queue.length > 0) await syncNow();
+        await loadFromSheets();
+      } finally {
+        ind.classList.remove("refreshing");
+        txt.textContent = "Потяните чтобы обновить";
+      }
+    } else {
+      ind.classList.remove("pulling");
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// OFFLINE QUEUE — retry all pending ops on reconnect
+// ══════════════════════════════════════════════════════
+function setupOfflineHandlers() {
+  window.addEventListener("online", async () => {
+    updateOffline();
+    showToast("🌐 Онлайн");
+    if (S.queue?.length > 0) {
+      await syncNow();
+      showToast(`☁ Синхронизировано ${S.queue.length === 0 ? "✅" : "⚠"}`);
+    }
+    if (isTokenValid()) loadFromSheets();
+  });
+  window.addEventListener("offline", () => {
+    updateOffline();
+    showToast("📡 Офлайн — записи сохраняются локально");
+  });
+}
+
+
+</script>
+</body>
+</html>
