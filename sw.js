@@ -1,5 +1,5 @@
 // CarLog Service Worker v3
-const CACHE = "carlog-v3";
+const CACHE = "carlog-v5";
 const SHELL = ["./index.html", "./manifest.json"];
 
 // ── Установка ────────────────────────────────────────────────────
