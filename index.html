@@ -1069,7 +1069,7 @@ h1,h2,h3,h4{font-family:"Syne",sans-serif}
 // ══════════════════════════════════════════════════════════════
 // 🔑 ВСТАВЬТЕ СЮДА ВАШ GOOGLE CLIENT ID
 // ══════════════════════════════════════════════════════════════
-const CLIENT_ID = "YOUR_CLIENT_ID.apps.googleusercontent.com";
+const CLIENT_ID = "414490794017-ovoh8sq7um851g1245jsmbhmou04cg2p.apps.googleusercontent.com";
 
 const INTERVAL_TYPES = ["🛢 Замена масла","🔄 Масляный фильтр","💨 Воздушный фильтр","🌬 Салонный фильтр","⛽ Топливный фильтр","⚙ Ремень ГРМ"];
 
@@ -1268,17 +1268,45 @@ function scheduleTokenRefresh() {
 
 async function ensureSpreadsheet() {
   if (S.spreadsheetId) {
-    try{await apiGet(`${BASE}/${S.spreadsheetId}?fields=spreadsheetId`);await ensureSheets();return;}
+    try{
+      await apiGet(`${BASE}/${S.spreadsheetId}?fields=spreadsheetId`);
+      await fixLocaleIfNeeded(S.spreadsheetId);  // чиним локаль у существующей таблицы
+      await ensureSheets();
+      return;
+    }
     catch(e){S.spreadsheetId=null;}
   }
   try {
     const res=await apiGet(`${DRIVE}?q=name='${SHEET_NM}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false&fields=files(id)`);
-    if (res.files?.length>0){S.spreadsheetId=res.files[0].id;saveLocal();await ensureSheets();return;}
+    if (res.files?.length>0){
+      S.spreadsheetId=res.files[0].id;saveLocal();
+      await fixLocaleIfNeeded(S.spreadsheetId);  // чиним локаль у найденной таблицы
+      await ensureSheets();
+      return;
+    }
   } catch(e){}
-  const cr=await apiPost(BASE,{properties:{title:SHEET_NM,locale:"ru_RU"},sheets:Object.keys(SCHEMA).map(n=>({properties:{title:n}}))});
+  const cr=await apiPost(BASE,{properties:{title:SHEET_NM,locale:"en_US"},sheets:Object.keys(SCHEMA).map(n=>({properties:{title:n}}))});
   S.spreadsheetId=cr.spreadsheetId;
   saveLocal();
   await ensureSheets(true);
+}
+
+// Если таблица была создана со старой версией кода (ru_RU локаль),
+// это вызывало запись чисел через запятую. Чиним один раз.
+async function fixLocaleIfNeeded(spreadsheetId) {
+  try {
+    const data = await apiGet(`${BASE}/${spreadsheetId}?fields=properties.locale`);
+    if (data.properties?.locale !== "en_US") {
+      await apiPost(`${BASE}/${spreadsheetId}:batchUpdate`, {
+        requests: [{
+          updateSpreadsheetProperties: {
+            properties: { locale: "en_US" },
+            fields: "locale"
+          }
+        }]
+      });
+    }
+  } catch(e) { console.warn("fixLocaleIfNeeded:", e); }
 }
 
 async function ensureSheets(isNew=false) {
@@ -1348,7 +1376,11 @@ async function loadFromSheets() {
 }
 
 async function readSheet(sn) {
-  const res=await apiGet(`${BASE}/${S.spreadsheetId}/values/${sn}`);
+  // valueRenderOption=UNFORMATTED_VALUE — ВАЖНО:
+  // без этого Google Sheets возвращает числа как ФОРМАТИРОВАННЫЙ ТЕКСТ
+  // (с запятой если локаль таблицы русская), а не как реальные числа.
+  // UNFORMATTED_VALUE всегда даёт чистые JS-числа независимо от локали отображения.
+  const res=await apiGet(`${BASE}/${S.spreadsheetId}/values/${sn}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`);
   if (!res.values||res.values.length<2) return [];
   const hdr=res.values[0];
   return res.values.slice(1).map(row=>{
@@ -1883,8 +1915,8 @@ function saveFuel(){
   const price=n(g("f-price").value,3);
   const total=n(g("f-total").value);
   const finalTotal=total||(lit*price);
-  const lat=parseFloat(g("f-lat").value)||0;
-  const lng=parseFloat(g("f-lng").value)||0;
+  const lat=n(g("f-lat").value,6);
+  const lng=n(g("f-lng").value,6);
   if(!lit&&!total){showToast("⚠ Укажите литры или сумму");return;}
   const eid=g("f-eid").value;
   if(eid){
